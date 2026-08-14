@@ -1,0 +1,39 @@
+====================================================================================
+GOVERNOR — Stage 3b: calibration learning curve
+====================================================================================
+
+  corpus: 2000 train episodes across 10 families
+  held-out: 600 episodes across 3 families (never fitted on)
+
+  Question: as episodes increase, does held-out ECE fall toward the
+  noise floor (undertrained) or stay flat above it (untransferable)?
+
+   episodes model              AUC  brier skill      ECE    floor  ECE/floor
+  --------------------------------------------------------------------------
+        120 Q_gbm_tuned      0.615       -17.1%   0.2345   0.0209      11.20x
+        120 Q_logistic       0.665        -1.7%   0.1941   0.0200       9.71x
+
+        250 Q_gbm_tuned      0.706        +5.1%   0.1453   0.0211       6.87x
+        250 Q_logistic       0.716       +15.5%   0.0788   0.0220       3.59x
+
+        500 Q_gbm_tuned      0.755       +15.8%   0.0934   0.0209       4.48x
+        500 Q_logistic       0.731       +15.9%   0.0813   0.0221       3.67x
+
+       1000 Q_gbm_tuned      0.809       +28.1%   0.0683   0.0208       3.28x
+       1000 Q_logistic       0.745       +19.4%   0.0756   0.0226       3.34x
+
+       2000 Q_gbm_tuned      0.841       +33.9%   0.0615   0.0214       2.88x
+       2000 Q_logistic       0.740       +20.2%   0.0543   0.0222       2.45x
+
+  ==========================================================================
+  Trend (ECE as a multiple of the noise floor; 1.0x = as calibrated as
+  this much held-out data can demonstrate)
+
+    Q_gbm_tuned      120ep 11.20x  ->   2000ep 2.88x   [falling]
+                   first-half mean 9.04x   second-half mean 3.08x
+    Q_logistic       120ep 9.71x  ->   2000ep 2.45x   [falling]
+                   first-half mean 6.65x   second-half mean 2.89x
+
+  VERDICT: UNDERTRAINED — calibration improves with episodes.
+           Collect more and re-run the Stage 3 gate. Do not redefine it.
+

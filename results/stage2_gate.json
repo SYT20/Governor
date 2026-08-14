@@ -3,25 +3,25 @@
   "checks": [
     {
       "name": "effective sample size (label)",
-      "observed": "800",
+      "observed": "2000",
       "required": ">=200",
       "ok": true
     },
     {
       "name": "episodes per (mode,tier) cell [worst: VERIFY@T2]",
-      "observed": 44,
+      "observed": 197,
       "required": ">=25",
       "ok": true
     },
     {
       "name": "successful episodes",
-      "observed": 412,
+      "observed": 1059,
       "required": ">=40",
       "ok": true
     },
     {
       "name": "failed episodes",
-      "observed": 388,
+      "observed": 941,
       "required": ">=40",
       "ok": true
     },
@@ -33,7 +33,7 @@
     },
     {
       "name": "episodes per family (min)",
-      "observed": 80,
+      "observed": 200,
       "required": ">=20",
       "ok": true
     },
@@ -45,28 +45,28 @@
     }
   ],
   "stats": {
-    "checkpoints": 5382,
-    "episodes": 800,
-    "mean_checkpoints_per_episode": 6.73,
+    "checkpoints": 14066,
+    "episodes": 2000,
+    "mean_checkpoints_per_episode": 7.03,
     "icc_label": 1.0,
-    "design_effect": 6.73,
-    "ess": 800.0,
-    "success_rate": 0.515,
-    "randomised_fraction": 0.3125,
+    "design_effect": 7.03,
+    "ess": 2000.0,
+    "success_rate": 0.5295,
+    "randomised_fraction": 0.3069,
     "uncovered_cells": [],
     "action_histogram": {
-      "EXPLORE@T2": 1362,
-      "EXPLOIT@T2": 864,
-      "VERIFY@T1": 768,
-      "EXPLORE@T1": 634,
-      "EXPLOIT@T1": 394,
-      "STOP_VERIFIED@T1": 373,
-      "STOP_UNVERIFIED@T1": 241,
-      "EXPLORE@T0": 187,
-      "STOP_FAILURE@T1": 186,
-      "EXPLOIT@T0": 180,
-      "VERIFY@T0": 148,
-      "VERIFY@T2": 45
+      "EXPLORE@T2": 3467,
+      "EXPLOIT@T2": 2210,
+      "VERIFY@T1": 2059,
+      "EXPLORE@T1": 1811,
+      "EXPLOIT@T1": 1016,
+      "STOP_VERIFIED@T1": 1003,
+      "STOP_UNVERIFIED@T1": 641,
+      "EXPLOIT@T0": 496,
+      "EXPLORE@T0": 465,
+      "STOP_FAILURE@T1": 356,
+      "VERIFY@T0": 327,
+      "VERIFY@T2": 215
     }
   }
 }
