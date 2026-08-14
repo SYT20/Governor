@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+results/*.db
+results/*.sqlite
+.DS_Store
