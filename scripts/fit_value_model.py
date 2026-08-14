@@ -35,7 +35,7 @@ def load(db: str) -> list[Checkpoint]:
     conn = sqlite3.connect(db)
     rows = conn.execute(
         """SELECT episode_id,decision_id,family,split,seed,action,mode,tier,
-                  was_random,n_admissible,features,label FROM checkpoints"""
+                  was_random,n_admissible,features,label,belief FROM checkpoints"""
     ).fetchall()
     conn.close()
     return [
@@ -43,6 +43,7 @@ def load(db: str) -> list[Checkpoint]:
             episode_id=r[0], decision_id=r[1], family=r[2], split=r[3], seed=r[4],
             action=r[5], mode=r[6], tier=r[7], was_random=bool(r[8]),
             n_admissible=r[9], features=json.loads(r[10]), label=r[11],
+            belief=json.loads(r[12]) if len(r) > 12 and r[12] else [],
         )
         for r in rows
     ]

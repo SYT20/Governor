@@ -111,6 +111,31 @@ def calibration_noise_floor(
     return {"p50": q(0.50), "p90": q(0.90), "p95": q(0.95), "mean": sum(sims) / len(sims)}
 
 
+def ece_sweep(y: list[int], p: list[float], bins: tuple[int, ...] = (5, 10, 15, 20, 30)) -> dict:
+    """ECE across bin counts, to expose estimator bias.
+
+    Plug-in binned ECE carries bias on the order of B/n (B bins, n samples), so a
+    single bin count can manufacture apparent miscalibration that is really a
+    property of the estimator. Kumar, Liang & Ma (arXiv:1909.10155) show the
+    debiased variant needs samples proportional to sqrt(B) rather than B; Roelofs
+    et al. (arXiv:2012.08668) show binned ECE can over- OR under-estimate at finite
+    n and that more bins is not monotonically better.
+
+    Reporting the sweep is the cheap defence: an ECE that climbs steadily with bin
+    count is largely estimator bias, while one that is flat across bin counts is a
+    genuine property of the predictions.
+    """
+    vals = {b: ece(y, p, b) for b in bins}
+    lo, hi = vals[min(bins)], vals[max(bins)]
+    return {
+        "by_bins": vals,
+        "min": min(vals.values()),
+        "max": max(vals.values()),
+        "drift_with_bins": hi - lo,
+        "bin_sensitive": (hi - lo) > 0.5 * max(lo, 1e-9),
+    }
+
+
 @dataclass(slots=True)
 class CalibrationReport:
     """Everything Stage 3's gate needs, plus what a reviewer will ask for."""

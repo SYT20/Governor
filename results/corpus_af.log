@@ -1,0 +1,52 @@
+====================================================================================
+GOVERNOR — Stage 2: randomised corpus collection + J.8 sufficiency gate
+====================================================================================
+
+[1] Task families (10 train, 3 held out)
+    family             split      k   a_T1   b_T1   pfix  note
+    baseline           train      4   0.78   0.20   0.70  the reference regime
+    shallow            train      2   0.78   0.20   0.70  few candidate causes; cheap to disambiguate
+    wide               train      7   0.78   0.20   0.70  many candidate causes; exploration matters more
+    faint_signal       train      4   0.64   0.32   0.70  weakly discriminative evidence; belief moves slowly
+    sharp_signal       heldout    4   0.90   0.09   0.70  highly discriminative evidence; one probe often suffices
+    brittle_repair     train      4   0.78   0.20   0.45  repairs often miss and frequently regress; verification matters
+    reliable_repair    train      4   0.78   0.20   0.88  repairs usually land; exploration is the bottleneck
+    flaky_tests        heldout    4   0.78   0.20   0.70  verification is noisy; a single passing test is weak evidence
+    costly             train      4   0.78   0.20   0.70  every action is expensive; the envelope binds early
+    cheap_wide         heldout    6   0.72   0.20   0.70  many causes but cheap probes; favours long exploration
+    deep_uncertainty   train      8   0.61   0.35   0.70  many causes and faint evidence; difficulty compounds
+    trivial            train      2   0.92   0.20   0.92  easy on every axis; a fixed script should already do well
+    verify_cheap       train      4   0.78   0.20   0.55  verification is accurate and relatively cheap; favours guess-then-check
+    held-out families are never collected from: sharp_signal, flaky_tests, cheap_wide
+
+[2] Fitting cost profile and evidence channels (pooled over train families)
+    explore@T0     alpha=0.639 beta=0.351 LR+= 1.82  usable=True
+    explore@T1     alpha=0.779 beta=0.204 LR+= 3.81  usable=True
+    explore@T2     alpha=0.918 beta=0.061 LR+=15.11  usable=True
+
+[3] Collecting under epsilon-greedy (eps=0.3), 200 episodes/family
+    wrote 18542 checkpoints -> results/corpus_af.db
+
+[4] J.8 sufficiency gate (train split)
+    effective sample size (label)                              2000  need >=200      PASS
+    episodes per (mode,tier) cell [worst: VERIFY@T2]                197  need >=25       PASS
+    successful episodes                                        1059  need >=40       PASS
+    failed episodes                                             941  need >=40       PASS
+    distinct families                                            10  need >=8        PASS
+    episodes per family (min)                                   200  need >=20       PASS
+    cells with randomised coverage                              9/9  need all        PASS
+
+[5] Corpus statistics
+    checkpoints=14066  episodes=2000  mean/episode=7.03
+    ICC(label)=1.0  design effect=7.03  ESS=2000.0
+    success rate=52.9%  randomised actions=30.7%
+    NOTE: labels are constant within an episode, so ICC = 1 and the
+          effective sample size equals the EPISODE count, not the
+          checkpoint count. More checkpoints from the same episodes
+          would not move this number. Collect more episodes instead.
+
+[6] Held-out split (for Stage 3 generalisation testing, not gated)
+    episodes=600  success rate=56.7%
+
+[7] VERDICT: PASS — Stage 3 may begin
+

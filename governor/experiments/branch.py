@@ -59,6 +59,7 @@ class BranchPoint:
     episode_seed: int
     decision_id: int
     features: dict[str, float]
+    belief: list[float] = field(default_factory=list)
     realised: dict[str, float] = field(default_factory=dict)   # action -> success rate
     n_replicates: int = 0
     predicted: dict[str, float] = field(default_factory=dict)  # action -> Q(s,a)
@@ -78,6 +79,7 @@ class BranchPoint:
             was_random=False,
             n_admissible=len(self.realised) or 1,
             features=dict(self.features),
+            belief=list(self.belief),
             label=0,
         )
 
@@ -193,7 +195,7 @@ def collect_branch_points(
             bp = BranchPoint(
                 family=family.name, split=split, episode_seed=seed,
                 decision_id=step_i, features=dict(snap_ctx.features()),
-                n_replicates=n_replicates,
+                belief=list(snap_ctx.belief), n_replicates=n_replicates,
             )
             for cand in candidates:
                 wins = 0

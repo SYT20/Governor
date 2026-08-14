@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS checkpoints (
     family       TEXT NOT NULL,
     split        TEXT NOT NULL,
     seed         INTEGER NOT NULL,
+    belief       TEXT NOT NULL DEFAULT '[]',
     action       TEXT NOT NULL,
     mode         TEXT NOT NULL,
     tier         TEXT NOT NULL,
@@ -77,6 +78,10 @@ class Checkpoint:
     n_admissible: int
     features: dict[str, float]
     label: int  # 1 if the episode eventually succeeded
+    # The belief vector at the moment of the decision. Needed to compute
+    # action-conditioned features (belief in the targeted hypothesis, expected
+    # information gain); the summary statistics in `features` throw that away.
+    belief: list[float] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -111,6 +116,7 @@ class RecordingCollector:
         self.rows.append(
             {
                 "features": ctx.features(),
+                "belief": list(ctx.belief),
                 "action": str(action),
                 "mode": str(action.mode),
                 "tier": str(action.tier),
@@ -184,10 +190,11 @@ def write_corpus(checkpoints: list[Checkpoint], path: str | Path) -> None:
     conn.executescript(CORPUS_SCHEMA)
     conn.executemany(
         """INSERT OR REPLACE INTO checkpoints VALUES
-           (:episode_id,:decision_id,:family,:split,:seed,:action,:mode,:tier,
+           (:episode_id,:decision_id,:family,:split,:seed,:belief,:action,:mode,:tier,
             :was_random,:n_admissible,:features,:label)""",
         [
-            {**asdict(c), "features": json.dumps(c.features), "was_random": int(c.was_random)}
+            {**asdict(c), "features": json.dumps(c.features),
+             "belief": json.dumps(c.belief), "was_random": int(c.was_random)}
             for c in checkpoints
         ],
     )

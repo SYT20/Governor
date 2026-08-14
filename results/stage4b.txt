@@ -1,0 +1,42 @@
+====================================================================================
+GOVERNOR — Stage 4B: explicit advantage model vs pooled Q
+====================================================================================
+
+[1] Corpus: 2000 episodes, 14066 checkpoints, 4317 randomised (31%) — stage 2 fits on the randomised subset only
+
+[2] Fitting both models on identical data
+    pooled_Q          P(success | state, action) in one model
+    V_plus_advantage  V(s) then residual regression on randomised rows
+
+[3] Branch points (collected once, both models scored on the same set)
+    train    baseline             40 branch points
+    train    shallow              40 branch points
+    train    wide                 40 branch points
+    train    faint_signal         40 branch points
+    heldout  sharp_signal         40 branch points
+    heldout  flaky_tests          40 branch points
+    heldout  cheap_wide           40 branch points
+    280 points   mean spread 0.138   decision-relevant 44%
+
+[4] Within-state action ranking  (0.500 = cannot rank actions at all)
+
+    model              split      pooled AUC   pairwise   strict      tau   regret
+    ----------------------------------------------------------------------------
+    pooled_Q           train                      0.551    0.703    0.042    0.060
+                       heldout                    0.658    0.824    0.323    0.046
+                       ALL             0.738      0.599    0.764    0.169    0.054
+
+    V_plus_advantage   train                      0.543    0.703    0.030    0.064
+                       heldout                    0.646    0.824    0.290    0.047
+                       ALL             0.748      0.590    0.764    0.148    0.056
+
+[5] VERDICT
+    pooled Q          0.599
+    V + advantage     0.590
+    difference        -0.009   (SE on each ~0.023; pairs are
+                      clustered within state, so the true SE is larger)
+    No detectable difference. The decomposition does not rescue action
+    ranking, so the limitation is the state representation itself, not
+    how the target is factored. Adding features that describe the ACTION's
+    expected effect is the next lever, not a different estimator.
+

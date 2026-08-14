@@ -72,7 +72,8 @@ def action_columns(checkpoints: list[Checkpoint]) -> list[str]:
 
 
 def with_action_indicators(
-    checkpoints: list[Checkpoint], names: list[str], acts: list[str]
+    checkpoints: list[Checkpoint], names: list[str], acts: list[str],
+    channels: dict | None = None,
 ) -> np.ndarray:
     """Direct-Q design matrix: state features plus one-hot action, plus the
     interaction of the action with budget remaining.
@@ -87,7 +88,26 @@ def with_action_indicators(
         A[r, idx[f"{c.mode}@{c.tier}"]] = 1.0
     bcol = names.index("frac_budget_remaining")
     inter = A * X[:, [bcol]]
-    return np.hstack([X, A, inter])
+    blocks = [X, A, inter]
+
+    if channels is not None:
+        # Stage 4B showed the estimator was not the bottleneck: the model had no
+        # feature describing what a given action would DO in a given state, only a
+        # one-hot saying which action it was. These columns supply that, computed
+        # as deterministic arithmetic over the belief and the measured channel.
+        from governor.models.action_features import ACTION_FEATURE_NAMES, action_features
+        AF = np.zeros((len(checkpoints), len(ACTION_FEATURE_NAMES)))
+        for r, c in enumerate(checkpoints):
+            tgt = int(c.action.split("->h")[1]) if "->h" in c.action else None
+            f = action_features(
+                belief=c.belief, mode=c.mode, tier=c.tier, target=tgt,
+                channels=channels,
+                n_exploit=c.features.get("n_exploit", 0.0),
+                n_verify=c.features.get("n_verify", 0.0),
+            )
+            AF[r] = [f[k] for k in ACTION_FEATURE_NAMES]
+        blocks.append(AF)
+    return np.hstack(blocks)
 
 
 @dataclass(slots=True)
@@ -102,10 +122,12 @@ class FittedModel:
     data_version: str
     uses_actions: bool
     n_effective: int
+    channels: dict | None = None
 
     def predict(self, checkpoints: list[Checkpoint]) -> np.ndarray:
         X = (
-            with_action_indicators(checkpoints, self.feature_names, self.action_names)
+            with_action_indicators(checkpoints, self.feature_names, self.action_names,
+                                   self.channels)
             if self.uses_actions
             else feature_matrix(checkpoints, self.feature_names)[0]
         )
@@ -139,12 +161,13 @@ def fit_model(
     data_version: str = "corpus",
     n_calib_folds: int = 4,
     estimator_kwargs: dict | None = None,
+    channels: dict | None = None,
 ) -> FittedModel:
     """Fit and calibrate, with every split grouped by episode."""
     names = usable_feature_names(checkpoints)
     acts = action_columns(checkpoints) if uses_actions else []
     X = (
-        with_action_indicators(checkpoints, names, acts)
+        with_action_indicators(checkpoints, names, acts, channels)
         if uses_actions
         else feature_matrix(checkpoints, names)[0]
     )
@@ -173,6 +196,7 @@ def fit_model(
         data_version=data_version,
         uses_actions=uses_actions,
         n_effective=len(set(groups)),  # episodes, not checkpoints (see J.8)
+        channels=channels,
     )
 
 
@@ -284,3 +308,90 @@ def audit_terminal_dependence(
                 "base_rate": r.base_rate}
 
     return {"post_pass": sub(verified), "pre_resolution": sub(unknown)}
+
+
+# -- Option C: explicit advantage model (added after Stage 4A) ------------------
+
+
+@dataclass(slots=True)
+class AdvantageModel:
+    """Q(s,a) = V(s) + A(s,a), with the action effect fitted on residuals.
+
+    Stage 4A showed the pooled Q model ranks STATES (pooled AUC 0.75) far better
+    than it ranks ACTIONS at a fixed state (0.58, and 0.52 on training regimes).
+    The cause is structural: fitting P(success | state features, action indicator)
+    against a target dominated by state difficulty lets the model spend all its
+    capacity on "is this episode going well" and treat the action indicator as
+    near-noise. Bellemare et al.'s action-gap result is the same observation from
+    the RL side -- when action values at a state are close, estimation error swamps
+    the induced ordering.
+
+    A note on what this does and does not fix. Within a single state V(s) is a
+    constant, so subtracting it cannot change the ordering of actions -- advantage
+    ranking and Q ranking are identical *as an evaluation*. The gain is entirely in
+    FITTING: stage two regresses on residuals, where the state-difficulty signal has
+    already been removed, so the action effect is what remains to be explained
+    rather than a rounding error on top of it.
+
+    Stage two uses only randomised decisions. On those the action was chosen
+    independently of the state, so the residual difference between actions is an
+    unconfounded estimate of the effect rather than a record of what the behaviour
+    policy preferred.
+    """
+
+    v: FittedModel
+    effect: object
+    feature_names: list[str]
+    action_names: list[str]
+    train_base_rate: float
+    n_effective: int
+    name: str = "V_plus_advantage"
+    data_version: str = "corpus"
+
+    def advantage(self, checkpoints: list[Checkpoint]) -> np.ndarray:
+        X = with_action_indicators(checkpoints, self.feature_names, self.action_names)
+        return self.effect.predict(X)
+
+    def predict(self, checkpoints: list[Checkpoint]) -> np.ndarray:
+        base = self.v.pipeline.predict_proba(
+            feature_matrix(checkpoints, self.feature_names)[0]
+        )[:, 1]
+        return np.clip(base + self.advantage(checkpoints), 1e-6, 1 - 1e-6)
+
+
+def fit_advantage(
+    checkpoints: list[Checkpoint],
+    *,
+    data_version: str = "corpus",
+    randomised_only: bool = True,
+) -> AdvantageModel:
+    from sklearn.ensemble import HistGradientBoostingRegressor
+
+    names = usable_feature_names(checkpoints)
+    acts = action_columns(checkpoints)
+
+    # Stage 1: state value, no action information at all.
+    v = fit_model(checkpoints, kind="gbm", uses_actions=False,
+                  data_version=data_version, n_calib_folds=3,
+                  estimator_kwargs=dict(max_depth=3, max_iter=150,
+                                        learning_rate=0.08, min_samples_leaf=40))
+
+    # Stage 2: what the action adds, on top of what the state already explains.
+    rows = [c for c in checkpoints if c.was_random] if randomised_only else checkpoints
+    if len(rows) < 200:
+        rows = checkpoints
+    base = v.pipeline.predict_proba(feature_matrix(rows, names)[0])[:, 1]
+    resid = np.array([c.label for c in rows], dtype=float) - base
+    X = with_action_indicators(rows, names, acts)
+    eff = HistGradientBoostingRegressor(
+        max_depth=3, max_iter=200, learning_rate=0.06,
+        min_samples_leaf=30, l2_regularization=1.0, random_state=0,
+    )
+    eff.fit(X, resid)
+
+    return AdvantageModel(
+        v=v, effect=eff, feature_names=names, action_names=acts,
+        train_base_rate=v.train_base_rate,
+        n_effective=len({c.episode_id for c in rows}),
+        data_version=data_version,
+    )
