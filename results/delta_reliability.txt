@@ -1,0 +1,38 @@
+  THREE-WAY REGIME SPLIT (no post-selection)
+    train      ['baseline', 'shallow', 'wide', 'faint_signal', 'brittle_repair', 'reliable_repair', 'costly']
+    validation ['deep_uncertainty', 'trivial', 'verify_cheap']   <- threshold chosen here
+    test       ['sharp_signal', 'flaky_tests', 'cheap_wide']   <- evaluated ONCE
+
+    train  baseline           + 32 (total 32)
+    train  shallow            + 32 (total 64)
+    train  wide               + 32 (total 96)
+    train  faint_signal       + 32 (total 128)
+    train  brittle_repair     + 32 (total 160)
+    train  reliable_repair    + 32 (total 192)
+    train  costly             + 32 (total 224)
+    val    deep_uncertainty   + 32 (total 256)
+    val    trivial            + 32 (total 288)
+    val    verify_cheap       + 32 (total 320)
+    test   sharp_signal       + 32 (total 352)
+    test   flaky_tests        + 32 (total 384)
+    test   cheap_wide         + 32 (total 416)
+  collected 416
+
+  [1] RELIABILITY — CRN covariance and split-half
+      Var(observed Delta)                 0.02397
+      naive noise (independence assumed)  0.01098  -> reliability 0.542
+      mean Cov(Y_a,Y_b) from CRN          +0.01813
+      covariance-corrected noise          0.00796  -> reliability 0.668
+      SPLIT-HALF r (6+6 reps)              +0.449  -> Spearman-Brown reliability 0.620
+      => empirical ceiling on R^2 is the split-half value, 0.620
+
+  samples: 672 train / 288 val / 288 test
+      held-out R^2: val +0.026   test +0.397   (ceiling 0.620)
+
+  [2] THRESHOLD chosen on VALIDATION, evaluated ONCE on TEST
+      chosen threshold +0.01  (validation gain +0.0058)
+      TEST: n=25/288  coverage 8.7%  precision 16.0%  mean Delta -0.0100  policy gain -0.0009
+
+  [3] TOP-1 SELECTION and REGRET on TEST states
+      states 96   top-1 accuracy 92.7%   mean regret +0.0200
+      random-choice regret +0.0874  -> model reduces regret by 77.2%
