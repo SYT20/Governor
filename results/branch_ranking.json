@@ -1,0 +1,55 @@
+{
+  "summary": {
+    "train": {
+      "pairwise": {
+        "pairs": 273,
+        "accuracy": 0.521978021978022,
+        "ties": 0.1282051282051282
+      },
+      "tau": 0.04788732394366197,
+      "regret": {
+        "n": 160,
+        "mean": 0.057421875,
+        "median": 0.0,
+        "frac_optimal": 0.71875
+      },
+      "n_points": 160
+    },
+    "heldout": {
+      "pairwise": {
+        "pairs": 240,
+        "accuracy": 0.6458333333333334,
+        "ties": 0.16666666666666666
+      },
+      "tau": 0.26384180790960454,
+      "regret": {
+        "n": 120,
+        "mean": 0.05677083333333333,
+        "median": 0.0,
+        "frac_optimal": 0.7083333333333334
+      },
+      "n_points": 120
+    },
+    "ALL": {
+      "pairwise": {
+        "pairs": 513,
+        "accuracy": 0.5799220272904484,
+        "ties": 0.14619883040935672
+      },
+      "tau": 0.1458974358974359,
+      "regret": {
+        "n": 280,
+        "mean": 0.05714285714285714,
+        "median": 0.0,
+        "frac_optimal": 0.7142857142857143
+      },
+      "n_points": 280
+    }
+  },
+  "pooled_auc": 0.7445613212438738,
+  "spread": {
+    "mean_spread": 0.15089285714285713,
+    "median_spread": 0.0,
+    "frac_states_with_real_choice": 0.45
+  }
+}

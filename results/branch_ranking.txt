@@ -1,0 +1,65 @@
+====================================================================================
+GOVERNOR — Stage 4A: does the model rank ACTIONS or only STATES?
+====================================================================================
+
+[1] Fitting the Stage 3 winner on 2000 episodes
+    Q_gbm (tuned GBM) — the model whose AUC 0.84 was over-read
+
+[2] Branching: 20 base episodes/family, forks at 30% and 70%,
+    every admissible action tried, 16 replicates each.
+    Replicate count sets the resolution: a Bernoulli rate near 0.5 from
+    16 draws has standard error ~0.125.
+    train    baseline             40 branch points
+    train    shallow              40 branch points
+    train    wide                 40 branch points
+    train    faint_signal         40 branch points
+    heldout  sharp_signal         40 branch points
+    heldout  flaky_tests          40 branch points
+    heldout  cheap_wide           40 branch points
+
+[3] Sanity: does the action choice matter at these states?
+    mean best-worst spread   0.151
+    median spread            0.000
+    states where it matters  45.0% (spread >= 0.10)
+
+[4] Within-state action ranking — the number that actually matters
+    Realised values are Bernoulli rates from 16 draws, so the
+    difference between two actions carries SE ~0.177. Noise in the realised
+    value attenuates pairwise accuracy TOWARD 0.5, so these are conservative:
+    a reading above 0.5 understates the true ranking ability.
+    Reporting at several min-gap thresholds; the largest exceeds the noise.
+
+    min realised gap > 0.00
+    split       points   pairs  pairwise acc  kendall tau  mean regret  frac optimal
+    --------------------------------------------------------------------------------
+    train          160     362         0.515        0.048        0.057         71.9%
+    heldout        120     314         0.610        0.264        0.057         70.8%
+    ALL            280     676         0.559        0.146        0.057         71.4%
+
+    min realised gap > 0.10
+    split       points   pairs  pairwise acc  kendall tau  mean regret  frac optimal
+    --------------------------------------------------------------------------------
+    train          160     273         0.522        0.048        0.057         71.9%
+    heldout        120     240         0.646        0.264        0.057         70.8%
+    ALL            280     513         0.580        0.146        0.057         71.4%
+
+    min realised gap > 0.35
+    split       points   pairs  pairwise acc  kendall tau  mean regret  frac optimal
+    --------------------------------------------------------------------------------
+    train          160      47         0.649        0.048        0.057         71.9%
+    heldout        120      54         0.769        0.264        0.057         70.8%
+    ALL            280     101         0.713        0.146        0.057         71.4%
+
+[5] The contrast: pooled AUC vs within-state ranking
+    pooled AUC over all (state, action) rows   0.745
+    within-state pairwise ranking accuracy     0.580
+    gap                                        +0.165
+    Pooled AUC can be high while within-state accuracy sits at 0.5 —
+    that is precisely the failure mode this experiment exists to detect.
+
+[6] VERDICT
+    Within-state action ranking on UNSEEN regimes: 0.646
+    The model ranks actions meaningfully better than chance. Ranking-based
+    action selection is supported by direct counterfactual evidence, not
+    inferred from pooled AUC.
+
