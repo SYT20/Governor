@@ -203,9 +203,18 @@ def collect_branch_points(
                     t = copy.deepcopy(snap_task)
                     c = copy.deepcopy(snap_ctx)
                     c.accountant = copy.deepcopy(snap_ctx.accountant)
-                    # Decorrelate replicate streams; without this every replicate
-                    # replays identical randomness and the "rate" is one draw.
-                    t._rng.seed(seed * 100_003 + step_i * 997 + r * 31 + hash(str(cand)) % 9973)
+                    # COMMON RANDOM NUMBERS. Every action at a given replicate
+                    # index shares one stream, so the branches differ only in the
+                    # forced action and the comparison becomes a matched pair.
+                    #
+                    # The first version folded hash(str(cand)) into the seed, which
+                    # gave each action its OWN stream -- the exact opposite of CRN.
+                    # It was written to decorrelate replicates from one another
+                    # (which it did, and which is correct), but it also destroyed
+                    # the pairing that makes within-state comparison low-variance.
+                    # Replicate index still varies the stream; the action no longer
+                    # does.
+                    t._rng.seed(seed * 100_003 + step_i * 997 + r * 31)
                     realised = t.cost_of(cand)
                     _, trunc = _charge_or_truncate(c.accountant, cand.action_class, realised)
                     obs = t.step(cand)
