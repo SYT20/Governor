@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "effective sample size (label)",
+      "observed": "800",
+      "required": ">=200",
+      "ok": true
+    },
+    {
+      "name": "episodes per (mode,tier) cell [worst: VERIFY@T2]",
+      "observed": 44,
+      "required": ">=25",
+      "ok": true
+    },
+    {
+      "name": "successful episodes",
+      "observed": 412,
+      "required": ">=40",
+      "ok": true
+    },
+    {
+      "name": "failed episodes",
+      "observed": 388,
+      "required": ">=40",
+      "ok": true
+    },
+    {
+      "name": "distinct families",
+      "observed": 10,
+      "required": ">=8",
+      "ok": true
+    },
+    {
+      "name": "episodes per family (min)",
+      "observed": 80,
+      "required": ">=20",
+      "ok": true
+    },
+    {
+      "name": "cells with randomised coverage",
+      "observed": "9/9",
+      "required": "all",
+      "ok": true
+    }
+  ],
+  "stats": {
+    "checkpoints": 5382,
+    "episodes": 800,
+    "mean_checkpoints_per_episode": 6.73,
+    "icc_label": 1.0,
+    "design_effect": 6.73,
+    "ess": 800.0,
+    "success_rate": 0.515,
+    "randomised_fraction": 0.3125,
+    "uncovered_cells": [],
+    "action_histogram": {
+      "EXPLORE@T2": 1362,
+      "EXPLOIT@T2": 864,
+      "VERIFY@T1": 768,
+      "EXPLORE@T1": 634,
+      "EXPLOIT@T1": 394,
+      "STOP_VERIFIED@T1": 373,
+      "STOP_UNVERIFIED@T1": 241,
+      "EXPLORE@T0": 187,
+      "STOP_FAILURE@T1": 186,
+      "EXPLOIT@T0": 180,
+      "VERIFY@T0": 148,
+      "VERIFY@T2": 45
+    }
+  }
+}
