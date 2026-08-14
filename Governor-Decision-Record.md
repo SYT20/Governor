@@ -111,7 +111,7 @@ model barely can.
   ICC = 1 exactly and 5,382 checkpoints carry the information of 800 observations.
   Note the target is *unbiased* (OVM proves it converges to `p(success|prefix)`) —
   this is a variance argument, not a correctness one.
-- **Cross-regime miscalibration is a base-rate shift.** Calibration-in-the-large
+- **A substantial part of cross-regime miscalibration is consistent with a base-rate shift** — not all of it, since the correction removed 39% and left 1.6–1.8× the floor. Calibration-in-the-large
   −0.0530 against a prior shift of +0.052. A **one-parameter** logit offset fixed
   39% of it from 60 episodes with AUC preserved *exactly*. Isotonic and Platt on
   the same 60 episodes made it worse — the constraint is parameter count, not
@@ -140,10 +140,10 @@ excluded from scoring, so the policy structurally **could not choose to stop**
 
 | # | Question | Settled |
 |---|---|---|
-| D1 | direct Q vs V∘T | **Direct Q.** Composition gave no gain |
+| D1 | direct Q vs V∘T | **MVP choice: direct Q.** Research status: no evidence V∘T improves it *under this representation and data*. Not a general claim |
 | D2 | logistic vs GBM | **GBM for ranking, logistic better calibrated.** Contested — depends which property binds |
 | D3 | uncertainty signal | Belief entropy retained; agreement signal untested |
-| D4 | does cognitive state earn its place? | **Yes** — belief features are load-bearing in both arms |
+| D4 | does cognitive state earn its place? | **Yes**, by the proper 2×2 ablation (below), not by the weaker evidence rev-3 first cited |
 | D5 | fitted (α,β) vs fixed LR | **Fitted.** Estimator recovers generating values to 0.019 |
 | D6 | tier count | 3 retained; all tiers selected in practice |
 
@@ -155,6 +155,116 @@ value. That is a limitation of the **testbed**, not a refutation of the thesis: 
 a real repository there is no clean belief vector to threshold. This is now the
 strongest argument for building the SWE-bench executor — the synthetic environment
 may be structurally unable to exhibit the effect the project is looking for.
+
+---
+
+## 0.4 Final: what is established, what is not, and the workflow
+
+### D4 settled properly — the 2×2 ablation
+
+Rev 3 first recorded D4 as settled on the grounds that "belief features are
+load-bearing in both arms". That answered whether belief is *predictive*, which is
+a different question. The Decision Record's actual ablation is arm E⁻ᶜᵒᵍ: the same
+controller with every belief-derived feature removed (3 state + 3 action features).
+
+| arm | 100% | 50% | 25% |
+|---|---|---|---|
+| E⁻ᶜᵒᵍ (learned, no belief) | 7.8% | 28.3% | 8.3% |
+| E (learned, belief) | 48.3% | 42.8% | 16.1% |
+| A_fixed (rule, no belief) | 40.0% | 40.0% | **24.4%** |
+| C_heuristic (rule, belief) | **82.2%** | **71.7%** | 18.3% |
+
+Value of belief: **+42.2pp to the rule, +40.6pp to the learned policy.** The
+cognitive layer earns its place — removing it is catastrophic for both arms.
+
+**But this sharpens the negative result rather than softening it.** The learned
+policy extracts belief value about as well as the rule does, and still finishes
+34pp behind. The gap is therefore *not* in acquiring belief information, and *not*
+in consuming it — it is in the decision rules built on top: when to commit, when
+to verify, when to stop. Hand-written rules encode those better than the
+controller infers them from 2,000 episodes.
+
+Two anomalies, recorded rather than smoothed over:
+- E⁻ᶜᵒᵍ scores **worse at 100% budget than at 50%**. More budget producing worse
+  outcomes is the signature of dithering: with no confidence signal the policy
+  never commits, and extra budget buys more wandering.
+- At 25% budget `A_fixed` beats every adaptive arm. Under severe scarcity a rigid
+  cheap script wins outright — which is itself a finding about when adaptivity
+  stops paying.
+
+### Reviewer claims tested rather than accepted
+
+| claim | verdict |
+|---|---|
+| Heuristic reads privileged hidden belief | **False.** Feature-restricted heuristic identical to 4 decimals |
+| Shared seed ≠ shared exogenous randomness (CRN) | **False here.** Every action consumes exactly 4 variates; next draw identical across all actions. Sound in general, does not apply to SynthBug |
+| Advantage decomposition improves action ranking | **False.** 0.590 vs 0.599 |
+| ECE plateau may be estimator bias | **False.** Split-half debiasing *raised* it (0.0683 → 0.0702) |
+| Intercept-only recalibration preserves ranking, fixes level | **True.** AUC exact, ECE −39% from one parameter on 60 episodes |
+| Common random numbers should be used | **True**, and the code was violating it. Fixed |
+| D4 evidence was wrong | **True.** Proper ablation run above |
+| Calibration/D1 phrasing overstated | **True.** Corrected above |
+
+### Frozen requirements (what the system must do)
+
+1. **Enforcement is structural.** Budget violations raise; they are never logged.
+   BVR = 0 asserted in CI, permanently.
+2. **Every policy input carries provenance** (`measured` / `fitted` / `derived`),
+   and `fitted` requires an interval, model id, and corpus version.
+3. **Corpus collection is randomised** (ε-greedy). Without action overlap no
+   action-conditional estimator is identifiable.
+4. **Splits are by regime, sample sizes counted in episodes.** ICC = 1 for
+   episode-constant labels.
+5. **Action-selection quality is measured within-state**, never by pooled AUC, and
+   always alongside the decision-relevant fraction (~46% here).
+6. **Stopping is verification-driven.** Probability may inform it; it may not
+   decide it alone.
+7. **Recalibration across regimes is intercept-only** unless a large in-regime
+   sample justifies more parameters.
+8. **Every arm shares context, tools, envelope, and accountant**, asserted by
+   `config_hash`.
+
+### Workflow (the loop that produced these results, and should continue)
+
+```
+state a falsifiable claim
+        ↓
+build the cheapest experiment that could refute it
+        ↓
+run it  ──→  refuted? record it, keep the number, revise the claim
+        ↓
+    survived? commit with the evidence in the message
+        ↓
+external review  ──→  test the claim before conceding OR accepting
+        ↓
+update the Decision Record; measurements supersede prose
+```
+
+Three of my own confident explanations and four reviewer claims died this way.
+That is the process working, and it is the part of this project most worth
+keeping.
+
+### Genuinely unresolved
+
+1. Whether a richer state/action representation can learn incremental action
+   effects (within-state ranking is 0.61; that is the binding constraint).
+2. Whether SynthBug is intrinsically too simple — its clean low-dimensional
+   posterior makes a threshold rule near-optimal, which a real repository would
+   not.
+3. Whether the learned policy beats simple heuristics in a harder environment.
+4. Whether the probability model belongs in action selection at all, or only in
+   stopping and uncertainty reporting.
+
+### Next step, and why
+
+**Build a harder controlled environment before spending on SWE-bench.** Remove the
+clean posterior that makes a threshold heuristic near-optimal: raw noisy
+observations, partially observable evidence, delayed verification. If the learned
+policy cannot beat a rule there either, the thesis is in trouble independent of
+domain. If it can, SWE-bench becomes the confirmation rather than the experiment.
+
+This is cheaper than SWE-bench and tests the one hypothesis that would explain
+every result so far.
 
 ---
 
