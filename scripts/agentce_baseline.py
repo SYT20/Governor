@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from governor.accounting.meter import Envelope
-from governor.envs.agentce import AgentCEEpisode, DOMAINS, load_instances
+from governor.envs.agentce import AgentCEEpisode, DOMAINS, load_instances, resolve_field
 
 def constraint_policy(ep: AgentCEEpisode) -> None:
     """Read constraints -> query candidates satisfying each -> intersect -> set.
@@ -39,7 +39,8 @@ def constraint_policy(ep: AgentCEEpisode) -> None:
             val = rules.get(fld)
             if not isinstance(val, (int, float)): continue
             op = "<=" if fld.startswith("max") else ">="
-            key = fld.replace("max_", "").replace("min_", "")
+            key = resolve_field(fld, getattr(ep.instance, "item_pool", {}) or {})
+            if key is None: continue
             res = ep.call(f"query_{dom}_candidate_from_attribute",
                           row=r, col=c, field=key, operator=op, value=val)
             ids = set(_ids(res))

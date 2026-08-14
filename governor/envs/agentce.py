@@ -76,6 +76,35 @@ def load_instances(domain: str, grid: str = "5x7") -> list:
     return load_dataset_objects_from_file(str(hits[0]))
 
 
+def resolve_field(rule_name: str, item_pool: dict) -> str | None:
+    """Map a slot-constraint rule name onto the actual item attribute name.
+
+    Naive prefix-stripping is WRONG and cost me a silent 0% on an entire domain:
+    travel's rule `max_crowd` refers to the item field `crowd_level`, so stripping
+    to `crowd` produced a failed query on every single travel instance while
+    course and meal happened to work. The failure was invisible because a failed
+    query simply returns no matches, which looks like an empty candidate pool.
+
+    Resolve against the real item schema instead of guessing: exact match first,
+    then unique prefix match, then unique substring match. Return None rather than
+    guessing when ambiguous.
+    """
+    base = rule_name.replace("max_", "", 1).replace("min_", "", 1)
+    sample = next(iter(item_pool.values()), None) if isinstance(item_pool, dict) else None
+    if not isinstance(sample, dict):
+        return base
+    fields = [f for f in sample if not f.endswith("_id") and f != "name"]
+    if base in fields:
+        return base
+    pref = [f for f in fields if f.startswith(base)]
+    if len(pref) == 1:
+        return pref[0]
+    sub = [f for f in fields if base in f]
+    if len(sub) == 1:
+        return sub[0]
+    return None
+
+
 def cost_key(tool_name: str) -> str:
     if tool_name in _GENERIC:
         return {"set_slot": "set_slot", "done": "done"}.get(tool_name, "grid_state")
