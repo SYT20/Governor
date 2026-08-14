@@ -268,6 +268,108 @@ every result so far.
 
 ---
 
+## 0.5 STAGE 6 — the result: it is a switching problem, not an estimation problem
+
+Stage 5 reported H1 unsupported. That was correct about the *value-function*
+controller and wrong as a verdict on the thesis. Stage 6 asked what the winning
+heuristic was actually doing, and the answer reframes the project.
+
+### 6A — the heuristic is one rule
+
+Ablating each rule on held-out regimes (task success):
+
+| ablation | 100% | 50% | 25% |
+|---|---|---|---|
+| full heuristic | 84.0% | 72.0% | 20.0% |
+| − verified_stop | 84.0% | 72.0% | 20.0% |
+| − budget_floor | 84.0% | 72.0% | 20.0% |
+| **− confident_exploit** | **0.0%** | **0.0%** | **0.0%** |
+| − verify_after_edit | 84.0% | 72.0% | 20.0% |
+| − tier_escalation | 70.7% | 68.7% | **32.0%** |
+
+One rule carries everything: *commit to a repair once the leading hypothesis
+crosses a confidence threshold*. Three rules change task success by exactly zero
+(they are efficiency rules; this ablation reported TSR only — a measurement gap).
+
+**`tier_escalation` is actively harmful under scarcity** (+12pp when removed at
+25%). The cause is a real bug that generalises beyond this simulator: escalation
+keys on `frac_budget_remaining`, which begins at 1.0 whether the envelope is
+generous or tiny, so the policy buys expensive actions early in a small budget and
+strands itself. *Any* controller keying tier choice on a normalised fraction has
+this defect. It also retracts an earlier reading: `A_fixed` beating adaptive arms
+at 25% was not "rigidity wins under scarcity", it was the only arm without the bug.
+
+### 6C — thresholds beat the value function, but fixed ones cannot span regimes
+
+Fitting the six constants (train regimes only) scored **93.3% vs the value
+function's 48.3%** at full budget — and **10.0% at 25%**. A single threshold set
+optimised anywhere collapses elsewhere.
+
+The tuning objective was also degenerate: averaging TSR across budget levels gave
+tuned 58.4% vs hand-tuned 58.7%, indistinguishable, while the distributions across
+regimes were completely different. Aggregating over the dimension under study hides
+the effect — the same error as pooled AUC.
+
+### 6D/6E — the thresholds move with the envelope, and it generalises
+
+Tuned independently per budget, then interpolated and tested at levels never tuned
+on (starred):
+
+| budget | hand-tuned | adaptive | delta | cost/win hand | cost/win adaptive |
+|---|---|---|---|---|---|
+| 100% | 84.0% | **95.3%** | **+11.3%** | 0.1584 | 0.1892 |
+| 75%* | 83.3% | 87.3% | +4.0% | 0.1431 | 0.1579 |
+| 50% | 72.0% | 74.0% | +2.0% | 0.1268 | 0.1294 |
+| 35%* | 49.3% | 50.0% | +0.7% | 0.1289 | 0.1174 |
+| 25% | 20.0% | **34.7%** | **+14.7%** | 0.2156 | **0.1058** |
+
+With n=150 per cell (SE ≈ 4pp), **+11.3 and +14.7 are ≈3σ; +4.0, +2.0 and +0.7 are
+within noise.** The honest claim is *never worse, substantially better at the
+extremes* — which is interpretable: the hand-tuned constants are a mid-range
+compromise, so they are near-optimal in the middle and worst at the edges.
+Adaptation pays exactly where a fixed compromise is weakest.
+
+**The 25% cell is a Pareto improvement, not a tradeoff:** +14.7pp success *and*
+cost per success halved.
+
+The fitted thresholds are legible as a strategy:
+
+| | 100% budget | 25% budget |
+|---|---|---|
+| commit at confidence | 0.95 | 0.50 |
+| reserve | 11% | 43% |
+| escalate tiers | yes | **no** |
+
+Conditioning on the envelope is **not leakage** — the envelope is a user-specified
+*input* (brief §11), unlike `OracleArm`'s access to the hidden true cause.
+
+### What this means
+
+> **Agent control under a resource budget is a low-dimensional switching problem,
+> and value-function estimation is the wrong tool for it.** Learning
+> `P(success | s, a)` across sixteen features to approximate a decision that one
+> comparison against one constant makes correctly is a far harder problem than
+> learning the constant — and the constant depends on how much budget remains.
+
+H1 is **supported**, with the mechanism being threshold adaptation rather than
+calibrated value estimation, and with the largest gain under scarcity exactly as
+§B predicted. Every earlier negative result is the elimination sequence that
+identifies *why*: within-state ranking stuck at 0.61, the advantage decomposition
+giving nothing, action features moving +0.024, calibration plateauing at 2.8× the
+noise floor. Those are symptoms of a mis-specified estimation target.
+
+### Still open
+
+1. Whether this survives an environment where the belief is not a clean
+   low-dimensional posterior — SynthBug may make threshold policies unusually
+   strong. **This is now the top priority.**
+2. Whether the thresholds can be learned online within an episode rather than
+   fitted offline per envelope.
+3. Whether a value model has any remaining role — plausibly for *stopping* and
+   uncertainty reporting rather than action selection.
+
+---
+
 ## 1. Prior art and where the gap actually is
 
 | Work | What it does | What it leaves open for you |
