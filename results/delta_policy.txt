@@ -1,0 +1,35 @@
+    train    baseline           + 36 branch points (total 36)
+    train    shallow            + 36 branch points (total 72)
+    train    wide               + 36 branch points (total 108)
+    train    faint_signal       + 36 branch points (total 144)
+    train    brittle_repair     + 36 branch points (total 180)
+    heldout  sharp_signal       + 36 branch points (total 216)
+    heldout  flaky_tests        + 36 branch points (total 252)
+    heldout  cheap_wide         + 36 branch points (total 288)
+  collected 288 branch points
+
+  [Q1] admissible-set sizes: {4: 288}
+  [Q2] PAIRWISE interventional effects (same state, both actions forced,
+       common random numbers). NOT action-vs-pooled-rest.
+       action A       vs action B     mean Delta      n
+       EXPLORE@T2     VERIFY@T0           +0.199    107
+       EXPLORE@T2     EXPLOIT@T0          +0.163    107
+       EXPLORE@T2     EXPLORE@T0          +0.082    107
+       EXPLOIT@T2     VERIFY@T0           +0.076    118
+       EXPLORE@T0     VERIFY@T0           +0.075    288
+       EXPLORE@T0     EXPLOIT@T0          +0.040    288
+
+  Delta(s,a;pi_0) samples: 540 train / 324 held-out
+  mean Delta -0.0722  frac positive 6.9%
+  -> most deviations from the baseline HURT, which is why a policy that
+     overrides everywhere loses. The question is whether the positive
+     minority is PREDICTABLE.
+
+  Delta model on HELD-OUT regimes:  R^2 +0.353   sign accuracy 78.4%
+    predicted Delta > 0.00:  n=  75  actual mean Delta +0.0093  frac actually positive 14.7%
+    predicted Delta > 0.05:  n=  11  actual mean Delta +0.0364  frac actually positive 36.4%
+
+  GATE: an override is only safe if 'predicted Delta > t' selects a set
+        whose ACTUAL mean Delta is positive. If it is negative at every
+        threshold, no safe override exists and the baseline is unimprovable
+        by this estimand.
