@@ -2,8 +2,8 @@
 
 **Working name:** *Governor* (a governor is a mechanical device external to an engine that meters fuel to it — which is exactly the architecture: an external, deterministic controller metering compute to an LLM agent). Rename freely.
 
-**Status (rev 2):** **Direction frozen. Statistical specification NOT frozen.** Six decisions are deliberately deferred to the build stage where each becomes cheap to settle with data — see §0.2. Nothing below should be implemented as dogma; §3 is the build order, and every stage has a test and a drift check.
-**Date:** 2026-08-14
+**Status (rev 3):** **Stages 0–5 built and run. The primary hypothesis is NOT supported in the synthetic environment.** All six deferred decisions are now settled by experiment, and several rev-2 predictions were wrong. §0.3 records what was actually measured; it supersedes any speculation elsewhere in this document.
+**Date:** 2026-08-15
 **Supersedes:** `Idea/Decision & Architecture Research Prompt — Resource-Aware Cognitive Policy Layer.md` (the brief), and rev 1 of this document.
 
 **Constraint added in rev 2:** the entire stack must be free and open-source, runnable end-to-end by a stranger with no paid API key, and shippable to GitHub with a README and reproducible metrics. This is now a first-class design constraint, not a nice-to-have — it changes §F and §J.2 materially (see §0.1 item 8).
@@ -50,6 +50,111 @@ Per your instruction that the best approach is usually found by experiment rathe
 | D4 | Does cognitive state earn its place? | Keep vs cut | Stage 5 | Governor vs Governor-minus-cognitive-state. **If it ties, cut it and say so** |
 | D5 | Evidence-channel likelihood | Fitted two-parameter (α, β) vs fixed conservative LR cap | Stage 5 | Whether enough resolved episodes exist to fit α, β with usable CIs |
 | D6 | Effort tier count | 2 vs 3 tiers | Stage 4 | Tier-selection histogram; if a tier is never chosen, drop it |
+
+## 0.3 What was actually measured (rev 3 — supersedes speculation above)
+
+Stages 0–5 are implemented, tested (55 unit tests), and run. This section records
+results; where it contradicts a prediction made earlier in this document, the
+measurement wins.
+
+### The headline: H1 is not supported in SynthBug
+
+On held-out regimes, paired seeds, identical context/tools/envelope/accountant,
+with McNemar tests:
+
+| budget | C_heuristic | E_governor | delta |
+|---|---|---|---|
+| 100% | **82.2%** | 48.3% | −33.9pp |
+| 50% | **71.7%** | 42.8% | −28.9pp |
+| 25% | 18.3% | 16.1% | −2.2pp |
+
+Robust across `λ_cost ∈ {0.15, 0.5, 1.0}` and across two genuine bug fixes. The
+§B falsifier — *"hand-tuned heuristic matches the controller ⇒ H1 not supported"* —
+has fired, and harder than its wording anticipated: the heuristic does not merely
+match, it wins.
+
+**The baseline is not cheating.** A reviewer argued the heuristic reads hidden
+belief state. Tested by building a heuristic restricted to *only* the feature
+dictionary the model receives: results identical to four decimal places at every
+budget. `max_belief` **is** `max(ctx.belief)`; `last_test_pass == 1.0` **is**
+`ctx.verified`; and the candidate generator belief-orders targets for both arms.
+Governor holds strictly *more* information (raw belief vector, expected
+information gain, `belief_in_target`, `target_is_argmax`). Only `OracleArm` reads
+latent truth, and it is labelled the ceiling.
+
+### Why: the binding constraint is within-state action ranking
+
+| what was eliminated | test | result |
+|---|---|---|
+| Model family | logistic vs GBM vs tuned GBM | all ≈ equal within-state |
+| Target factorisation | direct Q vs V + advantage | 0.599 vs 0.590 — no difference |
+| Data volume | learning curve 120→2,000 episodes | calibration improves, ranking does not |
+| Calibration | split-half debiased ECE | real, but orthogonal to ranking |
+| Estimator noise | common random numbers | held-out τ 0.305→0.384, conclusion unchanged |
+| **Action-conditioned features** | 9 new features | **+0.024 overall, +0.060 on decision-relevant pairs** |
+
+Final within-state pairwise action ranking: **0.612 overall, 0.532 on training
+regimes (chance), 0.699 held-out, 0.869 on high-gap pairs.** The oracle reaches
+97.7% where the heuristic reaches 82.2%, so ~15pp of headroom genuinely exists —
+capturing it requires resolving which action is better at a given state, and the
+model barely can.
+
+### Measurements that hold regardless
+
+- **BVR = 0** across every arm, budget level and adversarial-charging test. The
+  enforcement/estimation split of §H.1 works as designed.
+- **Pooled AUC is not evidence of action-selection ability.** Pooled 0.745 vs
+  within-state 0.580 on the same data. This is a named phenomenon (Van Klaveren
+  et al. report pooled c-index 0.84 vs within-cluster 0.77; Alibaba's GAUC exists
+  for it). **Retired from the policy-quality metric set.**
+- **Effective sample size is the episode count.** Labels are episode-constant, so
+  ICC = 1 exactly and 5,382 checkpoints carry the information of 800 observations.
+  Note the target is *unbiased* (OVM proves it converges to `p(success|prefix)`) —
+  this is a variance argument, not a correctness one.
+- **Cross-regime miscalibration is a base-rate shift.** Calibration-in-the-large
+  −0.0530 against a prior shift of +0.052. A **one-parameter** logit offset fixed
+  39% of it from 60 episodes with AUC preserved *exactly*. Isotonic and Platt on
+  the same 60 episodes made it worse — the constraint is parameter count, not
+  sample size. This corrects rev 2's "recalibration needs ~150 episodes".
+- **~54% of decision points have zero action spread.** At those states no action
+  beats any other, so ranking accuracy is undefined there and `frac_optimal` is
+  inflated by them. Any within-state metric must report the decision-relevant
+  fraction alongside.
+
+### Predictions from rev 1/rev 2 that were wrong
+
+| claim | refuted by |
+|---|---|
+| "AUC 0.84 ⇒ action selection is on solid ground" | branch experiment: 0.58 within-state |
+| "Zero-shot calibration transfer is impossible" | intercept offset fixed 39% |
+| "Governor fails from off-policy continuation mismatch" | bias and ECE *identical* on both trajectory sets |
+| "Recalibration needs ~150 in-regime episodes" | 60 suffice for 1 parameter |
+| "Information gain should stay implicit" | it belongs as a *feature*, computed in closed form |
+
+Two bugs found in the policy itself, both real and neither sufficient: cost
+entered EU only as a tie-break (40% worse cost/win), and terminal actions were
+excluded from scoring, so the policy structurally **could not choose to stop**
+(17.8 decisions/episode vs the heuristic's 7.2).
+
+### Deferred decisions, now settled
+
+| # | Question | Settled |
+|---|---|---|
+| D1 | direct Q vs V∘T | **Direct Q.** Composition gave no gain |
+| D2 | logistic vs GBM | **GBM for ranking, logistic better calibrated.** Contested — depends which property binds |
+| D3 | uncertainty signal | Belief entropy retained; agreement signal untested |
+| D4 | does cognitive state earn its place? | **Yes** — belief features are load-bearing in both arms |
+| D5 | fitted (α,β) vs fixed LR | **Fitted.** Estimator recovers generating values to 0.019 |
+| D6 | tier count | 3 retained; all tiers selected in practice |
+
+### The honest caveat on external validity
+
+SynthBug's structure may be simple enough that *"explore until confident, exploit,
+verify, stop"* is near-optimal, leaving little room for a learned policy to add
+value. That is a limitation of the **testbed**, not a refutation of the thesis: in
+a real repository there is no clean belief vector to threshold. This is now the
+strongest argument for building the SWE-bench executor — the synthetic environment
+may be structurally unable to exhibit the effect the project is looking for.
 
 ---
 
