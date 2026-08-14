@@ -1,0 +1,44 @@
+========================================================================================
+GOVERNOR — Stage 5: does the policy layer beat the baselines under scarcity?
+========================================================================================
+
+  model fitted on 2000 train episodes
+  evaluated on HELD-OUT families: sharp_signal, flaky_tests, cheap_wide
+  100 tasks per family, identical seeds across all arms
+  config_hash ce34c1a3cc8c (arm parity)
+
+   budget arm               TSR  cost/win   BVR     vs C  McNemar p
+  ----------------------------------------------------------------------
+    100% A_fixed         44.7%    0.1205    0%   -34.7%     0.0000
+    100% B_static        49.7%    0.1333    0%   -29.7%     0.0000
+    100% C_heuristic     79.3%    0.1666    0%                    
+    100% E_governor      61.3%    0.2338    0%   -18.0%     0.0000
+    100% F_oracle        97.7%    0.0626    0%   +18.3%     0.0000
+
+     50% A_fixed         44.7%    0.1204    0%   -26.0%     0.0000
+     50% B_static        48.3%    0.1335    0%   -22.3%     0.0000
+     50% C_heuristic     70.7%    0.1276    0%                    
+     50% E_governor      45.3%    0.1953    0%   -25.3%     0.0000
+     50% F_oracle        96.3%    0.0571    0%   +25.7%     0.0000
+
+     35% A_fixed         42.7%    0.1215    0%    -3.7%     0.3049
+     35% B_static        40.7%    0.1353    0%    -5.7%     0.0929
+     35% C_heuristic     46.3%    0.1357    0%                    
+     35% E_governor      41.3%    0.1287    0%    -5.0%     0.1505
+     35% F_oracle        93.7%    0.0526    0%   +47.3%     0.0000
+
+     25% A_fixed         27.0%    0.1440    0%    +8.0%     0.0037
+     25% B_static        24.3%    0.1633    0%    +5.3%     0.0519
+     25% C_heuristic     19.0%    0.2249    0%                    
+     25% E_governor      22.3%    0.1603    0%    +3.3%     0.2451
+     25% F_oracle        70.3%    0.0390    0%   +51.3%     0.0000
+
+  ======================================================================
+  H1: the policy layer's advantage should GROW as the budget tightens.
+    A_fixed       vs C:  100%=-34.7%  25%=+8.0%  trend +42.7%
+    B_static      vs C:  100%=-29.7%  25%=+5.3%  trend +35.0%
+    E_governor    vs C:  100%=-18.0%  25%=+3.3%  trend +21.3%
+
+  At 25% budget: Governor 22.3%, heuristic 19.0%, oracle ceiling 70.3%
+  Governor closes 6% of the heuristic-to-oracle gap (McNemar p=0.2451)
+  VERDICT: Governor ahead but not significant. Underpowered or a small effect.
