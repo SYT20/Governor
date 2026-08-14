@@ -1,0 +1,117 @@
+====================================================================================
+GOVERNOR — Stage 3: value model, calibration, and the base-rate gate
+====================================================================================
+
+[1] Data
+    train     5382 checkpoints   800 episodes  10 families
+    held-out  1713 checkpoints   240 episodes  3 families (cheap_wide, flaky_tests, sharp_signal)
+    features (10): belief_entropy, belief_margin, frac_budget_remaining, last_test_pass, max_belief, n_exploit, n_explore, n_verify, step, steps_since_new_evidence
+    excluded: n_hypotheses  (family fingerprint — would leak the regime)
+    train base rate = 0.5162  -> this is the number to beat
+
+[2] Fitting candidates (all CV grouped by episode)
+    Q_logistic       fitted   n_effective=800 episodes
+    Q_gbm            fitted   n_effective=800 episodes
+    V_compose_T      fitted   effect model from randomised transitions only
+      randomised transitions per action class: {'EXPLOIT@T0': 180, 'EXPLOIT@T1': 248, 'EXPLOIT@T2': 145, 'EXPLORE@T0': 187, 'EXPLORE@T1': 183, 'EXPLORE@T2': 157, 'VERIFY@T0': 132, 'VERIFY@T1': 93, 'VERIFY@T2': 45}
+
+[2b] Optuna search (25 trials), leave-one-family-out on TRAIN only
+     The held-out families are never seen here. Tuning against them would
+     turn the gate into a training objective and it would measure nothing.
+    best objective 0.19606 over 25 trials
+    best params:
+      kind                   gbm
+      l2_regularization      0.0684044923060367
+      learning_rate          0.2026866305748189
+      max_depth              5
+      max_iter               100
+      min_samples_leaf       20
+      n_calib_folds          3
+
+[3] Held-out families — the gate (must beat base rate on Brier AND ECE)
+
+    Q_logistic   FAIL
+      metric            model   base rate     skill
+      ------------ ---------- ----------- ---------
+      brier            0.2070      0.2488    +16.8%
+      log_loss         0.6153      0.6907    +10.9%
+      ece              0.0418      0.0297    -40.8%
+      auc              0.7137      0.5000          
+      ECE noise floor (perfect calibration): p50=0.0228 p95=0.0354  -> observed is ABOVE
+      n=1713  base_rate=0.546
+
+    Q_gbm   FAIL
+      metric            model   base rate     skill
+      ------------ ---------- ----------- ---------
+      brier            0.1835      0.2488    +26.2%
+      log_loss         0.5657      0.6907    +18.1%
+      ece              0.0536      0.0297    -80.6%
+      auc              0.7979      0.5000          
+      ECE noise floor (perfect calibration): p50=0.0227 p95=0.0343  -> observed is ABOVE
+      n=1713  base_rate=0.546
+
+    V_compose_T   FAIL
+      metric            model   base rate     skill
+      ------------ ---------- ----------- ---------
+      brier            0.2285      0.2488     +8.2%
+      log_loss         0.6583      0.6907     +4.7%
+      ece              0.0704      0.0297   -137.3%
+      auc              0.6462      0.5000          
+      ECE noise floor (perfect calibration): p50=0.0231 p95=0.0367  -> observed is ABOVE
+      n=1713  base_rate=0.546
+
+    Q_gbm_tuned   FAIL
+      metric            model   base rate     skill
+      ------------ ---------- ----------- ---------
+      brier            0.1596      0.2488    +35.9%
+      log_loss         0.5098      0.6907    +26.2%
+      ece              0.0732      0.0297   -146.9%
+      auc              0.8561      0.5000          
+      ECE noise floor (perfect calibration): p50=0.0238 p95=0.0347  -> observed is ABOVE
+      n=1713  base_rate=0.546
+
+[4] In-corpus vs held-out Brier skill (gap reveals regime memorisation)
+    model              in-corpus   held-out       gap
+    Q_logistic            +21.9%     +16.8%     +5.1%
+    Q_gbm                 +32.0%     +26.2%     +5.8%
+    V_compose_T           +14.1%      +8.2%     +5.9%
+    Q_gbm_tuned           +46.3%     +35.9%    +10.5%
+
+[5] Leakage audit — where does the skill actually come from?
+    best model: Q_gbm_tuned
+      before any passing test    n=1535  brier_skill= +32.0% auc=0.838 base=0.52
+      after a passing test       n=178   brier_skill= +70.4% auc=0.886 base=0.80
+
+[6] Reliability of Q_gbm_tuned on held-out families
+    bin               n  predicted   observed      gap
+    [0.0,0.1)        171      0.028      0.041    0.013
+    [0.1,0.2)        101      0.149      0.188    0.039
+    [0.2,0.3)         86      0.255      0.163    0.092
+    [0.3,0.4)        120      0.345      0.217    0.128
+    [0.4,0.5)        208      0.450      0.365    0.084
+    [0.5,0.6)        317      0.538      0.587    0.049
+    [0.6,0.7)        223      0.649      0.740    0.091
+    [0.7,0.8)        224      0.746      0.866    0.120
+    [0.8,0.9)        133      0.835      0.932    0.098
+    [0.9,1.0)        130      0.974      0.954    0.021
+
+[6b] Regime-shift diagnostic: recalibrate on a slice of the new regime
+     AUC transfers but ECE does not, which points at a shifted mapping
+     rather than a broken model. Testing that directly: refit ONLY the
+     isotonic mapping on 25% of held-out episodes, score the other 75%.
+     calibration slice: 60 episodes / 462 checkpoints (stratified across all 3 families)
+     scored on:         180 episodes / 1251 checkpoints
+     model             ece before  ece after  floor p95  brier skill
+     Q_logistic            0.0572     0.1466     0.0376       +11.0%
+     Q_gbm                 0.0679     0.1230     0.0390       +21.5%
+     V_compose_T           0.0715     0.1618     0.0360        +2.4%
+     Q_gbm_tuned           0.0767     0.1089     0.0417       +31.8%
+
+[7] Decisions
+    D1 (estimator)  -> direct Q               (Q_gbm_tuned wins on held-out Brier skill)
+    D2 (model type) -> gbm
+
+[8] GATE: FAIL — 0/4 models beat the base rate on held-out families
+    Stage 4 must not begin. Section 3 fallback: the contribution becomes
+    the negative result, with the corpus and methodology as deliverable.
+
