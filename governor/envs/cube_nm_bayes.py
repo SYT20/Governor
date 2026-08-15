@@ -126,6 +126,12 @@ class CubeNMBayes:
         return -(py * np.where(py > 0, np.log(np.maximum(py, 1e-300)), 0.0)).sum(axis=-1)
 
     def myopic_step_exact(self, logL: np.ndarray, available: list[int]) -> int:
+        """argmax of `myopic_scores_exact`. See that method for the derivation."""
+        s = self.myopic_scores_exact(logL, available)
+        return max(s, key=lambda g: s[g])
+
+    def myopic_scores_exact(self, logL: np.ndarray,
+                            available: list[int]) -> dict[int, float]:
         """Bayes-optimal one-step lookahead with NO Monte Carlo anywhere.
 
             a* = argmax_a  -E_{x_a ~ P(x_a | x_O)}[ H(y | x_O, x_a) ]
@@ -172,7 +178,7 @@ class CubeNMBayes:
             hc = -(pyc * np.log(np.maximum(pyc, 1e-300))).sum(axis=1)
             scores[0] = -float((pc * hc).sum())
 
-        return max(scores, key=lambda g: scores[g])
+        return scores
 
     def myopic_step(
         self, logL: np.ndarray, available: list[int], rng: np.random.Generator, n_mc: int
