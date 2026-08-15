@@ -1,0 +1,470 @@
+[
+ {
+  "H": 1,
+  "B": 0,
+  "pools": [
+   1
+  ],
+  "prod": 1,
+  "feasible": 1,
+  "coupling": 1.0,
+  "resid_price": 1688,
+  "resid_credits": -2,
+  "price_slack_frac": 0.733,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 2,
+  "pools": [
+   3
+  ],
+  "prod": 3,
+  "feasible": 3,
+  "coupling": 1.0,
+  "resid_price": 414,
+  "resid_credits": -1,
+  "price_slack_frac": 0.117,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 4,
+  "pools": [
+   5
+  ],
+  "prod": 5,
+  "feasible": 1,
+  "coupling": 0.2,
+  "resid_price": 1135,
+  "resid_credits": 3,
+  "price_slack_frac": 0.761,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 8,
+  "pools": [
+   9
+  ],
+  "prod": 9,
+  "feasible": 9,
+  "coupling": 1.0,
+  "resid_price": 690,
+  "resid_credits": -3,
+  "price_slack_frac": 0.462,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 10,
+  "pools": [
+   11
+  ],
+  "prod": 11,
+  "feasible": 1,
+  "coupling": 0.09090909090909091,
+  "resid_price": 1408,
+  "resid_credits": -4,
+  "price_slack_frac": 0.803,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 15,
+  "pools": [
+   16
+  ],
+  "prod": 16,
+  "feasible": 1,
+  "coupling": 0.0625,
+  "resid_price": 1461,
+  "resid_credits": 2,
+  "price_slack_frac": 0.826,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 19,
+  "pools": [
+   20
+  ],
+  "prod": 20,
+  "feasible": 1,
+  "coupling": 0.05,
+  "resid_price": 1173,
+  "resid_credits": -5,
+  "price_slack_frac": 0.73,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 21,
+  "pools": [
+   22
+  ],
+  "prod": 22,
+  "feasible": 1,
+  "coupling": 0.045454545454545456,
+  "resid_price": 271,
+  "resid_credits": 2,
+  "price_slack_frac": -0.414,
+  "domain": "course"
+ },
+ {
+  "H": 1,
+  "B": 25,
+  "pools": [
+   26
+  ],
+  "prod": 26,
+  "feasible": 1,
+  "coupling": 0.038461538461538464,
+  "resid_price": 495,
+  "resid_credits": -2,
+  "price_slack_frac": 0.011,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 0,
+  "pools": [
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "prod": 1,
+  "feasible": 1,
+  "coupling": 1.0,
+  "resid_price": 2153,
+  "resid_credits": 5,
+  "price_slack_frac": 0.281,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 2,
+  "pools": [
+   1,
+   1,
+   1,
+   2,
+   2
+  ],
+  "prod": 4,
+  "feasible": 1,
+  "coupling": 0.25,
+  "resid_price": 2029,
+  "resid_credits": 15,
+  "price_slack_frac": 0.268,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 4,
+  "pools": [
+   1,
+   4,
+   1,
+   1,
+   2
+  ],
+  "prod": 8,
+  "feasible": 1,
+  "coupling": 0.125,
+  "resid_price": 2684,
+  "resid_credits": 12,
+  "price_slack_frac": 0.405,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 8,
+  "pools": [
+   1,
+   5,
+   1,
+   3,
+   3
+  ],
+  "prod": 45,
+  "feasible": 45,
+  "coupling": 1.0,
+  "resid_price": 2733,
+  "resid_credits": 10,
+  "price_slack_frac": 0.514,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 10,
+  "pools": [
+   2,
+   3,
+   1,
+   4,
+   5
+  ],
+  "prod": 120,
+  "feasible": 1,
+  "coupling": 0.008333333333333333,
+  "resid_price": 2519,
+  "resid_credits": 11,
+  "price_slack_frac": 0.398,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 15,
+  "pools": [
+   8,
+   6,
+   3,
+   1,
+   2
+  ],
+  "prod": 288,
+  "feasible": 8,
+  "coupling": 0.027777777777777776,
+  "resid_price": 1702,
+  "resid_credits": 19,
+  "price_slack_frac": 0.134,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 19,
+  "pools": [
+   3,
+   8,
+   4,
+   7,
+   2
+  ],
+  "prod": 1344,
+  "feasible": 1,
+  "coupling": 0.000744047619047619,
+  "resid_price": 2869,
+  "resid_credits": 11,
+  "price_slack_frac": 0.556,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 21,
+  "pools": [
+   8,
+   2,
+   3,
+   11,
+   2
+  ],
+  "prod": 1056,
+  "feasible": 1,
+  "coupling": 0.000946969696969697,
+  "resid_price": 1589,
+  "resid_credits": 9,
+  "price_slack_frac": -0.172,
+  "domain": "course"
+ },
+ {
+  "H": 5,
+  "B": 25,
+  "pools": [
+   7,
+   6,
+   3,
+   3,
+   11
+  ],
+  "prod": 4158,
+  "feasible": 3937,
+  "coupling": 0.9468494468494468,
+  "resid_price": 2617,
+  "resid_credits": 12,
+  "price_slack_frac": 0.483,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 0,
+  "pools": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "prod": 1,
+  "feasible": 1,
+  "coupling": 1.0,
+  "resid_price": 1904,
+  "resid_credits": 14,
+  "price_slack_frac": 0.001,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 2,
+  "pools": [
+   1,
+   1,
+   1,
+   2,
+   1,
+   2,
+   1
+  ],
+  "prod": 4,
+  "feasible": 1,
+  "coupling": 0.25,
+  "resid_price": 3308,
+  "resid_credits": 13,
+  "price_slack_frac": 0.323,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 4,
+  "pools": [
+   1,
+   2,
+   1,
+   1,
+   1,
+   1,
+   4
+  ],
+  "prod": 8,
+  "feasible": 1,
+  "coupling": 0.125,
+  "resid_price": 1579,
+  "resid_credits": 7,
+  "price_slack_frac": -0.046,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 8,
+  "pools": [
+   1,
+   3,
+   1,
+   4,
+   1,
+   4,
+   1
+  ],
+  "prod": 48,
+  "feasible": 1,
+  "coupling": 0.020833333333333332,
+  "resid_price": 2814,
+  "resid_credits": 19,
+  "price_slack_frac": 0.398,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 10,
+  "pools": [
+   3,
+   1,
+   4,
+   1,
+   2,
+   5,
+   1
+  ],
+  "prod": 120,
+  "feasible": 1,
+  "coupling": 0.008333333333333333,
+  "resid_price": 1832,
+  "resid_credits": 11,
+  "price_slack_frac": -0.107,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 15,
+  "pools": [
+   7,
+   2,
+   1,
+   1,
+   8,
+   1,
+   2
+  ],
+  "prod": 224,
+  "feasible": 1,
+  "coupling": 0.004464285714285714,
+  "resid_price": 2727,
+  "resid_credits": 16,
+  "price_slack_frac": 0.274,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 19,
+  "pools": [
+   9,
+   1,
+   4,
+   6,
+   1,
+   3,
+   2
+  ],
+  "prod": 1296,
+  "feasible": 1,
+  "coupling": 0.0007716049382716049,
+  "resid_price": 1869,
+  "resid_credits": 17,
+  "price_slack_frac": -0.226,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 21,
+  "pools": [
+   9,
+   5,
+   3,
+   2,
+   1,
+   1,
+   7
+  ],
+  "prod": 1890,
+  "feasible": 1,
+  "coupling": 0.0005291005291005291,
+  "resid_price": 3116,
+  "resid_credits": 16,
+  "price_slack_frac": 0.396,
+  "domain": "course"
+ },
+ {
+  "H": 7,
+  "B": 25,
+  "pools": [
+   12,
+   4,
+   2,
+   1,
+   2,
+   10,
+   1
+  ],
+  "prod": 1920,
+  "feasible": 1,
+  "coupling": 0.0005208333333333333,
+  "resid_price": 1917,
+  "resid_credits": 11,
+  "price_slack_frac": -0.015,
+  "domain": "course"
+ }
+]

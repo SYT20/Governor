@@ -1,0 +1,226 @@
+[
+ {
+  "H": 5,
+  "B": 8,
+  "nF": 45,
+  "queries": [
+   {
+    "slot": 1,
+    "field": "price",
+    "thr": 312,
+    "F_reduction": 0.48,
+    "decision_change_prob": 0.4
+   },
+   {
+    "slot": 1,
+    "field": "workload",
+    "thr": 4,
+    "F_reduction": 0.48,
+    "decision_change_prob": 0.6
+   },
+   {
+    "slot": 1,
+    "field": "difficulty",
+    "thr": 3,
+    "F_reduction": 0.31999999999999995,
+    "decision_change_prob": 0.2
+   },
+   {
+    "slot": 3,
+    "field": "price",
+    "thr": 350,
+    "F_reduction": 0.4444444444444444,
+    "decision_change_prob": 0.3333333333333333
+   },
+   {
+    "slot": 3,
+    "field": "difficulty",
+    "thr": 3,
+    "F_reduction": 0.4444444444444444,
+    "decision_change_prob": 0.3333333333333333
+   },
+   {
+    "slot": 4,
+    "field": "price",
+    "thr": 142,
+    "F_reduction": 0.4444444444444444,
+    "decision_change_prob": 0.3333333333333333
+   },
+   {
+    "slot": 4,
+    "field": "workload",
+    "thr": 3,
+    "F_reduction": 0.4444444444444444,
+    "decision_change_prob": 0.3333333333333333
+   }
+  ]
+ },
+ {
+  "H": 5,
+  "B": 15,
+  "nF": 8,
+  "queries": [
+   {
+    "slot": 0,
+    "field": "price",
+    "thr": 234,
+    "F_reduction": 0.21875,
+    "decision_change_prob": 0.125
+   },
+   {
+    "slot": 0,
+    "field": "credits",
+    "thr": 3,
+    "F_reduction": 0.21875,
+    "decision_change_prob": 0.125
+   },
+   {
+    "slot": 0,
+    "field": "workload",
+    "thr": 6,
+    "F_reduction": 0.21875,
+    "decision_change_prob": 0.125
+   },
+   {
+    "slot": 1,
+    "field": "price",
+    "thr": 198,
+    "F_reduction": 0.375,
+    "decision_change_prob": 0.25
+   },
+   {
+    "slot": 1,
+    "field": "workload",
+    "thr": 7,
+    "F_reduction": 0.375,
+    "decision_change_prob": 0.25
+   },
+   {
+    "slot": 1,
+    "field": "difficulty",
+    "thr": 4,
+    "F_reduction": 0.21875,
+    "decision_change_prob": 0.125
+   }
+  ]
+ },
+ {
+  "H": 5,
+  "B": 25,
+  "nF": 3937,
+  "queries": [
+   {
+    "slot": 0,
+    "field": "price",
+    "thr": 261,
+    "F_reduction": 0.4933803415993929,
+    "decision_change_prob": 0.44246888493776987
+   },
+   {
+    "slot": 0,
+    "field": "credits",
+    "thr": 3,
+    "F_reduction": 0.47857334424346265,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 0,
+    "field": "workload",
+    "thr": 3,
+    "F_reduction": 0.4173159314060564,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 0,
+    "field": "difficulty",
+    "thr": 3,
+    "F_reduction": 0.4806249612499225,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 1,
+    "field": "price",
+    "thr": 160,
+    "F_reduction": 0.44723082994553087,
+    "decision_change_prob": 0.6624333248666497
+   },
+   {
+    "slot": 1,
+    "field": "workload",
+    "thr": 5,
+    "F_reduction": 0.4430243699197076,
+    "decision_change_prob": 0.33121666243332487
+   },
+   {
+    "slot": 2,
+    "field": "price",
+    "thr": 314,
+    "F_reduction": 0.45316039019174814,
+    "decision_change_prob": 0.34696469392938784
+   },
+   {
+    "slot": 2,
+    "field": "credits",
+    "thr": 3,
+    "F_reduction": 0.4562184608240184,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 2,
+    "field": "workload",
+    "thr": 5,
+    "F_reduction": 0.45316039019174814,
+    "decision_change_prob": 0.34696469392938784
+   },
+   {
+    "slot": 2,
+    "field": "difficulty",
+    "thr": 4,
+    "F_reduction": 0.4562184608240184,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 3,
+    "field": "price",
+    "thr": 284,
+    "F_reduction": 0.441296624528733,
+    "decision_change_prob": 0.3286766573533147
+   },
+   {
+    "slot": 3,
+    "field": "workload",
+    "thr": 3,
+    "F_reduction": 0.4504798687016729,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 4,
+    "field": "price",
+    "thr": 352,
+    "F_reduction": 0.49737983346934433,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 4,
+    "field": "credits",
+    "thr": 3,
+    "F_reduction": 0.46819190412574385,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 4,
+    "field": "workload",
+    "thr": 4,
+    "F_reduction": 0.301759571261078,
+    "decision_change_prob": 1.0
+   },
+   {
+    "slot": 4,
+    "field": "difficulty",
+    "thr": 3,
+    "F_reduction": 0.49683970335682603,
+    "decision_change_prob": 0.460248920497841
+   }
+  ]
+ }
+]

@@ -56,6 +56,10 @@ _GENERIC = {"set_slot", "get_current_grid_state", "get_slot_id", "done",
             "get_hidden_slot_query_budget", "get_global_check_budget"}
 
 
+class ToolCallError(RuntimeError):
+    """A tool reported failure. Never silently degrade this into an empty result."""
+
+
 def _ensure_path() -> None:
     if str(AGENTCE_ROOT) not in sys.path:
         sys.path.insert(0, str(AGENTCE_ROOT))
@@ -143,6 +147,7 @@ class AgentCEEpisode:
     tool_failure_rate: float = 0.0
     seed: int = 0
     max_steps: int = 200
+    strict: bool = True          # raise on tool failure; see call()
     task: Any = field(init=False, default=None)
     acc: Accountant = field(init=False, default=None)
     steps: list[Step] = field(default_factory=list)
@@ -197,6 +202,24 @@ class AgentCEEpisode:
             ok = True
         except Exception as exc:                      # tool misuse is a real outcome
             out, ok = {"error": f"{type(exc).__name__}: {exc}"}, False
+
+        # ENFORCED INVARIANT, not documentation. A malformed query returns
+        # {"status": "failed", "data": {}}, which is indistinguishable from a
+        # legitimate empty result. That ambiguity has now produced two wrong
+        # conclusions in this project:
+        #   1. `max_crowd` -> field `crowd` (real field: crowd_level) made every
+        #      travel query fail; the domain scored 0% and I nearly reported it as
+        #      a property of the benchmark.
+        #   2. get_item_info on hidden-slot ids fails by design ("You may only
+        #      inspect ids from non-hidden slots"); the silent failure produced an
+        #      empty findings table that I read as "no information channel exists",
+        #      which was the opposite of the truth.
+        # Failing loudly by default is the only thing that reliably stops this.
+        if isinstance(out, dict) and out.get("status") == "failed" and self.strict:
+            raise ToolCallError(
+                f"{tool}({args}) -> {out.get('messages')!r}. "
+                "Pass strict=False only where a failure is the expected outcome."
+            )
         charged = dict(price)
         charged["wall_s"] = min(max(time.monotonic() - t0, price["wall_s"]),
                                 max(rem["wall_s"], 0.0))
