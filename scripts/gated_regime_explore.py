@@ -78,6 +78,16 @@ def run(explorer: str):
                     break
                 if explorer == "myopic" or (explorer == "hybrid" and t >= 2):
                     g = bayes.myopic_step(logL, available, np.inf)
+                elif explorer in ("regime_voi", "hybrid"):
+                    # EXACT regime-directed exploration: maximise expected
+                    # reduction in H(sigma) per unit cost. This is the correct
+                    # strongest explorer for the question "what kind of task is
+                    # this?"; `spread` was a hand-picked heuristic and turned out
+                    # to be a bad one, because a single feature from a block says
+                    # almost nothing about that block's noise level (only 3 of 10
+                    # positions carry the code).
+                    gr = bayes.gains(logL, available, target="regime")
+                    g = max(gr, key=lambda a: gr[a] / bayes.cost[a])
                 else:
                     g = next(q for q in order if q in available)
                 available.remove(g)
@@ -97,7 +107,7 @@ def main() -> int:
     print(f"  no-information baseline, NOT 0.50. Read every row against 0.60.\n")
 
     out = {}
-    for explorer in ("myopic", "spread", "hybrid"):
+    for explorer in ("myopic", "spread", "regime_voi", "hybrid"):
         side, mass = run(explorer)
         out[explorer] = {"side": side.tolist(), "mass": mass.tolist()}
         ms, mm = side.mean(axis=0), mass.mean(axis=0)
@@ -113,12 +123,12 @@ def main() -> int:
         print(f"    first t above 0.70: {out[explorer]['t_star']}\n")
 
     print("  Verdict")
-    for e in ("myopic", "spread", "hybrid"):
+    for e in ("myopic", "spread", "regime_voi", "hybrid"):
         s = np.array(out[e]["side"]).mean(axis=0)
         print(f"    {e:<8} gain over the 0.60 baseline at t=2: {s[2]-0.60:+.3f}, "
               f"t=3: {s[3]-0.60:+.3f}")
     sm = np.array(out["myopic"]["side"]).mean(axis=0)
-    ss = np.array(out["spread"]["side"]).mean(axis=0)
+    ss = np.array(out["regime_voi"]["side"]).mean(axis=0)
     adv = float(max(ss[t] - sm[t] for t in (1, 2, 3)))
     print(f"\n    best early advantage of directed exploration: {adv:+.3f}")
     if adv > 0.05:

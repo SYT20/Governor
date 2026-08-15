@@ -290,6 +290,14 @@ class GatedBayes:
         return int(np.argmax(self.label_posterior(
             self.prior_logL() + self.loglik_cols(x, cols))))
 
+    def _ent_r(self, logL: np.ndarray) -> np.ndarray:
+        """Entropy of the REGIME marginal -- uncertainty about what KIND of task."""
+        m = logL.max(axis=-1, keepdims=True)
+        p = np.exp(logL - m)
+        p /= p.sum(axis=-1, keepdims=True)
+        pr = p.reshape(*p.shape[:-1], self.R, self.K, N_LABELS).sum(axis=(-2, -1))
+        return -(pr * np.log(np.maximum(pr, 1e-300))).sum(axis=-1)
+
     def _ent_y(self, logL: np.ndarray) -> np.ndarray:
         m = logL.max(axis=-1, keepdims=True)
         p = np.exp(logL - m)
@@ -299,11 +307,19 @@ class GatedBayes:
 
     # -- acquisition -----------------------------------------------------------
 
-    def gains(self, logL: np.ndarray, available: list[int]) -> dict[int, float]:
-        """Expected reduction in H(y) for each candidate group."""
+    def gains(self, logL: np.ndarray, available: list[int],
+              target: str = "label") -> dict[int, float]:
+        """Expected reduction in H(y) -- or in H(sigma) with target="regime".
+
+        The regime target is what a controller trying to work out WHAT KIND of
+        task it is in would maximise. It is the correct regime-directed
+        explorer; a hand-picked heuristic like "one feature per block" is not,
+        and measuring against that heuristic would understate identifiability.
+        """
+        ent = self._ent_r if target == "regime" else self._ent_y
         post = np.exp(logL - logL.max())
         post /= post.sum()
-        h_now = float(self._ent_y(logL[None, :])[0])
+        h_now = float(ent(logL[None, :])[0])
         out: dict[int, float] = {}
 
         single = [g for g in available if g != 0]
@@ -313,10 +329,11 @@ class GatedBayes:
             px = joint.sum(axis=0)
             w = px / px.sum(axis=1, keepdims=True)
             cond = joint / np.maximum(px[None, :, :], 1e-300)
-            py = cond.reshape(self.R, self.K, N_LABELS, len(single), -1
-                              ).sum(axis=(0, 1))
-            ent = -(py * np.log(np.maximum(py, 1e-300))).sum(axis=0)
-            val = (w * ent).sum(axis=1)
+            shaped = cond.reshape(self.R, self.K, N_LABELS, len(single), -1)
+            pm = (shaped.sum(axis=(1, 2)) if target == "regime"
+                  else shaped.sum(axis=(0, 1)))
+            e = -(pm * np.log(np.maximum(pm, 1e-300))).sum(axis=0)
+            val = (w * e).sum(axis=1)
             for i, g in enumerate(single):
                 out[g] = h_now - float(val[i])
 
@@ -331,7 +348,7 @@ class GatedBayes:
                 x = np.eye(self.K)[ctx][None, :] + self.cfg.sigma_gate * self._gz
                 d = (x[:, None, :] - self.MU[None, :, cols]) / self.SD[None, :, cols]
                 ll = (-0.5 * d * d - self.LOGSD[None, :, cols]).sum(axis=-1)
-                tot += pc[ctx] * float(self._ent_y(logL[None, :] + ll).mean())
+                tot += pc[ctx] * float(ent(logL[None, :] + ll).mean())
             out[0] = h_now - tot
         return out
 
