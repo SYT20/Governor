@@ -30,9 +30,9 @@ from governor.envs.gated_family import GateConfig, delta_meta  # noqa: E402
 
 SIGMA_OTHER = [0.10, 0.20, 0.35, 0.60, 1.50]
 GATE_COST = [1.0, 2.0]
-GATE_STD = [0.10, 0.30]
+GATE_STD = [0.10]
 BUDGETS = [3.0, 4.0, 6.0]
-N = 300
+N = 250
 
 
 def main() -> int:
@@ -43,18 +43,28 @@ def main() -> int:
     print(f"  informative as the primary one, so the gate is a wasted slot.")
     print(f"  sigma_other=1.50 means only the primary block informs.\n")
 
+    # OBSERVABLE is the policy-relevant column. ORACLE is reported alongside as
+    # the teacher/upper bound, and because the gap between them is itself the
+    # cost of not knowing the regime -- which is the quantity the whole Governor
+    # idea is trying to recover. The first version of this probe reported only
+    # the oracle and described it as a policy; that claim is retracted.
     rows = []
-    print(f"  {'sig_other':>9} {'gate_cost':>9} {'gate_std':>8} {'B':>4} "
-          f"{'myopic':>7} {'strat':>7} {'D_meta':>8} {'myopic buys gate':>17}")
-    print("  " + "-" * 82)
+    print(f"  {'sig_other':>9} {'gcost':>6} {'B':>4} | "
+          f"{'myopic':>7} {'strat':>7} {'D_meta':>8} {'buys gate':>10} |"
+          f" {'orc myo':>8} {'orc D':>7}")
+    print("  " + "-" * 84)
     for so, gc, gs, B in itertools.product(SIGMA_OTHER, GATE_COST, GATE_STD, BUDGETS):
         cfg = GateConfig(sigma_other=so, gate_cost=gc, sigma_gate=gs)
-        r = delta_meta(cfg, B, n=N, seed=1)
+        r = delta_meta(cfg, B, n=N, seed=1, observable=True)
+        o = delta_meta(cfg, B, n=N, seed=1, observable=False)
         rows.append({"sigma_other": so, "gate_cost": gc, "sigma_gate": gs,
-                     "budget": B, **r})
-        print(f"  {so:>9.2f} {gc:>9.1f} {gs:>8.2f} {B:>4.0f} "
+                     "budget": B, **r,
+                     "oracle_myopic": o["myopic"],
+                     "oracle_delta_meta": o["delta_meta"]})
+        print(f"  {so:>9.2f} {gc:>6.1f} {B:>4.0f} | "
               f"{r['myopic']:>7.3f} {r['strategic']:>7.3f} "
-              f"{r['delta_meta']:>+8.3f} {r['myopic_buys_gate']:>17.1%}")
+              f"{r['delta_meta']:>+8.3f} {r['myopic_buys_gate']:>10.1%} |"
+              f" {o['myopic']:>8.3f} {o['delta_meta']:>+7.3f}")
 
     d = [r["delta_meta"] for r in rows]
     neg = [r for r in rows if r["delta_meta"] <= -0.03]
@@ -79,6 +89,18 @@ def main() -> int:
                       f"sigma_other {a['sigma_other']:.2f} -> D {a['delta_meta']:+.3f}  "
                       f"vs {b['sigma_other']:.2f} -> D {b['delta_meta']:+.3f}")
     print(f"    {hits} colliding pairs found")
+    print(f"\n[3] Price of not knowing the regime (oracle myopic - observable myopic)")
+    gaps = [r["oracle_myopic"] - r["myopic"] for r in rows]
+    print(f"    mean {sum(gaps)/len(gaps):+.3f}, max {max(gaps):+.3f}, "
+          f"min {min(gaps):+.3f}")
+    flips = sum(1 for r in rows
+                if (r["delta_meta"] > 0.03) != (r["oracle_delta_meta"] > 0.03))
+    print(f"    configurations where the CORRECT DECISION differs between "
+          f"oracle and observable: {flips}/{len(rows)}")
+    print("    (nonzero means the oracle cannot be used to label the observable")
+    print("     agent's decisions -- teacher labels must come from observable")
+    print("     counterfactuals, not from the regime-aware scorer)")
+
     ok = cover and hits > 0
     print(f"\n  FAMILY GATE: {'PASS' if ok else 'FAIL'}")
     if ok:

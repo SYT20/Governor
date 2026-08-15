@@ -36,10 +36,37 @@ The harmful case is the important one. Without tasks where strategic reasoning
 LOSES, a controller scores well by always deliberating and we cannot distinguish
 that from competence.
 
-Nothing about the configuration is observable to a policy. There is no mechanism
-label, no sigma_other feature, no task-type id. The agent can only infer the
-regime from what its own acquisitions return, which is precisely the cognitive
-work the Governor is supposed to be doing.
+OBSERVABILITY CONTRACT -- read this before using any scorer here.
+
+An earlier version of this docstring claimed "nothing about the configuration is
+observable to a policy". That was FALSE about the code beneath it. The scorer
+built its likelihood from `cfg.sigma_other`, so it knew the regime outright:
+asked for the best first acquisition from the EMPTY state, it returned gain
+0.5537 under sigma_other=0.10 and 0.2939 under 1.50. A policy that has observed
+nothing cannot produce two different numbers. It was reading the answer.
+
+The class therefore takes an explicit `regimes` argument and there are two
+legitimate constructions:
+
+    OracleBayes(task)          regimes = (true sigma_other,)
+                               Knows the regime. Valid ONLY for upper bounds,
+                               environment validation, and generating teacher
+                               labels. Never a stand-in for an agent.
+
+    ObservableBayes(task)      regimes = REGIME_GRID
+                               Carries a joint posterior over
+                               (sigma_other, context, label) and marginalises.
+                               Sees only its own observations. This is the one
+                               a policy claim may be made about.
+
+That upgrade is not merely a correctness patch -- it is what makes the family
+interesting. The observable agent now faces two coupled unknowns: WHICH INSTANCE
+it is solving (context, label) and WHAT KIND OF TASK it is in (sigma_other). The
+metacognitive question "is deliberation worth paying for here?" is unanswerable
+until the second one is partly resolved, and resolving it costs budget.
+
+`sigma_gate` is assumed known; keeping exactly one unknown regime parameter
+keeps the hypothesis space at R*K*8 and the posterior exact.
 """
 
 from __future__ import annotations
@@ -127,8 +154,17 @@ class GatedTask:
         return self.cfg.gate_cost if g == 0 else self.cfg.block_cost
 
 
+REGIME_GRID: tuple[float, ...] = (0.10, 0.20, 0.35, 0.60, 1.50)
+"""Candidate sigma_other values an observable agent entertains.
+
+Matches the grid the family is generated from, so the observable posterior is
+well-specified rather than misspecified. Misspecification is a separate research
+question and mixing it in here would confound the metacognition result.
+"""
+
+
 class GatedBayes:
-    """Exact posterior over (context, label), and cost-aware myopic acquisition.
+    """Exact posterior over (regime, context, label), cost-aware myopic play.
 
     Generalises the CUBE-NM scorer. Two differences that matter:
 
@@ -146,31 +182,37 @@ class GatedBayes:
     convergence would have to be argued.
     """
 
-    def __init__(self, task: GatedTask, n_gate_nodes: int = 192) -> None:
+    def __init__(self, task: GatedTask, *, regimes: tuple[float, ...] | None = None,
+                 n_gate_nodes: int = 192, grid_nodes: int = 241) -> None:
         c = task.cfg
         self.task, self.cfg = task, c
+        # regimes=None means ORACLE: collapse the regime axis onto the truth.
+        self.regimes = tuple(regimes) if regimes is not None else (c.sigma_other,)
+        self.R = len(self.regimes)
+        self.knows_regime = regimes is None
         self.K, self.M = c.n_contexts, c.block_size
-        self.H = self.K * N_LABELS
+        self.H = self.R * self.K * N_LABELS
         self.nf = c.n_features
         codes = _codes()
 
         mu = np.empty((self.H, self.nf))
         sd = np.empty((self.H, self.nf))
-        for ctx in range(self.K):
-            for y in range(N_LABELS):
-                h = ctx * N_LABELS + y
-                mu[h, : self.K] = 0.0
-                mu[h, ctx] = 1.0
-                sd[h, : self.K] = c.sigma_gate
-                mu[h, self.K:] = c.filler_mean
-                sd[h, self.K:] = c.filler_std
-                for b in range(self.K):
-                    base = self.K + b * self.M
-                    s = c.sigma_sig if b == ctx else c.sigma_other
-                    for j in range(CODE_BITS):
-                        col = base + (y + j) % self.M
-                        mu[h, col] = codes[y][j]
-                        sd[h, col] = s
+        for r, s_other in enumerate(self.regimes):
+            for ctx in range(self.K):
+                for y in range(N_LABELS):
+                    h = (r * self.K + ctx) * N_LABELS + y
+                    mu[h, : self.K] = 0.0
+                    mu[h, ctx] = 1.0
+                    sd[h, : self.K] = c.sigma_gate
+                    mu[h, self.K:] = c.filler_mean
+                    sd[h, self.K:] = c.filler_std
+                    for b in range(self.K):
+                        base = self.K + b * self.M
+                        s = c.sigma_sig if b == ctx else s_other
+                        for j in range(CODE_BITS):
+                            col = base + (y + j) % self.M
+                            mu[h, col] = codes[y][j]
+                            sd[h, col] = s
         self.MU, self.SD, self.LOGSD = mu, sd, np.log(sd)
 
         self.group_cols = [task.group_columns(g) for g in range(c.n_groups)]
@@ -178,7 +220,7 @@ class GatedBayes:
         self.n_groups = c.n_groups
 
         # quadrature table for 1-D block observations
-        self._grid = np.linspace(-2.0, 3.0, 321)
+        self._grid = np.linspace(-2.0, 3.0, grid_nodes)
         bc = np.arange(self.K, self.nf)
         self._col_slot = {int(x): i for i, x in enumerate(bc)}
         d = (self._grid[None, None, :] - mu[:, bc][:, :, None]) / sd[:, bc][:, :, None]
@@ -196,10 +238,26 @@ class GatedBayes:
         d = (x[cols][None, :] - self.MU[:, cols]) / self.SD[:, cols]
         return (-0.5 * d * d - self.LOGSD[:, cols] - 0.5 * _LOG2PI).sum(axis=1)
 
-    def label_posterior(self, logL: np.ndarray) -> np.ndarray:
+    def _norm(self, logL: np.ndarray) -> np.ndarray:
         p = np.exp(logL - logL.max())
-        p /= p.sum()
-        return p.reshape(self.K, N_LABELS).sum(axis=0)
+        return p / p.sum()
+
+    def label_posterior(self, logL: np.ndarray) -> np.ndarray:
+        """P(y | obs), marginalising out BOTH the regime and the context."""
+        return self._norm(logL).reshape(self.R, self.K, N_LABELS).sum(axis=(0, 1))
+
+    def regime_posterior(self, logL: np.ndarray) -> np.ndarray:
+        """P(sigma_other | obs) -- the agent's belief about WHAT KIND of task.
+
+        This is the metacognitive belief. It is what makes "should I pay to
+        deliberate?" answerable at all, and under the oracle construction it is
+        degenerate at the truth, which is exactly why the oracle must never be
+        used as a stand-in for a policy.
+        """
+        return self._norm(logL).reshape(self.R, self.K, N_LABELS).sum(axis=(1, 2))
+
+    def context_posterior(self, logL: np.ndarray) -> np.ndarray:
+        return self._norm(logL).reshape(self.R, self.K, N_LABELS).sum(axis=(0, 2))
 
     def predict(self, x: np.ndarray, cols: list[int]) -> int:
         return int(np.argmax(self.label_posterior(self.loglik_cols(x, cols))))
@@ -208,7 +266,7 @@ class GatedBayes:
         m = logL.max(axis=-1, keepdims=True)
         p = np.exp(logL - m)
         p /= p.sum(axis=-1, keepdims=True)
-        py = p.reshape(*p.shape[:-1], self.K, N_LABELS).sum(axis=-2)
+        py = p.reshape(*p.shape[:-1], self.R, self.K, N_LABELS).sum(axis=(-3, -2))
         return -(py * np.log(np.maximum(py, 1e-300))).sum(axis=-1)
 
     # -- acquisition -----------------------------------------------------------
@@ -227,7 +285,8 @@ class GatedBayes:
             px = joint.sum(axis=0)
             w = px / px.sum(axis=1, keepdims=True)
             cond = joint / np.maximum(px[None, :, :], 1e-300)
-            py = cond.reshape(self.K, N_LABELS, len(single), -1).sum(axis=0)
+            py = cond.reshape(self.R, self.K, N_LABELS, len(single), -1
+                              ).sum(axis=(0, 1))
             ent = -(py * np.log(np.maximum(py, 1e-300))).sum(axis=0)
             val = (w * ent).sum(axis=1)
             for i, g in enumerate(single):
@@ -236,7 +295,7 @@ class GatedBayes:
         if 0 in available:
             # exact over the K true contexts, quadrature over the K noise draws
             cols = self.group_cols[0]
-            pc = post.reshape(self.K, N_LABELS).sum(axis=1)
+            pc = post.reshape(self.R, self.K, N_LABELS).sum(axis=(0, 2))
             tot = 0.0
             for ctx in range(self.K):
                 if pc[ctx] < 1e-12:
@@ -284,8 +343,18 @@ class GatedBayes:
         return got, int(np.argmax(self.label_posterior(logL))), spent
 
 
+def OracleBayes(task: GatedTask, **kw) -> GatedBayes:  # noqa: N802
+    """Knows the true regime. Upper bounds and teacher labels ONLY."""
+    return GatedBayes(task, regimes=None, **kw)
+
+
+def ObservableBayes(task: GatedTask, *, regimes=REGIME_GRID, **kw) -> GatedBayes:  # noqa: N802
+    """Sees only its own observations; infers the regime. Policy claims use this."""
+    return GatedBayes(task, regimes=regimes, **kw)
+
+
 def delta_meta(cfg: GateConfig, budget: float, *, n: int = 400,
-               seed: int = 0) -> dict:
+               seed: int = 0, observable: bool = True) -> dict:
     """Measured value of forcing the gate first, at one (config, budget).
 
     Delta_meta = V(gate first, then myopic) - V(pure myopic), in realised
@@ -294,7 +363,7 @@ def delta_meta(cfg: GateConfig, budget: float, *, n: int = 400,
     switching problem to be non-trivial.
     """
     task = GatedTask(cfg=cfg, n_samples=n, seed=seed)
-    bayes = GatedBayes(task)
+    bayes = ObservableBayes(task) if observable else OracleBayes(task)
     hit_m = hit_s = 0
     gate_used = 0
     for i in range(n):
@@ -309,4 +378,5 @@ def delta_meta(cfg: GateConfig, budget: float, *, n: int = 400,
         "strategic": hit_s / n,
         "delta_meta": (hit_s - hit_m) / n,
         "myopic_buys_gate": gate_used / n,
+        "observable": observable,
     }
