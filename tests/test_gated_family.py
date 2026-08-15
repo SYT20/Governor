@@ -176,3 +176,26 @@ def test_useless_config_makes_every_block_informative(useless):
         hits += int(b.predict(t.features[i], list(range(s, s + b.M)))
                     == t.labels[i])
     assert hits / 120 > 0.5, "non-primary block should still identify the label"
+
+
+def test_regime_posterior_starts_at_the_preregistered_prior():
+    """The prior is part of the decision problem, so it is pinned, not implied.
+
+    A prior quietly inherited from the frequency of regimes in whatever grid an
+    experiment sweeps would be privileged information in a Bayesian costume.
+    """
+    from governor.envs.gated_family import REGIME_PRIOR
+    for so in REGIME_GRID:
+        t = GatedTask(cfg=GateConfig(sigma_other=so), n_samples=4, seed=1)
+        b = ObservableBayes(t)
+        assert np.allclose(b.regime_posterior(b.prior_logL()), REGIME_PRIOR)
+
+
+def test_non_uniform_prior_is_honoured_and_validated():
+    t = GatedTask(cfg=GateConfig(), n_samples=4, seed=1)
+    from governor.envs.gated_family import GatedBayes
+    p = (0.5, 0.2, 0.1, 0.1, 0.1)
+    b = GatedBayes(t, regimes=REGIME_GRID, prior=p)
+    assert np.allclose(b.regime_posterior(b.prior_logL()), p)
+    with pytest.raises(ValueError):
+        GatedBayes(t, regimes=REGIME_GRID, prior=(0.5, 0.5))

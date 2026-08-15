@@ -162,6 +162,19 @@ well-specified rather than misspecified. Misspecification is a separate research
 question and mixing it in here would confound the metacognition result.
 """
 
+REGIME_PRIOR: tuple[float, ...] = (0.2, 0.2, 0.2, 0.2, 0.2)
+"""PREREGISTERED prior over REGIME_GRID. Uniform, fixed before any Phase 2
+measurement, and deliberately NOT inherited from the frequency with which each
+regime appears in whatever configuration grid an experiment happens to sweep.
+
+Inheriting it would smuggle knowledge of the benchmark's construction into the
+"observable" agent: a prior tuned to the test distribution is privileged
+information wearing a Bayesian costume. Tuning it after seeing probe results
+would be the same gate-shopping that made the ECE gate meaningless earlier in
+this project. It is asserted by test, not by comment -- see
+test_regime_posterior_starts_at_the_preregistered_prior.
+"""
+
 
 class GatedBayes:
     """Exact posterior over (regime, context, label), cost-aware myopic play.
@@ -183,6 +196,7 @@ class GatedBayes:
     """
 
     def __init__(self, task: GatedTask, *, regimes: tuple[float, ...] | None = None,
+                 prior: tuple[float, ...] | None = None,
                  n_gate_nodes: int = 192, grid_nodes: int = 241) -> None:
         c = task.cfg
         self.task, self.cfg = task, c
@@ -194,6 +208,15 @@ class GatedBayes:
         self.H = self.R * self.K * N_LABELS
         self.nf = c.n_features
         codes = _codes()
+
+        # Carried as a log-prior over hypotheses so that the EMPTY state is the
+        # preregistered prior rather than an implicit uniform. Context and label
+        # are uniform by construction of the generator.
+        p = np.asarray(prior if prior is not None else [1.0 / self.R] * self.R,
+                       dtype=float)
+        if p.shape != (self.R,):
+            raise ValueError(f"prior must have {self.R} entries, got {p.shape}")
+        self.log_prior = np.repeat(np.log(p / p.sum()), self.K * N_LABELS)
 
         mu = np.empty((self.H, self.nf))
         sd = np.empty((self.H, self.nf))
@@ -238,6 +261,10 @@ class GatedBayes:
         d = (x[cols][None, :] - self.MU[:, cols]) / self.SD[:, cols]
         return (-0.5 * d * d - self.LOGSD[:, cols] - 0.5 * _LOG2PI).sum(axis=1)
 
+    def prior_logL(self) -> np.ndarray:
+        """The empty state: the preregistered prior, not a flat vector."""
+        return self.log_prior.copy()
+
     def _norm(self, logL: np.ndarray) -> np.ndarray:
         p = np.exp(logL - logL.max())
         return p / p.sum()
@@ -260,7 +287,8 @@ class GatedBayes:
         return self._norm(logL).reshape(self.R, self.K, N_LABELS).sum(axis=(0, 2))
 
     def predict(self, x: np.ndarray, cols: list[int]) -> int:
-        return int(np.argmax(self.label_posterior(self.loglik_cols(x, cols))))
+        return int(np.argmax(self.label_posterior(
+            self.prior_logL() + self.loglik_cols(x, cols))))
 
     def _ent_y(self, logL: np.ndarray) -> np.ndarray:
         m = logL.max(axis=-1, keepdims=True)
@@ -323,7 +351,7 @@ class GatedBayes:
     def run(self, x: np.ndarray, budget: float, *,
             forced_first: int | None = None) -> tuple[list[int], int, float]:
         """Play to exhaustion of the budget; return (groups, prediction, spend)."""
-        logL = np.zeros(self.H)
+        logL = self.prior_logL()
         available = list(range(self.n_groups))
         got: list[int] = []
         spent = 0.0
