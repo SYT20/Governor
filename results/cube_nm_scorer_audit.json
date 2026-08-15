@@ -1,0 +1,50 @@
+{
+  "empty": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 3.3724617268587367,
+    "worst_gap": 0.0013250868009389016,
+    "cands": 1275,
+    "over4se": 0
+  },
+  "context_resolved": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 2.8228750188341314,
+    "worst_gap": 0.008868705874574667,
+    "cands": 1200,
+    "over4se": 0
+  },
+  "wrong_block_only": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 4.052233709532639,
+    "worst_gap": 0.005884832479753577,
+    "cands": 1175,
+    "over4se": 1
+  },
+  "true_block_partial": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 3.5179089934426173,
+    "worst_gap": 0.010734320205978753,
+    "cands": 1225,
+    "over4se": 0
+  },
+  "conflicting": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 3.494132280440045,
+    "worst_gap": 0.009429650146843382,
+    "cands": 1125,
+    "over4se": 0
+  },
+  "deep_random": {
+    "n": 25,
+    "argmax_ok": 25,
+    "worst_z": 3.464627251497697,
+    "worst_gap": 0.007603054640298534,
+    "cands": 1100,
+    "over4se": 0
+  }
+}
