@@ -11,11 +11,23 @@ github.com/Linusaronsson/AFA-Benchmark, afabench/datasets/datasets.py::CubeNMDat
 capacity), so only the generator is reproduced — not the training stack.
 
 WHY THIS DATASET. The label is drawn independently of the context, so the context
-features carry ZERO mutual information with the label. A myopic acquirer scoring
-features by immediate predictive gain will therefore never buy the context. But the
-context is the only thing that identifies WHICH of the five blocks carries the
-label signal. That is the non-myopic trap in its purest form: an action worth
-nothing now and everything next.
+features carry ZERO mutual information with the label: I(y; c) = 0. The context is
+nonetheless the only thing identifying WHICH of the five blocks carries the label
+signal. An action worth nothing now and everything next.
+
+CORRECTION (measured, scripts/cube_nm_myopic.py). An earlier version of this
+docstring concluded from I(y; c) = 0 that "a myopic acquirer will never buy the
+context". That is FALSE and the exact myopic policy refutes it: it buys the
+context at step 2 or 3 in 71% of rows. The zero-information argument holds only
+at step 1, from the empty state. Once any block feature has been observed,
+I(y; c | x_block) > 0 -- knowing the context is what tells you whether the value
+you already hold is signal or noise. Myopia here costs a one-step DELAY, not a
+permanent blind spot, and the delay only bites while the budget is tight enough
+for one wasted step to matter.
+
+The claim was written from the generative structure without executing a policy
+against it. That is the same failure that voided four AgentCE results: reasoning
+about an environment instead of running it.
 """
 
 from __future__ import annotations
