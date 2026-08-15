@@ -32,7 +32,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from sklearn.ensemble import HistGradientBoostingClassifier  # noqa: E402
 
 TOPK = [1, 5, 10, 20, 50]
+
+# The first split called only step and rem_budget "regime". That is too weak a
+# control: `n_blocks_touched` counts acquisitions and is a PROGRESS variable, not
+# a cognitive one, so crediting it to "state" inflates the residual. Every group
+# costs 1 here, so total spend == step and there is no separate cost trajectory
+# to add; n_blocks_touched is the one misfiled column.
 REGIME = {"step", "rem_budget"}
+REGIME_PLUS = {"step", "rem_budget", "n_blocks_touched"}
 
 
 def loso(X, y, seeds):
@@ -68,7 +75,8 @@ def main() -> int:
 
     sets = {
         "regime_only": [i for i, n in enumerate(names) if n in REGIME],
-        "state_only": [i for i, n in enumerate(names) if n not in REGIME],
+        "regime_plus": [i for i, n in enumerate(names) if n in REGIME_PLUS],
+        "cognitive_only": [i for i, n in enumerate(names) if n not in REGIME_PLUS],
         "all": list(range(len(names))),
     }
 
@@ -91,10 +99,9 @@ def main() -> int:
           " ".join(f"{f'{base_d:>+8.3f}({base_p:>4.0%})':>15}" for _ in TOPK))
 
     print("\n  Verdict at top-10%:")
-    r, s, a = (out[t][10]["delta"] for t in ("regime_only", "state_only", "all"))
-    print(f"    regime_only {r:+.3f} | state_only {s:+.3f} | all {a:+.3f} "
-          f"| everywhere {base_d:+.3f}")
-    print(f"    point estimate of state contribution: {a - r:+.3f}")
+    for t in sets:
+        print(f"    {t:<15} {out[t][10]['delta']:+.3f}")
+    print(f"    {'(everywhere)':<15} {base_d:+.3f}")
 
     # PAIRED, CLUSTERED BY SEED. Both models rank the SAME 19020 rows, so an
     # unpaired binomial SE overstates the evidence. Held-out seeds are the
@@ -113,18 +120,20 @@ def main() -> int:
     for t in sets:
         v = np.array(per[t])
         print(f"    {t:<14} {v.mean():+.3f} +- {1.96*v.std(ddof=1)/np.sqrt(len(v)):.3f}")
-    d = np.array(per["all"]) - np.array(per["regime_only"])
-    h = 1.96 * d.std(ddof=1) / np.sqrt(len(d))
-    print(f"    all - regime_only: {d.mean():+.3f} [{d.mean()-h:+.3f}, "
-          f"{d.mean()+h:+.3f}]  (n=10 seeds)")
-    if d.mean() - h <= 0:
-        print("    -> STATE CONTRIBUTION NOT SEPARABLE FROM ZERO. The controller")
-        print("       is the budget/step lookup, not a metacognitive state signal.")
-    else:
-        print("    -> state carries signal beyond the lookup, CI excludes zero")
     out["paired_top10"] = {t: [float(x) for x in per[t]] for t in sets}
-    out["state_contribution"] = {"mean": float(d.mean()),
-                                 "lo": float(d.mean() - h), "hi": float(d.mean() + h)}
+    for base_set, label in (("regime_only", "beyond step+budget"),
+                            ("regime_plus", "beyond ALL progress vars")):
+        d = np.array(per["all"]) - np.array(per[base_set])
+        h = 1.96 * d.std(ddof=1) / np.sqrt(len(d))
+        verdict = ("survives" if d.mean() - h > 0
+                   else "NOT separable from zero")
+        print(f"    all - {base_set:<12} {d.mean():+.3f} "
+              f"[{d.mean()-h:+.3f}, {d.mean()+h:+.3f}]   {label} -> {verdict}")
+        out[f"contribution_vs_{base_set}"] = {
+            "mean": float(d.mean()), "lo": float(d.mean() - h),
+            "hi": float(d.mean() + h)}
+    print("\n    Only the second line is evidence for a COGNITIVE signal; the")
+    print("    first still credits acquisition-count progress to 'state'.")
 
     Path("results").mkdir(exist_ok=True)
     Path("results/cube_nm_uplift_ablation.json").write_text(json.dumps(
