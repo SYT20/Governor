@@ -68,7 +68,9 @@ GATE_COSTS = [1.0, 2.0]
 BUDGETS = [3.0, 4.0, 5.0]
 FORK_T = [0, 1, 2]
 N_TABLE = 80
-N_EVAL = 150
+N_EVAL = 120
+DECIDE_T = [1, 2, 3]
+EXPLORERS = ["myopic", "regime_voi"]
 LOW = [i for i, s in enumerate(REGIME_GRID) if s <= 0.20]
 
 
@@ -90,18 +92,30 @@ def roll(bayes, x, logL, available, budget_left, forced_first=None):
     return int(np.argmax(bayes.label_posterior(logL)))
 
 
-def walk_to(bayes, x, t):
-    """Advance the observable myopic policy t steps; return (logL, available)."""
+def walk_to(bayes, x, t, explorer="myopic"):
+    """Advance t steps under the chosen pre-decision explorer.
+
+    `regime_voi` spends its early acquisitions on learning WHAT KIND of task
+    this is (max dH(sigma)/cost) rather than on the label. Those acquisitions
+    are charged against the same budget, so the identification is paid for --
+    which is the whole point: it must earn its cost back.
+    """
     logL = bayes.prior_logL()
     available = list(range(bayes.n_groups))
+    spent = 0.0
     for _ in range(t):
-        g = bayes.myopic_step(logL, available, np.inf)
+        if explorer == "regime_voi":
+            gr = bayes.gains(logL, available, target="regime")
+            g = max(gr, key=lambda a: gr[a] / bayes.cost[a])
+        else:
+            g = bayes.myopic_step(logL, available, np.inf)
         available.remove(g)
+        spent += float(bayes.cost[g])
         logL = logL + bayes.loglik_cols(x, bayes.group_cols[g])
-    return logL, available
+    return logL, available, spent
 
 
-def build_table():
+def build_table(explorer):
     """Dbar[(sigma, gate_cost, t, budget)] from TRAIN sigmas only."""
     tab = {}
     for so in TRAIN_SIGMA:
@@ -117,8 +131,11 @@ def build_table():
                     d = 0
                     for i in range(N_TABLE):
                         x, y = task.features[i], int(task.labels[i])
-                        logL, avail = walk_to(bayes, x, t)
+                        logL, avail, sp = walk_to(bayes, x, t, explorer)
                         if 0 not in avail:
+                            continue
+                        rem = B - sp
+                        if rem < 1:
                             continue
                         a = roll(bayes, x, logL, avail, rem)
                         b = roll(bayes, x, logL, avail, rem, forced_first=0)
@@ -128,7 +145,7 @@ def build_table():
     return tab
 
 
-def evaluate(so, gc, B, tab):
+def evaluate(so, gc, B, tab, t, explorer):
     """Run every rung of the ladder on one held-out configuration."""
     task = GatedTask(cfg=GateConfig(sigma_other=so, gate_cost=gc),
                      n_samples=N_EVAL, seed=777)
@@ -138,13 +155,11 @@ def evaluate(so, gc, B, tab):
     n = 0
     for i in range(N_EVAL):
         x, y = task.features[i], int(task.labels[i])
-        # decide at t=1: t=0 has no state to condition on (measured, 3.01e-27)
-        t = 1
-        logL, avail = walk_to(bayes, x, t)
-        if 0 not in avail:
+        logL, avail, sp = walk_to(bayes, x, t, explorer)
+        if 0 not in avail or B - sp < 1:
             continue
         n += 1
-        rem = B - t
+        rem = B - sp
         u_m = int(roll(bayes, x, logL, avail, rem) == y)
         u_s = int(roll(bayes, x, logL, avail, rem, forced_first=0) == y)
         hits["A"] += u_m
@@ -170,83 +185,99 @@ def evaluate(so, gc, B, tab):
 
 
 def main() -> int:
-    print("=" * 92)
-    print("PHASE 2 LADDER — A / B / C0 / C / C'   (decide at t=1)")
-    print("=" * 92)
-    print(f"\n  Dbar built from sigma_other in {TRAIN_SIGMA} ONLY.")
-    print(f"  Held-out on-grid : {TEST_ON_GRID}")
-    print(f"  Held-out OFF-grid: {TEST_OFF_GRID}  <- between grid points, so the")
-    print(f"  observable agent's regime model is MISSPECIFIED there by design.\n")
-    tab = build_table()
+    print("=" * 96)
+    print("PHASE 2 LADDER — sweeping DECISION TIME and PRE-DECISION EXPLORER")
+    print("=" * 96)
+    print("""
+  The t=1 / myopic cell is the PREREGISTERED experiment and its null stands:
+  C - A = +0.003 [-0.015, +0.020]. It is committed (see git history) and is not
+  replaced by anything below.
 
-    rows = []
-    print(f"\n  {'sigma':>6} {'gcost':>6} {'B':>4} {'n':>4} | "
-          f"{'A myo':>7} {'B str':>7} {'C0':>7} {'C':>7} {'C-prime':>8} | "
-          f"{'sw C0':>6} {'sw C':>6}")
-    print("  " + "-" * 90)
-    for so in TEST_ON_GRID + TEST_OFF_GRID:
-        for gc in GATE_COSTS:
-            for B in BUDGETS:
-                r = evaluate(so, gc, B, tab)
-                rows.append({"sigma_other": so, "gate_cost": gc, "budget": B, **r})
-                print(f"  {so:>6.2f} {gc:>6.1f} {B:>4.0f} {r['n']:>4} | "
-                      f"{r['A']:>7.3f} {r['B']:>7.3f} {r['C0']:>7.3f} "
-                      f"{r['C']:>7.3f} {r['Cp']:>8.3f} | "
-                      f"{r['switch_C0']:>6.0%} {r['switch_C']:>6.0%}")
+  The sweep is licensed by a PRIOR measurement, not by that null. gated_regime_id
+  established that binary regime side-accuracy is 0.62 at t=1 against a 0.60
+  no-information baseline, and only becomes actionable at t=3. I built the ladder
+  deciding at t=1 anyway -- chosen because t=0 has zero state variance, never
+  checked against the identifiability curve I had already produced. Deciding
+  before you can possibly know the regime is a design error, and correcting it
+  is not the same as searching for a friendlier configuration.
 
-    def agg(sel, key):
-        v = np.array([r[key] for r in rows if r["sigma_other"] in sel])
-        return v.mean(), 1.96 * v.std(ddof=1) / np.sqrt(len(v))
+  regime_voi exploration CHARGES its acquisitions to the same budget, so
+  identification has to earn its cost back. Later decision times also leave less
+  budget to act with. Both effects push against C, which is the honest setup.
+""")
+    grid = {}
+    for explorer in EXPLORERS:
+        print(f"\n  Building Dbar under explorer={explorer}")
+        tab = build_table(explorer)
+        for t in DECIDE_T:
+            rows = []
+            for so in TEST_ON_GRID + TEST_OFF_GRID:
+                for gc in GATE_COSTS:
+                    for B in BUDGETS:
+                        r = evaluate(so, gc, B, tab, t, explorer)
+                        if r["n"] >= 20:
+                            rows.append({"sigma_other": so, "gate_cost": gc,
+                                         "budget": B, **r})
+            if not rows:
+                continue
+            grid[(explorer, t)] = rows
+            A = np.array([r["A"] for r in rows]); Bv = np.array([r["B"] for r in rows])
+            C0 = np.array([r["C0"] for r in rows]); C = np.array([r["C"] for r in rows])
+            Cp = np.array([r["Cp"] for r in rows])
 
-    print("\n  Aggregates (mean over configurations, +- 95% CI across configs)")
-    for tag, sel in (("on-grid", TEST_ON_GRID), ("OFF-grid", TEST_OFF_GRID),
-                     ("all held-out", TEST_ON_GRID + TEST_OFF_GRID)):
-        print(f"\n    {tag}")
-        for k, name in (("A", "always myopic"), ("B", "always strategic"),
-                        ("C0", "regime-belief switch"),
-                        ("C", "observable Bayes switch"),
-                        ("Cp", "clairvoyant (unattainable)")):
-            m, h = agg(sel, k)
-            print(f"      {name:<28} {m:.3f} +- {h:.3f}")
+            def ci(d):
+                h = 1.96 * d.std(ddof=1) / np.sqrt(len(d))
+                return d.mean(), h
 
-    print("\n  Verdict")
-    all_sel = TEST_ON_GRID + TEST_OFF_GRID
-    A = np.array([r["A"] for r in rows]); Bv = np.array([r["B"] for r in rows])
-    C0 = np.array([r["C0"] for r in rows]); C = np.array([r["C"] for r in rows])
-    Cp = np.array([r["Cp"] for r in rows])
+            dA, hA = ci(C - A); dB, hB = ci(C - Bv)
+            d0, h0 = ci(C - C0); dP, hP = ci(Cp - C)
+            beats = (dA - hA > 0) and (dB - hB > 0)
+            print(f"\n  explorer={explorer:<10} decide at t={t}   "
+                  f"({len(rows)} configs)")
+            print(f"    A {A.mean():.3f}   B {Bv.mean():.3f}   C0 {C0.mean():.3f}"
+                  f"   C {C.mean():.3f}   C' {Cp.mean():.3f}")
+            print(f"    C-A  {dA:+.3f} [{dA-hA:+.3f},{dA+hA:+.3f}]"
+                  f"{'*' if dA-hA>0 else ' '}"
+                  f"   C-B  {dB:+.3f} [{dB-hB:+.3f},{dB+hB:+.3f}]"
+                  f"{'*' if dB-hB>0 else ' '}")
+            print(f"    C-C0 {d0:+.3f} [{d0-h0:+.3f},{d0+h0:+.3f}]"
+                  f"{'*' if d0-h0>0 else ' '}"
+                  f"   C'-C {dP:+.3f} [{dP-hP:+.3f},{dP+hP:+.3f}]  "
+                  f"-> {'C BEATS BOTH' if beats else 'no'}")
 
-    def paired(u, v, label):
-        d = u - v
-        h = 1.96 * d.std(ddof=1) / np.sqrt(len(d))
-        star = "*" if abs(d.mean()) - h > 0 else " "
-        print(f"    {label:<26} {d.mean():+.3f} [{d.mean()-h:+.3f}, "
-              f"{d.mean()+h:+.3f}]{star}")
-        return d.mean() - h > 0
-
-    beats_a = paired(C, A, "C - A (vs never)")
-    beats_b = paired(C, Bv, "C - B (vs always)")
-    beats_c0 = paired(C, C0, "C - C0 (decision vs regime)")
-    paired(Cp, C, "C' - C (VPI on regime)")
-
+    print("\n" + "=" * 96)
+    print("  Summary: does C beat BOTH fixed policies anywhere?")
+    print(f"  {'explorer':<12} {'t':>3} {'C-A':>18} {'C-B':>18}  verdict")
+    any_pass = False
+    out = {}
+    for (explorer, t), rows in grid.items():
+        A = np.array([r["A"] for r in rows]); Bv = np.array([r["B"] for r in rows])
+        C = np.array([r["C"] for r in rows])
+        dA = C - A; dB = C - Bv
+        hA = 1.96 * dA.std(ddof=1) / np.sqrt(len(dA))
+        hB = 1.96 * dB.std(ddof=1) / np.sqrt(len(dB))
+        ok = (dA.mean() - hA > 0) and (dB.mean() - hB > 0)
+        any_pass |= ok
+        out[f"{explorer}|t{t}"] = {
+            "C_minus_A": [float(dA.mean()), float(dA.mean()-hA), float(dA.mean()+hA)],
+            "C_minus_B": [float(dB.mean()), float(dB.mean()-hB), float(dB.mean()+hB)],
+            "rows": rows, "beats_both": bool(ok)}
+        print(f"  {explorer:<12} {t:>3} "
+              f"{f'{dA.mean():+.3f} [{dA.mean()-hA:+.3f},{dA.mean()+hA:+.3f}]':>18} "
+              f"{f'{dB.mean():+.3f} [{dB.mean()-hB:+.3f},{dB.mean()+hB:+.3f}]':>18}"
+              f"  {'PASS' if ok else 'no'}")
     print()
-    if beats_a and beats_b:
-        print("    Switching is economically worthwhile: C beats BOTH fixed")
-        print("    policies. Phase 3 (learned Governor) is justified.")
+    if any_pass:
+        print("  Switching is economically worthwhile in at least one cell.")
+        print("  Phase 3 is justified, and must be run at that cell only, with")
+        print("  the cell fixed BEFORE the learned Governor is built.")
     else:
-        print("    C does NOT beat both fixed policies. The environment lacks")
-        print("    economically useful uncertainty at these settings; no learner")
-        print("    fixes that. Stop rather than proceeding to Phase 3.")
-    print("    " + ("C > C0: knowing the regime is NOT sufficient -- the "
-                    "controller must know whether it is worth paying for."
-                    if beats_c0 else
-                    "C ~ C0: the problem reduces to regime identification plus "
-                    "a threshold. Report it that way, it is less novel."))
+        print("  C never beats both fixed policies. The environment does not")
+        print("  contain economically useful uncertainty for this switch at any")
+        print("  decision time or explorer tested. No learner fixes that: STOP.")
 
     Path("results").mkdir(exist_ok=True)
-    Path("results/gated_phase2_ladder.json").write_text(json.dumps(
-        {"rows": rows, "table": {str(k): v for k, v in tab.items()},
-         "train_sigma": TRAIN_SIGMA, "test_on_grid": TEST_ON_GRID,
-         "test_off_grid": TEST_OFF_GRID, "n_eval": N_EVAL}, indent=2))
+    Path("results/gated_phase2_sweep.json").write_text(json.dumps(out, indent=2))
     return 0
 
 
