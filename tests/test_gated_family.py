@@ -256,8 +256,37 @@ def test_env5_deliberation_acquires_nothing():
         assert r.tool_spent == before
 
 
-def test_env5_m1_output_varies():
-    """M1 must be informative: constant output means it can be deleted."""
+def test_env5_m1_output_is_constant_at_the_prior():
+    """At t=0 nothing is observed, so M1 MUST return the same assessment.
+
+    The first version of the variation test below queried M1 from the prior
+    state and failed -- correctly. Every instance presents the identical
+    posterior before any acquisition, exactly as measured in the gated family
+    (state-feature variance 3.01e-27). Pinning it here so the distinction
+    between "M1 is uninformative" and "t=0 has no state" cannot be confused
+    again.
+    """
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    t = ProbeTask(cfg=make_config(0.60, 1.0, 0.05), n_samples=6, seed=4)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    seen = set()
+    for i in range(6):
+        r = ModeRunner(ib=ib, b_tool=6.0, b_compute=1e9)
+        r.invoke("M1", ib.prior_logL(), list(range(ib.n_groups)),
+                 t.features[i], "candidate_evals")
+        seen.add(round(r.trace[-1]["assessment"], 6))
+    assert len(seen) == 1, f"prior state should be identical across rows: {seen}"
+
+
+def test_env5_m1_output_varies_once_evidence_exists():
+    """M1 must be informative: constant output means it can be deleted.
+
+    Evaluated after acquisitions, which is where the M0/M2 choice is actually
+    made -- the t=0 decision has no state to condition on and is excluded by
+    construction.
+    """
     from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
                                             make_config)
     from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
@@ -266,9 +295,14 @@ def test_env5_m1_output_varies():
         t = ProbeTask(cfg=make_config(so, 1.0, 0.05), n_samples=8, seed=4)
         ib = InstrumentedBayes(ObservableProbeBayes(t))
         for i in range(8):
+            x = t.features[i]
+            logL, avail = ib.prior_logL(), list(range(ib.n_groups))
+            for _ in range(2):                      # advance into real states
+                g = ib.b.myopic_step(logL, avail, 6.0)
+                avail.remove(g)
+                logL = logL + ib.b.loglik_cols(x, ib.group_cols[g])
             r = ModeRunner(ib=ib, b_tool=6.0, b_compute=1e9)
-            r.invoke("M1", ib.prior_logL(), list(range(ib.n_groups)),
-                     t.features[i], "candidate_evals")
+            r.invoke("M1", logL, avail, x, "candidate_evals")
             v = r.trace[-1]["assessment"]
             if v is not None:
                 seen.add(round(v, 3))
