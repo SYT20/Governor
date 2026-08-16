@@ -71,11 +71,20 @@ budgets instead produced a **budget-parity lookup capturing 94%** of oracle
 decision value. Two currencies require two *resources*, not two magnitudes of
 one (`b6848d8`).
 
-**N7 — Δ\* can vary across states and still never change the decision.** At
-σ=0.60, B=6, `SD_s(Δ*) = 0.0345` is real — confirmed by a CRN correlation test
-where the null is pinned at 0.500 and the measurement is 0.776 — but the range
-is **[−0.180, −0.016], every state negative**. A perfect predictor of Δ\* would
-still say "stay with the cheap heuristic" everywhere (`ff23085`).
+**N7 — State variation in Δ\* is not the same thing as a control problem.** At
+σ=0.60, B=6, `SD_s(Δ*) ≈ 0.037` is real — two independent estimators agree
+(0.0345 analytic, 0.0389 empirical), and a CRN correlation test whose null is
+pinned at 0.500 measures 0.776. But the mean is −0.095 and **all 40 sampled
+point estimates are negative**, the best only 0.28 SE below zero.
+
+Stated precisely: no state was *demonstrated* to have positive Δ\* at this
+configuration — which is weaker than "no such state exists", since a true
+Δ\* = +0.01 would routinely produce the observed −0.008. The general criterion
+this yields is the useful part:
+
+> A Governor needs `P(Δ* > 0) > 0` **and** `P(Δ* < 0) > 0` within one observable
+> decision regime. Variation alone is insufficient; the distribution must cross
+> the economic boundary at zero (`ff23085`, `86a87d9`).
 
 ---
 
