@@ -66,83 +66,122 @@ and reproduced, three times, a problem it was built to prevent.
 The probe consumes **no** `tool_calls`. That is the whole point and it is
 structural rather than a matter of price.
 
-## 4. THE CRITICAL DESIGN QUESTION — flagged, not decided
+## 4. [REV2] The reasoning ladder — §4's degeneracy, closed
 
-**A separate reasoning budget with no alternative use makes the experiment
-degenerate.** If `B_think` can only be spent on the probe and unspent think
-budget is worthless, then spending it is free, always-deliberate wins by
-construction, and we have rebuilt the "always escalate" degeneracy in a new
-costume. Environment 4a died of an unexamined resource assumption; this is the
-same hazard at the next level and it must be closed **before** implementation.
+Rev1 flagged that a think budget with no alternative use is degenerate, and
+recommended sharing it across a task sequence. That is superseded. A task
+sequence adds inter-task credit assignment, and a reviewer could then fairly say
+"you built a budget scheduler, not a cognitive controller" — the two are related
+but not the same, and the ambiguity would be unresolvable after the fact.
 
-Three candidate closures. **I am not choosing among them unilaterally** — the
-last two amendments I made alone both failed, and the second failed on the
-reasoning I gave for it.
+PREREGISTERED instead: **one shared think budget, three reasoning modes, chosen
+at every decision point within a single task.**
 
-**(a) Competing deliberations.** Several probes exist, each informative about a
-different aspect; `B_think` affords only some. Spending on one forgoes another.
-Makes think allocation itself a decision. Risk: turns into a second acquisition
-problem rather than a metareasoning one.
+    M0  execute            0 tokens   act on the current posterior, myopically
+    M1  light deliberation c1 tokens  the regime probe from Env 4a
+    M2  deep deliberation  c2 tokens  multi-step lookahead over acquisitions
 
-**(b) Shared budget across a task sequence.** One `B_think` spans N tasks.
-Spending early means less later. Closest to the real deployment setting and to
-the original "budget-controlled cognitive layer" framing. Risk: adds a credit
-assignment problem across tasks.
+with `c1 < c2`, all three drawing on the same `B_think`.
 
-**(c) Coupling through a third resource.** Both actions also consume `wall_s`,
-under a latency constraint, at different rates. `Envelope` already carries
-`wall_s`. Risk: reintroduces a scalar bottleneck through the back door, which is
-precisely what killed 4a — this one should probably be rejected for that reason.
+### 4a. [REV2] The ladder is degenerate with ONE decision point — stated, because
+it is the trap the previous two environments fell into
 
-**Recommendation: (b).** It is the only one where the think budget's opportunity
-cost is genuine and external to the current decision, and it matches what the
-project set out to build. But it is a design choice with the power to
-manufacture a result, so it is written here for review rather than adopted.
+If a task offers a single opportunity to deliberate, the optimal policy is
+"choose the deepest mode you can afford", which is a function of `B_think`
+alone: a lookup, and exactly the failure that closed Env 4a rev3.
 
-## 5. PREREGISTERED policy set
+The ladder is non-degenerate **only because `B_think` is shared across the
+MULTIPLE acquisition steps within one task.** Spending M2 at step 1 means it
+cannot be afforded at step 4, so the opportunity cost is internal to the task
+and genuine without any inter-task machinery. This is load-bearing and must be
+enforced in the implementation, not assumed:
+
+> PREREGISTERED: every task has at least 3 decision points, and `B_think` is
+> strictly less than the cost of invoking M2 at every one of them.
+
+Without that inequality the budget does not bind and the experiment is void.
+
+### 4b. [REV2] Token costs are DERIVED, not invented
+
+Review required that `c1` and `c2` not be arbitrary numbers. They are not; they
+are counted from the computation each mode actually performs, in units of
+posterior evaluations over the H hypotheses:
+
+    M0  act on the current posterior                        0 evaluations
+    M1  probe: one 1-D quadrature over the regime marginal  ~T evaluations
+    M2  k-step lookahead: candidates^k posterior rollouts   ~G^k evaluations
+
+so `c1` and `c2` are read off the instrumented implementation rather than
+chosen. The ratio `c2/c1` is then a property of the algorithms, and when an LLM
+is later substituted, `tokens` maps onto real inference tokens with no change of
+meaning. Any hand-set token cost would reintroduce precisely the kind of
+unjustified parameter that produced this project's failures.
+
+## 5. [REV2] PREREGISTERED policy set
 
 | | Policy | Sees |
 |---|---|---|
-| A | never deliberate | — |
-| B | always deliberate | — |
+| A | never deliberate — always M0 | — |
+| B | always deepest affordable mode | — |
 | C | oracle metareasoner | hidden state |
-| D | **Governor** | observable state + remaining resource **vector** |
-| E | strongest non-cognitive baseline: static policy per configuration, fitted on TRAINING configurations only | configuration key |
+| D | **Governor** | observable state + remaining resource vector |
+| E1 | static policy per configuration, fitted on TRAIN configs | configuration key |
+| E2 | **resource-only lookup** — mode as a function of (B_tool, B_think) | resources |
+| E3 | **resource + progress lookup** | resources, step count |
 
-**PRIMARY criterion: `U_D > U_E`** on unseen configuration combinations, CI
-excluding zero. Not `U_D > U_A`.
+E2 and E3 added under review. A non-scalar resource *vector* can itself support
+structured lookup behaviour, so "not a scalar lookup" is no longer sufficient.
 
-This project has produced two policies that beat both fixed baselines while
-being lookup tables — the any-time switch captured 94% of its value from a
-six-entry (cost, budget) table. E is that table made as strong as possible and
-given a fair fit, so beating it is the claim that means something.
+**PRIMARY criterion: `U_D > max(U_E1, U_E2, U_E3)`** on unseen configuration
+combinations, CI excluding zero.
 
-## 6. PREREGISTERED gates
+## 6. [REV2] PREREGISTERED gates
 
-**H1** Observability: regime posterior before any observation equals the
-preregistered prior to 1e-9, every regime. (4a passed at 0.00e+00.)
+**H1 Observability.** Regime posterior before any observation equals the
+preregistered prior to 1e-9. (Env 4a passed at 0.00e+00.)
 
-**H2** Probe carries no label information: H2a probe alone at chance; H2b
-probe+observations no better than observations alone; H2c I(probe; context)
-within a permutation null. Carried over unchanged — 4a passed all three.
+**H2 Resource separation, verified in execution.** Invoking M1 or M2 must leave
+`tool_calls` unchanged; acquiring must leave `tokens` unchanged. Asserted by
+test, never by comment — Env 4a's leak entered through prose describing code
+that did otherwise.
 
-**H3** `U_D > U_E`, CI excluding zero. **Primary.**
+**H3 The reasoning modes do not solve the task directly.** M1 carries no label
+information (Env 4a's G2a/G2b/G2c, all passed, carried over unchanged). M2 may
+improve the *choice* of acquisitions but must acquire nothing itself.
 
-**H4** `U_D > U_A` and `U_D > U_B`. Necessary, not sufficient.
+**H4 Every mode is optimal somewhere.** There must exist held-out states where
+M0 beats M1, states where M1 beats M0, and states where M2 beats M1. If any mode
+is never optimal, the ladder has fewer real rungs than it claims.
 
-**H5** Non-degeneracy: probe purchase rate strictly inside (5%, 95%) **and
-varying within every cell of the coarse resource variables**. A decision
-constant inside a cell is a lookup regardless of its score.
+**H5 No single-variable lookup explains the decisions.** The best one-variable
+lookup — over any resource dimension or progress variable — must capture **less
+than 70%** of oracle decision value. Env 4a rev3 scored 94% and passed every
+gate that existed at the time.
 
-**H6** Resource separation holds in execution: probing must be verified to leave
-`tool_calls` unchanged. Asserted by test, not by comment — 4a's observability
-leak entered exactly through a claim made in prose about code that did
-otherwise.
+**H6 Beats the strongest structured baseline.** `U_D > max(U_E1, U_E2, U_E3)`,
+CI excluding zero, on unseen configuration combinations.
 
-**H7** No scalar collapse: the buy/skip decision must not be predictable from
-any single resource dimension. Reported as the fraction of oracle decision value
-captured by the best one-variable lookup; **must be below 70%**. The 4a rev3
-failure scored 94% here and this gate would have caught it.
+**H7 [REV2] Action distribution varies WITHIN identical resource states.** For
+fixed `(B_tool, B_think)`, the mode chosen must vary across observable task
+states on held-out configurations. A policy constant inside a resource cell is a
+lookup however well it scores — this is the direct analogue of the
+"constant within cost/budget cell" failure that exposed the any-time switch.
+
+**H8 [REV2] Cheaper than always-deep.** `tokens(D) < tokens(B)` while
+`U_D >= U_B`. Without this, "Governor = always deepest mode" passes H6 by
+spending more, which is the opposite of a budget-controlled layer.
+
+## 6a. [REV2] First construction gate, before any policy work
+
+Per review, the first thing built and run is not a policy but a check on the
+environment:
+
+> Across held-out task states there must exist genuine states where each of M0,
+> M1 and M2 is optimal, and no resource-only or progress-only lookup may capture
+> most of the decision value.
+
+If that fails, Environment 5 is closed before any Governor exists — the same
+sequencing that made the Env 4a closure cheap and unambiguous.
 
 ## 7. Explicitly out of scope
 
