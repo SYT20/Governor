@@ -321,3 +321,70 @@ Gates G1–G8, the five-policy set, NetVDI as headline metric, the Governor
 allow/deny input list, the clairvoyant-balanced split, held-out parameter
 combinations, and the 4a/4b separation. `probe_cost = 0.25` remains a single
 operating point with no sweep.
+
+---
+
+## Revision 4 — REV3 IS REFUTED. Recorded 2026-08-16.
+
+**The rev3 budget amendment failed, and it failed on the justification I gave
+for it.** Rev3 argued that half-integer budgets make the environment *harder*,
+because the probe's effective cost becomes state-dependent. Measured:
+
+    value of the buy/skip decision, accuracy units
+      never buy                  +0.0000
+      BUDGET-ONLY lookup         +0.0313
+      oracle per-configuration   +0.0333   -> lookup captures 94%
+
+    sign of NET by budget
+      B=3.0    0% positive        B=3.5  100% positive
+      B=4.0   12% positive        B=4.5   88% positive
+      B=5.0   25% positive
+    correlation of NET with budget parity: +0.804
+
+The decision collapses to "buy iff the budget is half-integer". The cost did
+become state-dependent — on a state variable the Governor is handed. A
+one-variable lookup captures 94% of the oracle decision value.
+
+Fifth instance of this failure mode in the project, and the first I introduced
+myself while explicitly arguing it would not occur.
+
+### The actual diagnosis
+
+Both rev2 and rev3 fail for one underlying reason, now visible:
+
+> In a discrete-acquisition environment with a SCALAR budget, a "cheap
+> diagnostic" cannot be cheap. Its minimum effective price is one acquisition
+> slot, or zero if it happens to fit in slack. There is no middle, so the probe
+> is either free or costs a whole feature, and which one it is depends on budget
+> arithmetic rather than on the task.
+
+Making the price smaller cannot fix this. Two currencies require two
+**resources**, not two magnitudes of one resource. That is precisely the
+distinction raised in review earlier — `C_meta != C_information`, tokens versus
+tool calls — and it was correct in a way neither of us followed through.
+
+### What the corrected design must be
+
+The probe draws from a SEPARATE resource dimension from acquisitions.
+`governor/accounting/meter.py`, written in Stage 1, already supports this and it
+is verified working:
+
+    Accountant(Envelope(tool_calls=5.0, tokens=3.0))
+    charge('probe',   tokens=1.0)      -> consumed tool_calls 0.0
+    charge('acquire', tool_calls=1.0)
+
+so a probe charged to `tokens` displaces no acquisition at all. The whole
+CUBE-NM -> gated -> probe line has been run on a scalar budget, which is why the
+two currencies kept collapsing into one. The environment work drifted away from
+the project's own accounting foundation and reproduced, three times, a problem
+that foundation was built to prevent.
+
+### Status
+
+Environment 4a is CLOSED under both rev2 and rev3 parameterisations. Its
+construction gates passed (G1, G2a, G2b, G2c) and the probe's information value
+is real (+0.056 free, positive in 83%), so the *instrument* is sound; the
+*resource model* is not.
+
+No further parameter amendment. Any successor must use a two-dimensional
+envelope and be preregistered afresh.
