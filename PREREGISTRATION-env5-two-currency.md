@@ -49,139 +49,147 @@ Shadow prices (`U = success - λ_T·tokens - λ_C·calls`) are explicitly reject
 every λ is another unjustified parameter, and this project's failures have come
 from exactly such numbers.
 
-## 3. The resource split
+## 3. [REV3] The resource split — compute units, NOT tokens
 
-PREREGISTERED. Uses `governor/accounting/meter.py` from Stage 1 — the existing
-`Envelope(tokens, cost, wall_s, tool_calls)` and `Accountant.charge(label,
-**amounts)`. Verified working: charging `tokens=1.0` consumes `tool_calls=0.0`.
+Rev2 claimed the derived costs "map onto real inference tokens with no change of
+meaning". **That is false and is retracted.** A posterior evaluation is an
+algorithmic operation; an LLM token is an inference-resource unit involving
+orders of magnitude more computation, at a ratio that depends on model
+architecture. Relabelling one as the other is the same units error that has now
+produced a wrong conclusion three times in this project — twice in analysis, and
+here in a specification written to prevent exactly that.
 
-No bespoke budget abstraction. The environment work drifted away from this layer
-and reproduced, three times, a problem it was built to prevent.
+PREREGISTERED resource vector:
 
-| Action | Charges | Rationale |
-|---|---|---|
-| acquire a task feature | `tool_calls += 1` | external information |
-| probe (regime diagnostic) | `tokens += 1` | internal deliberation |
+    R = (B_tool, B_compute)
 
-The probe consumes **no** `tool_calls`. That is the whole point and it is
-structural rather than a matter of price.
+    B_tool     acquisitions, in tool calls          -> Envelope.tool_calls
+    B_compute  deliberation, in COMPUTE UNITS       -> Envelope.cost
 
-## 4. [REV2] The reasoning ladder — §4's degeneracy, closed
+`Envelope.cost` is used rather than `Envelope.tokens` deliberately, so that
+`tokens` stays free to mean actual LLM tokens when an executor is attached.
+The honest mapping is a research question, not an identity:
 
-Rev1 flagged that a think budget with no alternative use is degenerate, and
-recommended sharing it across a task sequence. That is superseded. A task
-sequence adds inter-task credit assignment, and a reviewer could then fairly say
-"you built a budget scheduler, not a cognitive controller" — the two are related
-but not the same, and the ambiguity would be unresolvable after the fact.
+    Environment 5   compute units (instrumented primitive operations)
+    Real agent      LLM inference tokens
+    Relationship    to be MEASURED when the two are run side by side
 
-PREREGISTERED instead: **one shared think budget, three reasoning modes, chosen
-at every decision point within a single task.**
+Stating it that way is also a better result than pretending they are the same:
+the architecture is resource-agnostic, and which physical resource fills the
+second slot becomes an empirical question rather than an assumption.
 
-    M0  execute            0 tokens   act on the current posterior, myopically
-    M1  light deliberation c1 tokens  the regime probe from Env 4a
-    M2  deep deliberation  c2 tokens  multi-step lookahead over acquisitions
+## 4. [REV3] Three computational modes, one shared compute budget
 
-with `c1 < c2`, all three drawing on the same `B_think`.
+Not a "ladder" — rev2's word was misleading. M1 and M2 are **qualitatively
+different computations**, not two depths of one algorithm:
 
-### 4a. [REV2] The ladder is degenerate with ONE decision point — stated, because
-it is the trap the previous two environments fell into
+    M0  direct action            0 units   act on the current posterior
+    M1  diagnostic deliberation  c1 units  "what regime am I in?"  (the probe)
+    M2  strategic planning       c2 units  "what acquisition sequence?" (lookahead)
 
-If a task offers a single opportunity to deliberate, the optimal policy is
-"choose the deepest mode you can afford", which is a function of `B_think`
-alone: a lookup, and exactly the failure that closed Env 4a rev3.
+M1 asks a question about the task; M2 asks a question about the plan. Both draw
+on the same `B_compute`, which is what makes the allocation a decision.
 
-The ladder is non-degenerate **only because `B_think` is shared across the
-MULTIPLE acquisition steps within one task.** Spending M2 at step 1 means it
-cannot be afforded at step 4, so the opportunity cost is internal to the task
-and genuine without any inter-task machinery. This is load-bearing and must be
-enforced in the implementation, not assumed:
+**M2 may not acquire anything.** It changes which acquisition is chosen and
+charges `B_compute`; the acquisition itself still charges `B_tool`. This keeps
+reasoning and execution structurally separate, which is what later maps onto
+Governor → planner → executor rather than letting the planner quietly do the task.
 
-> PREREGISTERED: every task has at least 3 decision points, and `B_think` is
-> strictly less than the cost of invoking M2 at every one of them.
+### 4a. Non-degeneracy conditions, binding
 
-Without that inequality the budget does not bind and the experiment is void.
+With a single decision point the optimal policy is "deepest affordable mode", a
+function of `B_compute` alone — the lookup that closed Env 4a rev3 at 94%.
 
-### 4b. [REV2] Token costs are DERIVED, not invented
+> PREREGISTERED: at least 3 decision points per task, and
+> `c2 <= B_compute < 3 * c2`, so M2 is affordable at least once and never at
+> every step. Verified by assertion at construction time, not assumed.
 
-Review required that `c1` and `c2` not be arbitrary numbers. They are not; they
-are counted from the computation each mode actually performs, in units of
-posterior evaluations over the H hypotheses:
+### 4b. [REV3] Cost accounting is frozen before any policy runs
 
-    M0  act on the current posterior                        0 evaluations
-    M1  probe: one 1-D quadrature over the regime marginal  ~T evaluations
-    M2  k-step lookahead: candidates^k posterior rollouts   ~G^k evaluations
+Rev2 said costs are "counted from the computation performed", which review
+correctly identified as still a hand-designed convention unless the counted set
+is fixed in advance. PREREGISTERED primitive counters, and no others:
 
-so `c1` and `c2` are read off the instrumented implementation rather than
-chosen. The ratio `c2/c1` is then a property of the algorithms, and when an LLM
-is later substituted, `tokens` maps onto real inference tokens with no change of
-meaning. Any hand-set token cost would reintroduce precisely the kind of
-unjustified parameter that produced this project's failures.
+    likelihood_evals     calls to loglik_cols
+    posterior_updates    normalisations of the H-vector
+    candidate_evals      per-candidate expected-entropy evaluations
+    branch_expansions    lookahead nodes expanded
 
-## 5. [REV2] PREREGISTERED policy set
+`C(M0)`, `C(M1)`, `C(M2)` are reported as exact 4-vectors from an instrumented
+run, then collapsed to scalar compute units by an unweighted sum, and **frozen
+before any policy is evaluated**. The definition may not change afterwards.
 
-| | Policy | Sees |
-|---|---|---|
-| A | never deliberate — always M0 | — |
-| B | always deepest affordable mode | — |
-| C | oracle metareasoner | hidden state |
-| D | **Governor** | observable state + remaining resource vector |
-| E1 | static policy per configuration, fitted on TRAIN configs | configuration key |
-| E2 | **resource-only lookup** — mode as a function of (B_tool, B_think) | resources |
-| E3 | **resource + progress lookup** | resources, step count |
+## 5. [REV3] Policy set
 
-E2 and E3 added under review. A non-scalar resource *vector* can itself support
-structured lookup behaviour, so "not a scalar lookup" is no longer sufficient.
+| | Policy | Sees | Role |
+|---|---|---|---|
+| A | always M0 | — | floor |
+| B | always deepest affordable | — | floor |
+| C | clairvoyant oracle | hidden state | ceiling |
+| D | **Governor** | observable state + resource vector | the claim |
+| E2 | resource-only lookup | `(B_tool, B_compute)` | baseline |
+| E3 | resource + progress lookup | + step count | baseline |
+| E4 | resource + progress + preregistered cheap state summaries | + posterior entropy, margin | baseline |
 
-**PRIMARY criterion: `U_D > max(U_E1, U_E2, U_E3)`** on unseen configuration
+**E1 (configuration lookup) is REMOVED from the held-out comparison.** Review is
+right that it is undefined there: on an unseen combination the key does not
+exist, so E1 is either undefined or is secretly a nearest-neighbour model, and
+those are different baselines. E1 is reported separately as an **in-distribution
+ceiling**, never as a held-out comparator.
+
+**PRIMARY: `U_D - max(U_E2, U_E3, U_E4) > 0`** on unseen configuration
 combinations, CI excluding zero.
 
-## 6. [REV2] PREREGISTERED gates
+E4 is the hard one: it gets resources, progress, and cheap state summaries. If D
+cannot beat E4, then whatever D has learned is expressible as a shallow function
+of quantities already available for free, and the cognitive layer is not earning
+its keep.
 
-**H1 Observability.** Regime posterior before any observation equals the
-preregistered prior to 1e-9. (Env 4a passed at 0.00e+00.)
+## 6. [REV3] Gates
 
-**H2 Resource separation, verified in execution.** Invoking M1 or M2 must leave
-`tool_calls` unchanged; acquiring must leave `tokens` unchanged. Asserted by
-test, never by comment — Env 4a's leak entered through prose describing code
-that did otherwise.
+**H1 Observability.** Regime posterior before observation equals the
+preregistered prior to 1e-9. (Env 4a: 0.00e+00.)
 
-**H3 The reasoning modes do not solve the task directly.** M1 carries no label
-information (Env 4a's G2a/G2b/G2c, all passed, carried over unchanged). M2 may
-improve the *choice* of acquisitions but must acquire nothing itself.
+**H2 Resource separation, verified in execution.** M1/M2 leave `tool_calls`
+unchanged; acquisitions leave `cost` unchanged. By test, never by comment.
 
-**H4 Every mode is optimal somewhere.** There must exist held-out states where
-M0 beats M1, states where M1 beats M0, and states where M2 beats M1. If any mode
-is never optimal, the ladder has fewer real rungs than it claims.
+**H3 Modes do not solve the task.** M1 carries no label information (Env 4a
+G2a/b/c, carried over). M2 acquires nothing.
 
-**H5 No single-variable lookup explains the decisions.** The best one-variable
-lookup — over any resource dimension or progress variable — must capture **less
-than 70%** of oracle decision value. Env 4a rev3 scored 94% and passed every
-gate that existed at the time.
+**H4 [REV3] Every mode is optimal somewhere, WITH uncertainty bounds.** A few
+noisy states satisfy "exists" trivially. Required: held-out configuration
+families where each of `CI[M0 - M1] > 0`, `CI[M1 - M0] > 0`, `CI[M2 - M1] > 0`
+excludes zero. If any mode is never defensibly best, it is not a real mode.
 
-**H6 Beats the strongest structured baseline.** `U_D > max(U_E1, U_E2, U_E3)`,
-CI excluding zero, on unseen configuration combinations.
+**H5 [REV3] No single-variable lookup, with a FROZEN fitting protocol.** "Best
+one-variable lookup" is meaningless without specifying the family, and would
+otherwise become a hidden tuning exercise. PREREGISTERED: for each candidate
+scalar x in {B_tool, B_compute, step, posterior entropy, margin}, fit a
+one-dimensional threshold policy with **at most 4 bins at fixed quantile
+boundaries {0.2, 0.4, 0.6, 0.8}**, on TRAINING configurations only, evaluated on
+held-out. Fraction of oracle decision value captured by the best such policy
+must be **< 70%**, reported with a cluster bootstrap over configurations.
+Env 4a rev3 scored 94% and passed every gate that existed at the time.
 
-**H7 [REV2] Action distribution varies WITHIN identical resource states.** For
-fixed `(B_tool, B_think)`, the mode chosen must vary across observable task
-states on held-out configurations. A policy constant inside a resource cell is a
-lookup however well it scores — this is the direct analogue of the
-"constant within cost/budget cell" failure that exposed the any-time switch.
+**H6 Beats the strongest structured baseline.** The primary criterion above.
 
-**H8 [REV2] Cheaper than always-deep.** `tokens(D) < tokens(B)` while
-`U_D >= U_B`. Without this, "Governor = always deepest mode" passes H6 by
-spending more, which is the opposite of a budget-controlled layer.
+**H7 [REV3] Variation must be informative, not merely present.** Rev2 required
+the mode choice to vary within identical resource cells — but random variation
+passes that. Required instead: `I(action ; state | resources) > 0` on held-out
+data against a permutation null, **and** the variation must improve held-out
+utility. H7 remains a degeneracy detector; H6 is the actual claim.
 
-## 6a. [REV2] First construction gate, before any policy work
+**H8 Cheaper than always-deep.** `compute(D) < compute(B)` while `U_D >= U_B`.
+Without it, "Governor = always deepest" passes H6 by spending more, inverting
+the point of a budget-controlled layer.
 
-Per review, the first thing built and run is not a policy but a check on the
-environment:
+## 6a. Construction gate first, before any Governor exists
 
-> Across held-out task states there must exist genuine states where each of M0,
-> M1 and M2 is optimal, and no resource-only or progress-only lookup may capture
-> most of the decision value.
-
-If that fails, Environment 5 is closed before any Governor exists — the same
-sequencing that made the Env 4a closure cheap and unambiguous.
+The first thing built and run is H1–H5 on the environment alone. If there is no
+held-out state where each mode is defensibly optimal, or if a resource-only or
+resource+progress policy explains most of the decision value, Environment 5
+closes before a Governor is written — the sequencing that made the Env 4a
+closure cheap rather than a sunk cost.
 
 ## 7. Explicitly out of scope
 
