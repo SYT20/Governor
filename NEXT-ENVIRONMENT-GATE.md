@@ -44,7 +44,23 @@ made scarce **the optimal allocation collapsed to a constant temporal rule**
 **M2 (SECONDARY) — prevalence of that headroom**
 
     P( U(oracle-adaptive) - U(best-constant-schedule) > epsilon )
-    for a preregistered epsilon, over held-out episodes
+    over held-out episodes
+
+    epsilon = 0.02  (accuracy units)   FROZEN HERE, before any successor exists
+
+Justified by precedent, not chosen to fit anything: 0.02 is the materiality
+threshold already used in Env 5's adequacy gate, set before those results
+existed. It also sits at the scale that separated signal from noise throughout
+this project -- the held-out selector gained +0.0347, Delta* medians ran ~0.03,
+and effects below ~0.02 were consistently indistinguishable from estimator
+noise.
+
+Recording it now removes the option of "0.002 is too small" quietly becoming
+"0.0005 is sufficient" once the successor's numbers are visible. That
+substitution is the threshold-shopping failure this project has already
+committed twice -- the first likelihood gate "failed" at its own Bayes floor,
+and Run A's printed verdict was wrong because a 2x-floor threshold missed by
+0.0003.
 
 An earlier draft made M1 "number of distinct optimal schedules". That is wrong:
 ties and numerical noise produce many distinct optimal schedules while
@@ -85,6 +101,14 @@ available value.** That single comparison is what Env 5 lacked, and it is cheap
     Gate 4  re-measure on fresh seeds. Never discover the interesting
             configuration and evaluate on the same episodes -- that error was
             made and caught here at sigma=0.35/B=4.
+
+            THE ENVIRONMENT AND ITS CONFIGURATIONS MUST BE FROZEN BEFORE the
+            held-out oracle headroom is inspected. The oracle may use full state
+            information WITHIN an episode -- that is what makes it an upper
+            bound -- but selecting which environment or configuration to keep
+            BECAUSE its held-out headroom looked good is the same leakage one
+            level up. Order: freeze the family, freeze the configurations, then
+            run held-out.
     Gate 5  only now does observable-state -> allocation become a learning
             problem.
 
