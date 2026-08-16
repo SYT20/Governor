@@ -62,8 +62,22 @@ available value.** That single comparison is what Env 5 lacked, and it is cheap
             adaptive oracle, and eventually the Governor. Nothing may score a
             policy except by running it through this. Run I failed precisely
             because scoring and execution were separate paths.
+    Gate 0b POSITIVE CONTROL. Before trusting the gate, run it on a toy
+            environment where adaptive allocation beats every constant schedule
+            BY CONSTRUCTION -- e.g. a signal at t=2 that says whether the
+            valuable call is at t=3 or never. The gate must report material M1
+            there. Without this, a buggy gate and a degenerate environment
+            produce identical output, and every rejection is unfalsifiable.
     Gate 1  enumerate every feasible constant schedule -> U(best-constant).
             No model, no training, no hidden configuration.
+
+            THE CONSTANT BASELINE MUST BE CHOSEN ON A CALIBRATION SPLIT.
+            Running all constant schedules on the TEST episodes and keeping the
+            best makes the test set part of schedule selection, which inflates
+            nothing about the adaptive arm but deflates the baseline -- so it
+            manufactures headroom. Fit the schedule on calibration episodes,
+            freeze it, then evaluate that frozen schedule on held-out. Same
+            discovery/evaluation separation applied to configurations earlier.
     Gate 2  solve with full state information -> U(oracle-adaptive).
             Brute-force the policy tree while it is small; exact DP if not.
     Gate 3  reject unless M1 headroom is material. This is the gate that would
