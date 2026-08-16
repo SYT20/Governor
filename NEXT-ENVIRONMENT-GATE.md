@@ -37,16 +37,42 @@ made scarce **the optimal allocation collapsed to a constant temporal rule**
 
 ## The two telemetry metrics that decide it
 
-    M1  allocation diversity
-        number of distinct optimal schedules, and the fraction of episodes
-        whose optimal schedule differs from the BEST CONSTANT SCHEDULE
+**M1 (PRIMARY) — adaptive allocation headroom**
 
-    M2  adaptive allocation value
-        U(oracle-adaptive) - U(best-constant-schedule)  on held-out episodes
+    U(oracle-adaptive) - U(best-constant-schedule)   on held-out episodes
+
+**M2 (SECONDARY) — prevalence of that headroom**
+
+    P( U(oracle-adaptive) - U(best-constant-schedule) > epsilon )
+    for a preregistered epsilon, over held-out episodes
+
+An earlier draft made M1 "number of distinct optimal schedules". That is wrong:
+ties and numerical noise produce many distinct optimal schedules while
+`U_adaptive ~= U_constant`, so schedule multiplicity would register as adaptive
+value when there is none. Both metrics are now stated as VALUE differences, and
+the prevalence form replaces the diversity count.
 
 **Reject the environment if the best constant schedule captures essentially all
-available value.** That single comparison is what Env 5 lacked and it is cheap
-— it needs no learned model, no executor, and no Governor.
+available value.** That single comparison is what Env 5 lacked, and it is cheap
+— no learned model, no executor, no Governor.
+
+## Execution protocol, in order
+
+    Gate 0  one canonical episode executor, shared by constant schedules, the
+            adaptive oracle, and eventually the Governor. Nothing may score a
+            policy except by running it through this. Run I failed precisely
+            because scoring and execution were separate paths.
+    Gate 1  enumerate every feasible constant schedule -> U(best-constant).
+            No model, no training, no hidden configuration.
+    Gate 2  solve with full state information -> U(oracle-adaptive).
+            Brute-force the policy tree while it is small; exact DP if not.
+    Gate 3  reject unless M1 headroom is material. This is the gate that would
+            have closed Env 5 in twenty minutes instead of nine iterations.
+    Gate 4  re-measure on fresh seeds. Never discover the interesting
+            configuration and evaluate on the same episodes -- that error was
+            made and caught here at sigma=0.35/B=4.
+    Gate 5  only now does observable-state -> allocation become a learning
+            problem.
 
 ## Two procedural rules that earned their place
 
