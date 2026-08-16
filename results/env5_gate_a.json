@@ -1,0 +1,20 @@
+{
+  "n": 240,
+  "corr_D_Dstar": 0.021822234173890533,
+  "results": {
+    "realised D": {
+      "value": 0.05,
+      "const": 0.0,
+      "oracle": 0.06666666666666667,
+      "escalated": 0.2833333333333333
+    },
+    "Delta* (expected)": {
+      "value": -0.0125,
+      "const": 0.0,
+      "oracle": 0.06666666666666667,
+      "escalated": 0.175
+    }
+  },
+  "n_rep": 8,
+  "budget": 6.0
+}
