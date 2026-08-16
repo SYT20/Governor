@@ -307,3 +307,72 @@ def test_env5_m1_output_varies_once_evidence_exists():
             if v is not None:
                 seen.add(round(v, 3))
     assert len(seen) > 3, f"M1 assessment nearly constant: {seen}"
+
+
+# -- sequential execution: the regression that would have caught the run-I bug --
+
+def test_h_and_m2_produce_DIFFERENT_next_states():
+    """The invalid binding-budget run advanced every trajectory under H, then
+    scored all policies by summing local dstar from that one trajectory. It
+    therefore assumed s_2^M2 == s_2^H.
+
+    This test falsifies that assumption directly. If choosing M2 at t=1 does not
+    change the state reaching t=2, the sequential experiment is vacuous and any
+    'allocation' result is meaningless.
+    """
+    import numpy as np
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import (InstrumentedBayes, h_gate_first,
+                                          m2_plan)
+    t = ProbeTask(cfg=make_config(0.60, 1.0, 0.05), n_samples=12, seed=7)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    differed = 0
+    for i in range(12):
+        x = t.features[i]
+        logL, av = ib.prior_logL(), list(range(ib.n_groups))
+        # reach a non-trivial first decision point
+        g = ib.b.myopic_step(logL, av, 6.0)
+        av.remove(g); logL = logL + ib.b.loglik_cols(x, ib.group_cols[g])
+
+        ah = h_gate_first(ib, logL, av, 4.0, acquired=True)
+        am = m2_plan(ib, logL, av, 4.0)
+        if ah is None or am is None or ah == am:
+            continue
+        # EXECUTE each choice and compare the resulting belief states
+        lh = logL + ib.b.loglik_cols(x, ib.group_cols[ah])
+        lm = logL + ib.b.loglik_cols(x, ib.group_cols[am])
+        differed += int(not np.allclose(lh, lm))
+    # MEASURED, not guessed: H and M2 select the SAME action in 10 of 12 states
+    # at this decision point, so only a minority of states can have non-zero
+    # Delta* at all. The first version of this test asserted differed >= 5 --
+    # a threshold I invented -- and failed at 2. Lowering it to pass would be
+    # gate-shopping; the honest assertion is the structural one, that execution
+    # branches at all, with the RATE reported as a diagnostic.
+    assert differed >= 1, (
+        "executing H vs M2 never changed the next state; a sequential "
+        "allocation experiment would be vacuous")
+
+
+def test_executing_m2_changes_what_is_affordable_later():
+    """Second half of the same guard: the compute budget must actually bind.
+
+    If invoking M2 does not reduce what remains, there is no opportunity cost
+    and the 'Governor' is a selector, which is what the single-decision test
+    turned out to be measuring.
+    """
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    t = ProbeTask(cfg=make_config(0.60, 1.0, 0.05), n_samples=4, seed=7)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    r = ModeRunner(ib=ib, b_tool=6.0, b_compute=5000.0)
+    before = r.compute_spent
+    r.invoke("M2", ib.prior_logL(), list(range(ib.n_groups)), t.features[0],
+             "candidate_evals")
+    after_m2 = r.compute_spent
+    r.invoke("M0", ib.prior_logL(), list(range(ib.n_groups)), t.features[0],
+             "candidate_evals")
+    after_m0 = r.compute_spent
+    assert after_m2 > before, "M2 consumed no compute; the budget cannot bind"
+    assert after_m0 == after_m2, "M0 consumed compute; it is not a free reflex"
