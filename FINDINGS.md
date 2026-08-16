@@ -178,6 +178,24 @@ per state at σ∈{0.35,0.60,1.50}, B=4 — not another environment and not a lo
 test. The most negative discovery state sits at z=−2.72 against a −3.23
 threshold.
 
+**N9 — An optimal allocation can be a constant schedule.** Env 5's binding-budget
+diagnostic: signed Δ\* is −0.1250 at t=0 (SD exactly 0), −0.0119 at t=1, and
+positive in only 8%/16% of later decisions with means +0.0025/+0.0050.
+`P(Top2 ≠ {0,1}) = 100%` looked decisive but reduces to "never spend early" —
+no state information required. **Reasoning having value and reasoning needing
+adaptive allocation are different claims**; every environment here demonstrated
+the first and failed the second (`c10253c`).
+
+Stated at its real strength: under the measured decision structure there is no
+evidence of a sufficiently strong, non-constant allocation signal to justify the
+sequential executor. That is a termination criterion, not an impossibility proof
+— the diagnostic still used local Δ\* along an H trajectory.
+
+**Env 5 is closed for Governor development and retained as a negative control:**
+it demonstrates the difference between the two claims above, which is worth more
+than another tuned benchmark. `NEXT-ENVIRONMENT-GATE.md` carries the resulting
+construction gate.
+
 **Not built:** the learned Governor. It has never been justified by a passed
 construction gate, and building it before one passes is the error this
 methodology exists to prevent.
