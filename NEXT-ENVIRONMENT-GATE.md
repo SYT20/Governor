@@ -1,5 +1,11 @@
 # Construction gate for the next environment — run BEFORE any Governor exists
 
+**This gate does not assert that a qualifying environment exists.** It is a
+falsifiable criterion, not an existence proof. Nine environments have been
+measured and all nine failed it; a tenth may fail too, and that outcome is a
+result rather than a setback. Read the gate as "here is how you would know" --
+never as "here is what you will find".
+
 Derived from nine negative results. Environments 1–5 each passed some check and
 then collapsed; this gate is the union of what would have caught them.
 
