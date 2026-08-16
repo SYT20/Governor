@@ -133,22 +133,50 @@ lookahead (diverges from myopic in 50% of states, 96% stable at 2× quadrature
 resolution). Costs are counted in four frozen primitive counters, and
 `C(M0)=0 < C(M1) < C(M2)` holds in 100% of 480 measured cells.
 
-**CLOSED.** The sign of Δ(M2−H) reverses *across* configurations — +0.267 at
-σ=0.10/B=3 against −0.156 at σ=0.60/B=6 — but both ends are uniform *within*
-themselves. Identical protocol, 40 states × 256 CRN draws, per-state 95% CIs:
+**NOT closed, and not passed — the most useful state this project has reached.**
+An earlier version of this section closed Environment 5 on two *endpoint*
+configurations. That was an overreach: the endpoints are where a crossing is
+least likely, and testing two of twelve cells cannot settle the environment.
 
-| configuration | credibly M2 | credibly H | straddling | mean Δ\* |
+The middle cells — those whose aggregate Δ sat nearest zero — are where the
+crossing lives. Identical protocol, 40 states × 256 CRN draws:
+
+| configuration | mean Δ\* | SD | range | credM2 / credH / undecided |
 |---|---|---|---|---|
-| σ=0.10, B=3 | **37/40** | 0/40 | 3/40 | +0.150 |
-| σ=0.60, B=6 | 0/40 | (see N7) | — | −0.095 |
+| σ=0.35, B=4 | +0.0180 | 0.0630 | [−0.094, +0.145] | 12 / 6 / 22 |
+| σ=0.60, B=4 | +0.0204 | 0.0655 | [−0.090, +0.145] | 13 / 5 / 22 |
+| σ=1.50, B=4 | +0.0370 | 0.0719 | [−0.090, +0.207] | 14 / 4 / 22 |
+| σ=0.10, B=3 | +0.1503 | 0.0915 | [+0.004, +0.324] | 37 / 0 / 3 |
+| σ=0.60, B=6 | −0.0952 | 0.0477 | [−0.199, −0.008] | 0 / — / — |
 
-Bonferroni-corrected at σ=0.10/B=3: 28 credibly M2, 0 credibly H. So one
-configuration says *always escalate* and the other says *never*, and neither
-contains states on both sides of zero.
+(counts at uncorrected 95% CIs)
 
-**The switch is therefore a configuration-level decision, not a state-level
-one** — a lookup on regime and budget, which is precisely the degeneracy gate H5
-exists to reject. Environment 5 does not contain a selective-escalation problem.
+**Three different σ, one budget, near-identical structure.** The phenomenon
+tracks the intermediate *budget*, not a regime — exactly where §1's inverted-U
+predicts the transition. B=3 is deep in "always escalate", B=6 in "never", B=4
+straddles.
+
+**Under the preregistered Bonferroni correction (z=3.23) the per-state crossing
+is marginal:**
+
+| sample | credM2 | credH | verdict |
+|---|---|---|---|
+| seed 7 (discovery) | 3 | 0 | not MIXED |
+| seed 2027 (validation) | 6 | 1 | MIXED |
+| pooled, n=80, z=3.42 | 6 | 1 | MIXED *(pooling not preregistered)* |
+
+The validation sample being *stronger* than the discovery sample argues against
+overfitting, but one credibly-negative state out of forty is thin. Benjamini-
+Hochberg would give a clean MIXED (13 significant, 9 pos / 4 neg); that is
+recorded and **not claimed**, because Bonferroni was named in advance.
+
+What replicates robustly is the **distribution**, not per-state significance:
+mean +0.0180 vs +0.0188, SD 0.0630 vs 0.0527 across independent state samples.
+
+**Bounded next step:** the fix is statistical power — more states or more draws
+per state at σ∈{0.35,0.60,1.50}, B=4 — not another environment and not a looser
+test. The most negative discovery state sits at z=−2.72 against a −3.23
+threshold.
 
 **Not built:** the learned Governor. It has never been justified by a passed
 construction gate, and building it before one passes is the error this

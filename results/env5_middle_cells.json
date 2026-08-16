@@ -20,5 +20,16 @@
     "credH": 5,
     "straddle": 22,
     "verdict": "MIXED"
+  },
+  "1.5|4.0": {
+    "n": 40,
+    "mean": 0.03701171875,
+    "sd": 0.07192978148108937,
+    "min": -0.08984375,
+    "max": 0.20703125,
+    "credM2": 14,
+    "credH": 4,
+    "straddle": 22,
+    "verdict": "MIXED"
   }
 }
