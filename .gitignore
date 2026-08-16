@@ -4,3 +4,4 @@ __pycache__/
 results/*.db
 results/*.sqlite
 .DS_Store
+results/*.txt
