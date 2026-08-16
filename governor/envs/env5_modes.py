@@ -148,18 +148,50 @@ class InstrumentedBayes:
 # Nothing else in the state carries that.
 
 
-def m0_reflex(ib: InstrumentedBayes, logL, available, remaining_tool):
-    """M0: act with no deliberation at all.
+def r0_uninformed(ib: InstrumentedBayes, logL, available, remaining_tool,
+                  perm):
+    """R0: genuinely uninformed reflex. The lower bound.
 
-    A reflex, not the myopic optimum. Picks the unobserved feature with the
-    largest prior dispersion across hypotheses -- a fixed property of the
-    model, requiring no posterior evaluation, so this mode is genuinely free.
+    Takes the first affordable action in a PUBLIC permutation fixed at episode
+    start from a recorded seed. The permutation is generated independently of
+    the hidden regime, the label, and every observation, so
+    I(R0 ; hidden state | public state) = 0 by construction. Deterministic
+    given the episode seed, which keeps paired counterfactuals clean.
     """
+    for g in perm:
+        if (g in available and g != ib.probe_group
+                and ib.cost[g] <= remaining_tool + 1e-9):
+            return g
+    return None
+
+
+def h_gate_first(ib: InstrumentedBayes, logL, available, remaining_tool,
+                 acquired):
+    """H: the strong cheap heuristic. Buy the gate first, then act myopically.
+
+    THIS WAS MASQUERADING AS `m0_reflex`. That version selected by cached prior
+    dispersion, which is maximised by the context gate, so "act without
+    thinking" silently implemented always-buy-the-gate -- the strategic
+    non-myopic policy this project established in CUBE-NM. It scored 0.911
+    against myopic's 0.822 at zero compute, and M1/M2 were being asked to
+    justify their cost against an answer that was already free.
+
+    The fix is not to delete it. It is a real, strong, cheap policy that this
+    environment contains, and hiding it would let an expensive planner look
+    good against a strawman. It is promoted to a NAMED baseline, and the
+    metacognitive question becomes Delta(M2 - H) rather than Delta(M2 - M0).
+
+    Importing it is not hindsight: context-first was established in CUBE-NM
+    before Environment 5 existed.
+    """
+    if 0 in available and ib.cost[0] <= remaining_tool + 1e-9 and not acquired:
+        return 0
     afford = [g for g in available
               if ib.cost[g] <= remaining_tool + 1e-9 and g != ib.probe_group]
     if not afford:
         return None
-    return max(afford, key=lambda a: ib.b._prior_spread[a] / ib.cost[a])
+    g = ib.gains(logL, afford)
+    return max(afford, key=lambda a: g[a] / ib.cost[a])
 
 
 def m1_assess(ib: InstrumentedBayes, logL, available, remaining_tool,
@@ -295,8 +327,10 @@ class ModeRunner:
 
         assess = None
         if mode == "M0":
-            action = m0_reflex(self.ib, logL, available,
-                               self.b_tool - self.tool_spent)
+            action = r0_uninformed(self.ib, logL, available,
+                                   self.b_tool - self.tool_spent,
+                                   getattr(self, "perm", None) or
+                                   list(range(self.ib.n_groups)))
         elif mode == "M1":
             assess, action = m1_assess(self.ib, logL, available,
                                        self.b_tool - self.tool_spent)
