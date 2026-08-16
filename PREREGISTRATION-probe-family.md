@@ -1,6 +1,8 @@
 # Preregistration — the probe family (Environment 4)
 
 **Status: SPECIFICATION ONLY. No code written, no runs performed.**
+**Revision 2 (2026-08-16): amended under review before implementation.**
+Amendments are marked [R2] and are binding exactly as the original text is.
 Written 2026-08-16, after the Phase 2 stop, and deliberately fixed before
 implementation so that no parameter can be chosen in response to a result.
 
@@ -60,7 +62,7 @@ before committing to a full run.
 
 | Parameter | Value(s) | Rationale, fixed in advance |
 |---|---|---|
-| `probe_cost` | **0.25** | One quarter of a block feature. Cheap enough to be plausibly worth it, expensive enough that buying it always is not free. Single value — no sweep, so it cannot be tuned. |
+| `probe_cost` | **0.25** | [R2] A single preregistered **operating point**, fixed before evaluation. NOT justified as "cheap enough / expensive enough" — that phrasing was designer intuition dressed as reasoning. Its adequacy is not asserted; instead the analytic break-even price is computed and reported separately (§3a). No sweep. |
 | `sigma_probe` | **{0.05, 0.15}** | Sharp and blunt probe. Two values only. |
 | `sigma_other` train | 0.10, 0.35, 0.60, 1.50 | Unchanged from the gated family. |
 | `sigma_other` test | 0.20, 0.22, 0.48, 0.90 | Unchanged. Off-grid values are misspecified by design. |
@@ -70,6 +72,31 @@ before committing to a full run.
 
 No parameter above may be adjusted after seeing a result. If the probe turns out
 never to be worth 0.25, that is a finding, not a reason to lower it.
+
+### 3a. [R2] The analytic break-even price, reported not tuned
+
+The whole result could otherwise hinge on one designer-chosen number. The fix is
+to derive the economics rather than rely on the number. At state s define
+
+    C*(s) = V_probe(s) - V_no-probe(s)
+
+the largest price at which buying the probe is justified at s. This is
+computable by simulation using hidden state, so it is an environment property,
+not a policy's performance.
+
+PREREGISTERED PROTOCOL. C*(s) is computed on TRAINING configurations only and
+its distribution reported as part of environment characterisation, alongside
+the fraction of states with C*(s) > 0.25. `probe_cost` stays at 0.25 **whatever
+that distribution shows**. Any change would be a protocol deviation and must be
+recorded as one.
+
+This also reframes the central question. It is no longer "does 0.25 work?" but:
+
+> Does the controller buy the probe exactly on those states where
+> C_probe < C*(s)?
+
+which is a statement about the decision rule and is insensitive to the operating
+point. Reported as precision/recall against the C*(s) > 0.25 indicator.
 
 ## 4. Preregistered test split
 
@@ -95,29 +122,106 @@ stop, reported as a negative result.
 preregistered prior to within 1e-9, for every true regime. Same audit that the
 gated family passed at 1.39e-16.
 
-**G2 — The probe carries no label information.** Empirically: a classifier given
-the probe value and nothing else must not exceed the 1/8 base rate. This is a
-falsification test of the construction, not a formality — the analytic argument
-in §2 must be confirmed by execution, per the environment contract.
+**G2 — The probe carries no label information.** [R2] Marginal independence is
+not enough; the causal structure must be pinned. Three executable checks, all
+required:
+
+  G2a  A classifier given the probe value alone must not exceed the 1/8 base
+       rate.
+  G2b  A classifier given (probe, all block observations) must not beat one
+       given (all block observations) alone. This is the one that matters: a
+       probe could be marginally independent of y yet still carry label
+       information once conditioned on what else was seen.
+  G2c  I(probe ; c) is zero to within sampling error, so the probe cannot
+       substitute for the gate.
+
+The analytic argument in §2 must be confirmed by execution, per the environment
+contract. G2b is the check that answers "the probe is secretly carrying task
+information", and it is a falsification test, not a formality.
 
 **G3 — Beats always-myopic.** `C − A > 0` with the 95% CI excluding zero, paired
 across held-out configurations.
 
 **G4 — Beats always-strategic.** `C − B > 0`, CI excluding zero.
 
-**G5 — Beats the budget lookup.** `C >` per-configuration `max(A, B)`, CI
-excluding zero. **This is a new and higher bar than Phase 2 used.** The any-time
-switch cleared G3 and G4 while being a six-entry lookup on (gate_cost, budget);
-G5 is what that policy failed, and it is the condition that actually
-distinguishes a cognitive layer from a table.
+**G5 — Beats the strongest non-cognitive baseline.** [R2] Strengthened. The
+comparator is policy **E**, the best static policy-by-configuration lookup,
+**fitted on TRAINING configurations only** and applied to held-out ones. Simply
+beating per-configuration `max(A, B)` computed on the test set is itself gameable
+by configuration memorisation, which is the failure it was meant to catch.
+
+    U_D > U_E  on held-out configuration COMBINATIONS, CI excluding zero.
+
+This is the decisive gate. The any-time switch cleared G3 and G4 while being a
+six-entry lookup on (gate_cost, budget); E is that lookup made as strong as
+possible and given a fair fit.
 
 **G6 — Non-degeneracy.** Escalation frequency must vary *within* every
 (gate_cost, budget) cell. A decision constant inside a cell is a lookup
 regardless of how well it scores.
 
 **G7 — The probe is actually bought, and selectively.** Probe purchase rate
-strictly between 5% and 95%, and varying with observed state. Always or never
-buying it means the decision is not state-dependent.
+strictly between 5% and 95%, and varying *within* every (gate_cost, budget)
+cell. Always or never buying it means the decision is not state-dependent.
+
+**G8 — [R2] The probe's value is indirect.** The scientific centrepiece, stated
+as a gate so it cannot be skipped. Required jointly:
+
+    direct task gain of the probe  = 0     (G2 establishes this)
+    indirect decision gain         > 0     in some configurations
+
+If both hold, the probe's entire contribution is to a decision, which is the
+definition of metareasoning being tested.
+
+## 5a. [R2] Policy set and the headline metric
+
+Five policies, preregistered:
+
+| | Policy | Sees |
+|---|---|---|
+| A | always cheap — never buy the strategic mechanism | — |
+| B | always deliberate | — |
+| C | oracle switch — knows the true value of probe and strategic action | hidden state |
+| D | **Governor** — observable state only | see §5b |
+| E | best static policy-by-configuration lookup, fitted on TRAIN configs | configuration key |
+
+Target result: `U_A, U_B, U_E < U_D < U_C`. `U_D < U_C` is expected and fine.
+
+**Headline metric: Net Value of Diagnostic Information.**
+
+    VDI(s)     = V_with_probe(s) - V_without_probe(s)
+    NetVDI(s)  = VDI(s) - C_probe
+
+and the Governor's rule is exactly
+
+    BUY PROBE  <=>  E[VDI | observable state] > C_probe
+
+This is the precise economic quantity the cognitive layer is meant to learn, and
+it is sharper than the generic VOI used earlier in the project because the
+probe's only purpose is regime diagnosis, never task solving.
+
+## 5b. [R2] Information the Governor may and may not receive
+
+MAY: observed probe values, ordinary task observations, current progress,
+remaining budget, action costs, its own posterior-derived uncertainty.
+
+MAY NOT: `sigma_other`, task id, configuration key, task-family label, generator
+seed, the oracle posterior, the true strategic value, or any statistic derived
+from them.
+
+The environment may use hidden state to generate training labels and oracle
+values. That is a target, not an input. Enforced by test, as with the
+observability contract that caught the previous leak.
+
+## 5c. [R2] Split on unseen COMBINATIONS, not unseen values
+
+Holding out a `sigma_other` value alone does not test whether the interaction
+was learned. The held-out set must contain parameter COMBINATIONS never seen
+jointly in training — e.g. train on (sigma 0.6, cost 1.0) and (sigma 1.5,
+cost 2.0), test on (sigma 0.6, cost 2.0) — in addition to the off-grid sigma
+values already specified in §3.
+
+Combined with §4's balance requirement, the split is fixed before any run.
 
 ## 6. Preregistered predictions
 
@@ -131,6 +235,17 @@ Recorded so they can be wrong in public.
 3. **G5 is the likely failure point**, not G3. Beating the fixed policies has
    already proven easy for degenerate reasons; beating the per-cell oracle lookup
    has not been achieved by anything yet.
+
+## 6a. [R2] Environment 4a and 4b are separate experiments
+
+**4a — this document.** A perfectly decoupled scalar probe. Deliberately clean:
+the purpose is the cleanest possible causal test of one mechanism, so cleanliness
+is a feature rather than a weakness.
+
+**4b — not now, not mixed in.** Noisy or partially confounded diagnostics, i.e.
+robustness. A pass in 4a does NOT establish robustness to realistic diagnostics,
+and 4b must not be started until 4a has returned a verdict. Mixing them would
+make a failure uninterpretable.
 
 ## 7. What is NOT being done
 
