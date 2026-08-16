@@ -90,8 +90,15 @@ different computations**, not two depths of one algorithm:
 M1 asks a question about the task; M2 asks a question about the plan. Both draw
 on the same `B_compute`, which is what makes the allocation a decision.
 
-**M2 may not acquire anything.** It changes which acquisition is chosen and
-charges `B_compute`; the acquisition itself still charges `B_tool`. This keeps
+**M2 may not acquire anything, and this is an execution invariant.** It changes
+which acquisition is chosen and charges `B_compute`; the acquisition itself
+still charges `B_tool`.
+
+> PREREGISTERED [REV5]: `delta tool_calls == 0` across an M2 invocation,
+> asserted at runtime. Without it M2 could inspect real observations while
+> planning and its advantage would be extra information rather than better
+> planning, invalidating the whole resource comparison. Env 4a's leak entered
+> through exactly this kind of unasserted claim. This keeps
 reasoning and execution structurally separate, which is what later maps onto
 Governor → planner → executor rather than letting the planner quietly do the task.
 
@@ -133,6 +140,25 @@ PREREGISTERED SELECTION RULE — the rule is fixed here, the answer is not:
 > telemetry and reported, but do not constrain.
 
 Profiling is characterisation, not tuning: it observes runtime, not results.
+
+**[REV5] Dominance is a candidate, not a qualification.** Largest wall-clock
+share still assumes `wall_time ~ alpha * count`, which can fail: cost per
+operation may vary with state, and M1 and M2 may execute the same primitive in
+different computational contexts. A meter chosen for convenience would let
+Governor "save compute" by using fewer counted operations that are not the
+expensive part — the precise class of hidden shortcut this project keeps
+eliminating.
+
+> PREREGISTERED VALIDATION, before freezing. On a calibration set spanning
+> varied M1/M2 workloads, regress wall time on the candidate primitive's count:
+>   (i)  R^2(T, C) >= 0.90, and
+>   (ii) mean residual for M1 and for M2 must not differ by more than 10% of
+>        mean runtime -- i.e. the proxy must not be systematically biased
+>        BETWEEN the two modes, which is the only place bias would distort the
+>        comparison.
+> A primitive failing either check is disqualified regardless of its wall-clock
+> share. If no primitive passes dominance, coverage AND linearity, the vector
+> formulation is used.
 
 **[REV4] COVERAGE CONSTRAINT, which the dominance rule alone does not give.**
 A primitive can dominate runtime while being consumed by only one mode — if
@@ -198,6 +224,11 @@ fixed before running:
 
 > Each of `M0 > M1`, `M1 > M0`, `M2 > M1` must hold with a cluster-bootstrap CI
 > excluding zero in **at least 10% of held-out configuration families**.
+
+**[REV5] The unit is the configuration family, enforced in code.** Prevalence is
+computed over independent families, never over episodes. 10,000 episodes drawn
+from one configuration must not be able to satisfy the threshold — the clustered
+unit is asserted in the implementation, not left as intent.
 
 A mode that wins in one narrow corner is not a mode, it is an artefact.
 
