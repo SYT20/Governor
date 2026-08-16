@@ -265,3 +265,59 @@ methodology that produced them:
 
 That is a coherent progression, and each result eliminates a class of
 architecture rather than merely reporting a number.
+
+---
+
+## Revision 3 — PROTOCOL DEVIATION, recorded 2026-08-16
+
+**One parameter changes. Everything else is unchanged and still binding.**
+
+### The deviation
+
+`Budget` becomes **{3.0, 3.5, 4.0, 4.5, 5.0}** in place of {3, 4, 5}.
+`probe_cost` stays at **0.25**. No other parameter moves. No sweep is added.
+
+### Why, and why this is not tuning
+
+Rev2 fixed budgets at integers while block features cost 1.0. Under that
+combination **any probe price in (0, 1] displaces a whole feature**:
+
+    B=3.0:  no probe -> 3 features  |  buy probe(0.25) -> 2 features
+    B=4.0:  no probe -> 4 features  |  buy probe(0.25) -> 3 features
+
+so the probe's effective price is 1.0, not 0.25. The preregistered parameter set
+cannot express "cheap" — the single concept Environment 4a exists to test. The
+specification contradicted its own stated intent.
+
+The measured consequence, committed unchanged at `fc82e82`:
+
+    INFO value, probe free      mean +0.056, positive in 83% of configurations
+    NET  value, probe at 0.25   mean -0.063, positive in 12% of configurations
+
+The information is real and the decoupling works. The swing of ~0.12 between
+those rows is the marginal value of one feature — the defect, quantified.
+
+Three facts make this a defect repair rather than a favourable-result search:
+
+1. **No policy result had been computed.** Only the environment was
+   characterised. There was no switching number to be disappointed by.
+2. **The as-specified result is committed and permanent.** It cannot be
+   displaced; both versions will be reported.
+3. **The change makes the environment harder, not easier.** At B=3.0 the probe
+   still costs a full feature; at B=3.5 there is slack and it does not. The
+   probe's *effective* cost now varies with remaining slack, so the controller
+   must reason about a state-dependent price rather than a constant one.
+
+### What would have been the alternative
+
+Declaring 4a failed as specified. Rejected because it discards a construction
+that passed every validity gate (G1, G2a, G2b, G2c) over an arithmetic oversight
+in the spec rather than over a scientific finding — but it was a defensible call
+and is recorded here as the road not taken.
+
+### Unchanged and still binding
+
+Gates G1–G8, the five-policy set, NetVDI as headline metric, the Governor
+allow/deny input list, the clairvoyant-balanced split, held-out parameter
+combinations, and the 4a/4b separation. `probe_cost = 0.25` remains a single
+operating point with no sweep.
