@@ -133,11 +133,22 @@ lookahead (diverges from myopic in 50% of states, 96% stable at 2× quadrature
 resolution). Costs are counted in four frozen primitive counters, and
 `C(M0)=0 < C(M1) < C(M2)` holds in 100% of 480 measured cells.
 
-**Open question, and it is narrow.** The sign of Δ(M2−H) reverses across
-configurations — +0.267 at σ=0.10/B=3, −0.156 at σ=0.60/B=6. σ=0.60/B=6 is now
-closed (N7: range entirely negative). Whether a configuration exists whose Δ\*
-range *straddles* zero is unresolved, and that is the only place a genuine
-selective-escalation problem could still live in this environment.
+**CLOSED.** The sign of Δ(M2−H) reverses *across* configurations — +0.267 at
+σ=0.10/B=3 against −0.156 at σ=0.60/B=6 — but both ends are uniform *within*
+themselves. Identical protocol, 40 states × 256 CRN draws, per-state 95% CIs:
+
+| configuration | credibly M2 | credibly H | straddling | mean Δ\* |
+|---|---|---|---|---|
+| σ=0.10, B=3 | **37/40** | 0/40 | 3/40 | +0.150 |
+| σ=0.60, B=6 | 0/40 | (see N7) | — | −0.095 |
+
+Bonferroni-corrected at σ=0.10/B=3: 28 credibly M2, 0 credibly H. So one
+configuration says *always escalate* and the other says *never*, and neither
+contains states on both sides of zero.
+
+**The switch is therefore a configuration-level decision, not a state-level
+one** — a lookup on regime and budget, which is precisely the degeneracy gate H5
+exists to reject. Environment 5 does not contain a selective-escalation problem.
 
 **Not built:** the learned Governor. It has never been justified by a passed
 construction gate, and building it before one passes is the error this
