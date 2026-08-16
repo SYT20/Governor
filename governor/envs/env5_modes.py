@@ -102,6 +102,11 @@ class InstrumentedBayes:
         self.c.candidate_evals += len(available)
         return self.b.gains(logL, available, target)
 
+    def gains_under_regime(self, logL, available, r):
+        self.c.candidate_evals += len(available)
+        self.c.posterior_updates += 1
+        return self.b.gains_under_regime(logL, available, r)
+
     # -- passthrough -----------------------------------------------------------
 
     def __getattr__(self, name):
@@ -112,37 +117,84 @@ class InstrumentedBayes:
 
 
 # -- the three modes ------------------------------------------------------------
+#
+# REDESIGNED after the construction gate measured C(M1):C(M2) = 1:129 with no
+# shared primitive. Two changes, both forced by measurement rather than chosen:
+#
+# 1. M0 IS A REFLEX, NOT THE MYOPIC OPTIMUM. The spec asserted C(M0)=0 while the
+#    implementation computed exact myopic gains over all 51 candidates. Those are
+#    inconsistent: choosing the Bayes-optimal acquisition IS deliberation. Acting
+#    without deliberation means using a heuristic, so M0 now selects by prior
+#    feature dispersion with zero posterior computation. C(M0)=0 is now true
+#    rather than asserted.
+#
+# 2. M1 IS INTERNAL COMPUTATION, NOT AN OBSERVATION. The old M1 read the probe
+#    scalar -- information acquisition wearing deliberation's label. The new M1
+#    obtains NO new observation. It asks, over evidence already held: "would
+#    knowing the task regime change what I do?" by computing the myopic argmax
+#    under each regime hypothesis and measuring agreement.
+#
+# The review's test for whether M1 is meaningful: remove it, and the system loses
+# the information needed to choose between M0 and M2. Agreement across regimes
+# says planning cannot exploit regime uncertainty; disagreement says it might.
+# Nothing else in the state carries that.
 
 
-def m0_direct(ib: InstrumentedBayes, logL, available, remaining_tool):
-    """M0: act now. Myopic best affordable acquisition, no deliberation."""
+def m0_reflex(ib: InstrumentedBayes, logL, available, remaining_tool):
+    """M0: act with no deliberation at all.
+
+    A reflex, not the myopic optimum. Picks the unobserved feature with the
+    largest prior dispersion across hypotheses -- a fixed property of the
+    model, requiring no posterior evaluation, so this mode is genuinely free.
+    """
     afford = [g for g in available
               if ib.cost[g] <= remaining_tool + 1e-9 and g != ib.probe_group]
     if not afford:
         return None
-    g = ib.gains(logL, afford)
-    return max(afford, key=lambda a: g[a] / ib.cost[a])
+    return max(afford, key=lambda a: ib.b._prior_spread[a] / ib.cost[a])
 
 
-def m1_diagnose(ib: InstrumentedBayes, logL, x):
-    """M1: diagnostic deliberation -- resolve WHICH KIND of task this is.
+def m1_assess(ib: InstrumentedBayes, logL, available, remaining_tool,
+              pool: int = 8):
+    """M1: metacognitive assessment. NO new observation is obtained.
 
-    Charges compute, never tool_calls. Semantically this is "spend a little
-    thought characterising the problem": it yields a noisy read on the regime
-    and nothing about the label, which Env 4a verified (G2a/G2b/G2c).
+    Computes, for each regime hypothesis weighted by P(regime | evidence), the
+    myopic argmax restricted to a small candidate pool, and returns the
+    probability mass on the modal recommendation. Low agreement means the right
+    action depends on which task this is, so planning may pay; high agreement
+    means it does not.
+
+    Returns (assessment, recommended_action). The assessment is the quantity a
+    Governor would condition on; it is unavailable without this computation.
     """
-    return logL + ib.loglik_cols(x, ib.group_cols[ib.probe_group])
+    afford = [g for g in available
+              if ib.cost[g] <= remaining_tool + 1e-9 and g != ib.probe_group]
+    if not afford:
+        return None, None
+    pr = ib.regime_posterior(logL)
+    base = ib.gains(logL, afford[:pool * 2])
+    cand = sorted(afford[:pool * 2], key=lambda a: -base[a] / ib.cost[a])[:pool]
+
+    votes: dict[int, float] = {}
+    for r, w in enumerate(pr):
+        if w < 0.02:                       # negligible regimes are not scored
+            continue
+        gr = ib.gains_under_regime(logL, cand, r)
+        a = max(cand, key=lambda q: gr[q] / ib.cost[q])
+        votes[a] = votes.get(a, 0.0) + float(w)
+    if not votes:
+        return None, cand[0]
+    top = max(votes, key=lambda a: votes[a])
+    return votes[top], top
 
 
 def m2_plan(ib: InstrumentedBayes, logL, available, remaining_tool,
             depth: int = LOOKAHEAD_DEPTH, pool: int = LOOKAHEAD_POOL):
     """M2: strategic planning -- k-step lookahead over acquisition sequences.
 
-    Reasons entirely over the POSTERIOR PREDICTIVE. It never touches `x`, which
-    is why it cannot smuggle in real observations: the argument is simply not
-    available to this function. `ModeRunner` additionally asserts that
-    tool_calls is unchanged across the call, so the invariant is enforced twice
-    -- by construction and by assertion.
+    Reasons entirely over the posterior predictive. `x` is not a parameter, so
+    real observations are structurally unavailable to it; ModeRunner asserts
+    tool_calls is unchanged across the call as a second, independent guard.
     """
     afford = [g for g in available
               if ib.cost[g] <= remaining_tool + 1e-9 and g != ib.probe_group]
@@ -154,18 +206,14 @@ def m2_plan(ib: InstrumentedBayes, logL, available, remaining_tool,
     best, best_v = None, -np.inf
     for a in cand:
         ib.c.branch_expansions += 1
-        # expected posterior after `a`, marginalised over its outcomes. The
-        # one-step gain already integrates the posterior predictive, so the
-        # continuation value is evaluated from the expected residual entropy
-        # rather than from any realised value.
         rem = remaining_tool - float(ib.cost[a])
         v = first[a]
         if depth > 1 and rem > 0:
-            nxt = [g for g in afford if g != a and ib.cost[g] <= rem + 1e-9]
+            nxt = [g for g in cand if g != a and ib.cost[g] <= rem + 1e-9]
             if nxt:
-                sub = ib.gains(logL, nxt[:pool])
-                ib.c.branch_expansions += len(nxt[:pool])
-                v += max(sub[g] / ib.cost[g] for g in nxt[:pool]) * ib.cost[a]
+                sub = ib.gains(logL, nxt)
+                ib.c.branch_expansions += len(nxt)
+                v += max(sub[g] / ib.cost[g] for g in nxt) * ib.cost[a]
         if v / ib.cost[a] > best_v:
             best_v, best = v / ib.cost[a], a
     return best
@@ -196,11 +244,13 @@ class ModeRunner:
         tool_before = self.tool_spent
         action, new_logL = None, logL
 
+        assess = None
         if mode == "M0":
-            action = m0_direct(self.ib, logL, available,
+            action = m0_reflex(self.ib, logL, available,
                                self.b_tool - self.tool_spent)
         elif mode == "M1":
-            new_logL = m1_diagnose(self.ib, logL, x)
+            assess, action = m1_assess(self.ib, logL, available,
+                                       self.b_tool - self.tool_spent)
         elif mode == "M2":
             action = m2_plan(self.ib, logL, available,
                              self.b_tool - self.tool_spent)
@@ -215,7 +265,7 @@ class ModeRunner:
         cost = 0.0 if mode == "M0" else self._compute_of(delta, unit)
         self.compute_spent += cost
         self.trace.append({"mode": mode, "compute": cost,
-                           **delta.as_dict()})
+                           "assessment": assess, **delta.as_dict()})
         return new_logL, action, delta
 
     def acquire(self, logL, action, x):

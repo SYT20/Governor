@@ -199,3 +199,77 @@ def test_non_uniform_prior_is_honoured_and_validated():
     assert np.allclose(b.regime_posterior(b.prior_logL()), p)
     with pytest.raises(ValueError):
         GatedBayes(t, regimes=REGIME_GRID, prior=(0.5, 0.5))
+
+
+# -- Environment 5 mode invariants ---------------------------------------------
+
+def test_env5_mode_cost_ordering_and_coverage():
+    """0 = C(M0) < C(M1) < C(M2), sharing a primitive. The construction gate."""
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    t = ProbeTask(cfg=make_config(0.60, 1.0, 0.05), n_samples=6, seed=1)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    logL, avail, x = ib.prior_logL(), list(range(ib.n_groups)), t.features[0]
+    for g in (7, 19):
+        avail.remove(g)
+        logL = logL + ib.b.loglik_cols(x, ib.group_cols[g])
+    c = {}
+    for m in ("M0", "M1", "M2"):
+        ib.reset_counters()
+        r = ModeRunner(ib=ib, b_tool=5.0, b_compute=1e9)
+        _, _, d = r.invoke(m, logL, avail, x, "candidate_evals")
+        c[m] = d.as_dict()
+    shared = [k for k in c["M1"] if c["M1"][k] > 0 and c["M2"][k] > 0]
+    assert shared, "M1 and M2 share no primitive -- no budget can make them compete"
+    for k in shared:
+        assert c["M0"][k] < c["M1"][k] < c["M2"][k]
+
+
+def test_env5_m0_is_free():
+    """M0 is a reflex. C(M0)=0 must be true, not asserted."""
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    t = ProbeTask(cfg=make_config(0.35, 1.0, 0.05), n_samples=4, seed=2)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    ib.reset_counters()
+    r = ModeRunner(ib=ib, b_tool=5.0, b_compute=1e9)
+    _, a, d = r.invoke("M0", ib.prior_logL(), list(range(ib.n_groups)),
+                       t.features[0], "candidate_evals")
+    assert a is not None
+    assert all(v == 0 for v in d.as_dict().values())
+
+
+def test_env5_deliberation_acquires_nothing():
+    """PREREGISTERED invariant: delta tool_calls == 0 across M1 and M2."""
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    t = ProbeTask(cfg=make_config(1.50, 1.0, 0.05), n_samples=4, seed=3)
+    ib = InstrumentedBayes(ObservableProbeBayes(t))
+    for m in ("M1", "M2"):
+        r = ModeRunner(ib=ib, b_tool=5.0, b_compute=1e9)
+        before = r.tool_spent
+        r.invoke(m, ib.prior_logL(), list(range(ib.n_groups)),
+                 t.features[0], "candidate_evals")
+        assert r.tool_spent == before
+
+
+def test_env5_m1_output_varies():
+    """M1 must be informative: constant output means it can be deleted."""
+    from governor.envs.probe_family import (ProbeTask, ObservableProbeBayes,
+                                            make_config)
+    from governor.envs.env5_modes import InstrumentedBayes, ModeRunner
+    seen = set()
+    for so in (0.10, 0.60, 1.50):
+        t = ProbeTask(cfg=make_config(so, 1.0, 0.05), n_samples=8, seed=4)
+        ib = InstrumentedBayes(ObservableProbeBayes(t))
+        for i in range(8):
+            r = ModeRunner(ib=ib, b_tool=6.0, b_compute=1e9)
+            r.invoke("M1", ib.prior_logL(), list(range(ib.n_groups)),
+                     t.features[i], "candidate_evals")
+            v = r.trace[-1]["assessment"]
+            if v is not None:
+                seen.add(round(v, 3))
+    assert len(seen) > 3, f"M1 assessment nearly constant: {seen}"

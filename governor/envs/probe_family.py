@@ -294,6 +294,34 @@ class ProbeBayes:
             out[0] = h_now - tot
         return out
 
+    def gains_under_regime(self, logL, available, r: int):
+        """Gains computed as if regime r were certain, from EXISTING evidence.
+
+        Used by M1 to ask "would knowing the task type change what I do?".
+        Restricting the posterior to one regime is a computation over evidence
+        already held -- no observation is obtained, which is what separates
+        metacognitive assessment from information acquisition.
+        """
+        masked = np.full_like(logL, -np.inf)
+        lo = r * self.K * N_LABELS
+        hi = lo + self.K * N_LABELS
+        masked[lo:hi] = logL[lo:hi]
+        return self.gains(masked, available)
+
+    @property
+    def _prior_spread(self):
+        """Per-group dispersion of hypothesis means. A fixed model property.
+
+        Cached on first use and never recomputed, so the reflex mode M0 performs
+        zero posterior evaluations -- which is what makes C(M0) = 0 true rather
+        than merely asserted.
+        """
+        if getattr(self, "_ps_cache", None) is None:
+            self._ps_cache = np.array(
+                [float(self.MU[:, self.group_cols[g]].std(axis=0).mean())
+                 for g in range(self.n_groups)])
+        return self._ps_cache
+
     def myopic_step(self, logL, available, remaining):
         afford = [g for g in available if self.cost[g] <= remaining + 1e-9]
         if not afford:
