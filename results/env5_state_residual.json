@@ -1,0 +1,17 @@
+{
+  "question": "At fixed budget, does observable state predict M2-vs-H beyond what budget alone can do?",
+  "features": ["H_y","max_py","gap_py","H_c","max_pc","H_regime","max_pr","gap_pr","n_acq"],
+  "excluded": ["sigma_other","configuration_id","budget (held fixed)"],
+  "cv": "leave-one-configuration-out",
+  "B6": {"n":440,"m2_wins":18,"h_wins":69,"ties":353,
+         "always_H":0.0,"always_M2":-0.1159,"state_aware":0.0227,"oracle":0.0409,
+         "residual_captured":0.56,
+         "per_config":{"0.10":{"value":0.0364,"escalated":0.27},
+                       "0.35":{"value":0.0182,"escalated":0.21},
+                       "0.60":{"value":0.0182,"escalated":0.18},
+                       "1.50":{"value":0.0182,"escalated":0.10}},
+         "cluster_bootstrap_ci":[0.0182,0.0318]},
+  "B3": {"n":440,"m2_wins":79,"h_wins":25,"ties":336,
+         "always_M2":0.1227,"state_aware":0.1568,"oracle":0.1795,
+         "residual_captured":0.60}
+}
