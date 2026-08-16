@@ -48,12 +48,20 @@ made scarce **the optimal allocation collapsed to a constant temporal rule**
 
     epsilon = 0.02  (accuracy units)   FROZEN HERE, before any successor exists
 
+**epsilon is a MATERIALITY threshold, not a confidence threshold.** It asks
+whether the adaptive advantage is large enough to be worth a controller.
+Statistical uncertainty is a separate question, handled by the held-out
+confidence interval. An effect can clear epsilon and still have a CI spanning
+zero, or be tightly estimated and immaterial; both fail, for different reasons,
+and conflating effect size with significance is its own error.
+
 Justified by precedent, not chosen to fit anything: 0.02 is the materiality
 threshold already used in Env 5's adequacy gate, set before those results
-existed. It also sits at the scale that separated signal from noise throughout
-this project -- the held-out selector gained +0.0347, Delta* medians ran ~0.03,
-and effects below ~0.02 were consistently indistinguishable from estimator
-noise.
+existed. That is the whole justification -- an inherited frozen threshold.
+
+It is NOT a claim that 0.02 is a universal noise floor. An earlier draft said
+effects below it were "consistently indistinguishable from estimator noise",
+which generalises far past the handful of measurements taken here.
 
 Recording it now removes the option of "0.002 is too small" quietly becoming
 "0.0005 is sufficient" once the successor's numbers are visible. That
