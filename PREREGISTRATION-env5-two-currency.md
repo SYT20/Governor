@@ -116,8 +116,43 @@ is fixed in advance. PREREGISTERED primitive counters, and no others:
     branch_expansions    lookahead nodes expanded
 
 `C(M0)`, `C(M1)`, `C(M2)` are reported as exact 4-vectors from an instrumented
-run, then collapsed to scalar compute units by an unweighted sum, and **frozen
-before any policy is evaluated**. The definition may not change afterwards.
+run and **frozen before any policy is evaluated**.
+
+### 4c. [REV4] The unweighted sum is retracted
+
+Rev3 collapsed the 4-vector by an unweighted sum. Review is right that this
+smuggles in `1 likelihood_eval = 1 posterior_update = 1 candidate_eval =
+1 branch_expansion`, which is certainly false and is a cost model wearing the
+clothes of a measurement. Retracted.
+
+PREREGISTERED SELECTION RULE — the rule is fixed here, the answer is not:
+
+> `B_compute` is measured in the single primitive that accounts for the largest
+> share of wall-clock time in an instrumented profile of M1 and M2, measured
+> **before any policy evaluation**. The other three counters are retained as
+> telemetry and reported, but do not constrain.
+
+Profiling is characterisation, not tuning: it observes runtime, not results.
+
+**[REV4] COVERAGE CONSTRAINT, which the dominance rule alone does not give.**
+A primitive can dominate runtime while being consumed by only one mode — if
+branch expansions dominate and M1 performs none, then M1 costs zero, the budget
+does not constrain it, and "always diagnose" becomes free. That is a new
+degeneracy of exactly the kind this project keeps producing.
+
+> PREREGISTERED: the selected primitive must be consumed in non-zero amounts by
+> BOTH M1 and M2. M0 must cost zero by design. If no primitive satisfies
+> dominance and coverage together, the vector formulation
+> (`L <= B_L, U <= B_U, E <= B_E, X <= B_X`) is used instead, and that fallback
+> is chosen by this rule rather than by preference.
+
+### 4d. [REV4] M2 search depth is frozen
+
+`M2` uses a fixed lookahead depth `k = 2`, preregistered. If Governor could
+choose `k`, M2 would be a family of modes and Environment 5 would be asking two
+questions at once — "should I deliberate?" and "how deeply?" — which cannot be
+disentangled after the fact. Variable depth is Environment 6, if Environment 5
+passes.
 
 ## 5. [REV3] Policy set
 
@@ -131,7 +166,7 @@ before any policy is evaluated**. The definition may not change afterwards.
 | E3 | resource + progress lookup | + step count | baseline |
 | E4 | resource + progress + preregistered cheap state summaries | + posterior entropy, margin | baseline |
 
-**E1 (configuration lookup) is REMOVED from the held-out comparison.** Review is
+**E1 is REMOVED from the held-out comparison.** Review is
 right that it is undefined there: on an unseen combination the key does not
 exist, so E1 is either undefined or is secretly a nearest-neighbour model, and
 those are different baselines. E1 is reported separately as an **in-distribution
@@ -156,10 +191,15 @@ unchanged; acquisitions leave `cost` unchanged. By test, never by comment.
 **H3 Modes do not solve the task.** M1 carries no label information (Env 4a
 G2a/b/c, carried over). M2 acquires nothing.
 
-**H4 [REV3] Every mode is optimal somewhere, WITH uncertainty bounds.** A few
-noisy states satisfy "exists" trivially. Required: held-out configuration
-families where each of `CI[M0 - M1] > 0`, `CI[M1 - M0] > 0`, `CI[M2 - M1] > 0`
-excludes zero. If any mode is never defensibly best, it is not a real mode.
+**H4 [REV4] Every mode is optimal often enough, with prevalence AND bounds.**
+Rev3 required a configuration family where each advantage's CI excludes zero.
+Review is right that one anomalous family could satisfy that. PREREGISTERED,
+fixed before running:
+
+> Each of `M0 > M1`, `M1 > M0`, `M2 > M1` must hold with a cluster-bootstrap CI
+> excluding zero in **at least 10% of held-out configuration families**.
+
+A mode that wins in one narrow corner is not a mode, it is an artefact.
 
 **H5 [REV3] No single-variable lookup, with a FROZEN fitting protocol.** "Best
 one-variable lookup" is meaningless without specifying the family, and would
