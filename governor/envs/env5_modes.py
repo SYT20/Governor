@@ -45,6 +45,14 @@ from governor.envs.gated_family import N_LABELS
 
 LOOKAHEAD_DEPTH = 2       # PREREGISTERED, frozen. Variable depth is Env 6.
 LOOKAHEAD_POOL = 6        # candidates retained per level, by myopic gain
+LOOKAHEAD_NODES = 81      # quadrature nodes for the outcome integral in M2.
+# Chosen by a convergence rule fixed BEFORE any H1-H5 outcome was seen: the
+# smallest node count whose action choices agree with double that count in
+# >= 95% of states. Measured 21 -> 64%, 41 -> 92%, 81 -> 96%, 161 -> 100%.
+# At 21 the quadrature resolution changed M2's choice in a third of states,
+# which is the same class of estimator artefact that inverted the CUBE-NM
+# result earlier in this project.
+M1_POOL = 8               # candidates M1 scores per regime
 
 
 @dataclass(slots=True)
@@ -155,7 +163,7 @@ def m0_reflex(ib: InstrumentedBayes, logL, available, remaining_tool):
 
 
 def m1_assess(ib: InstrumentedBayes, logL, available, remaining_tool,
-              pool: int = 8):
+              pool: int = M1_POOL):
     """M1: metacognitive assessment. NO new observation is obtained.
 
     Computes, for each regime hypothesis weighted by P(regime | evidence), the
@@ -172,8 +180,14 @@ def m1_assess(ib: InstrumentedBayes, logL, available, remaining_tool,
     if not afford:
         return None, None
     pr = ib.regime_posterior(logL)
-    base = ib.gains(logL, afford[:pool * 2])
-    cand = sorted(afford[:pool * 2], key=lambda a: -base[a] / ib.cost[a])[:pool]
+    # POOL FIX. The previous version used afford[:pool*2] -- the first 16 groups
+    # BY INDEX -- giving 81.3% recall of the myopic-optimal action, so roughly
+    # one state in five had the relevant action excluded before M1 looked at it
+    # and the agreement verdict was partly truncation. Ranking over ALL
+    # affordable candidates costs more but makes the pool meaningful; the rule
+    # is fixed here, before any H1-H5 outcome is seen.
+    base = ib.gains(logL, afford)
+    cand = sorted(afford, key=lambda a: -base[a] / ib.cost[a])[:pool]
 
     votes: dict[int, float] = {}
     for r, w in enumerate(pr):
@@ -188,13 +202,35 @@ def m1_assess(ib: InstrumentedBayes, logL, available, remaining_tool,
     return votes[top], top
 
 
-def m2_plan(ib: InstrumentedBayes, logL, available, remaining_tool,
-            depth: int = LOOKAHEAD_DEPTH, pool: int = LOOKAHEAD_POOL):
-    """M2: strategic planning -- k-step lookahead over acquisition sequences.
+def _subgrid(ib, nodes):
+    """Evenly spaced indices into the block quadrature grid."""
+    T = ib.b._pdf.shape[2]
+    return np.linspace(0, T - 1, nodes).astype(int)
 
-    Reasons entirely over the posterior predictive. `x` is not a parameter, so
-    real observations are structurally unavailable to it; ModeRunner asserts
-    tool_calls is unchanged across the call as a second, independent guard.
+
+def m2_plan(ib: InstrumentedBayes, logL, available, remaining_tool,
+            depth: int = LOOKAHEAD_DEPTH, pool: int = LOOKAHEAD_POOL,
+            nodes: int = LOOKAHEAD_NODES):
+    """M2: genuine k-step lookahead. REWRITTEN -- the previous version was not.
+
+    The old implementation evaluated its continuation term as gains(logL, nxt)
+    at the CURRENT logL, so the posterior was never advanced for having taken
+    the candidate action. It was myopic gain plus a near-constant bonus, and it
+    picked the same action as plain myopic in 26/30 states. That is not
+    lookahead, and every conclusion drawn from it was void.
+
+    Correct form, for candidate a:
+
+        V2(s, a) = gain(a) + E_{o ~ P(o | s, a)} [ max_a' gain(a' | s_{a,o}) ]
+
+    where s_{a,o} is the belief state AFTER hypothetically observing o. The
+    expectation is enumerated exactly over the quadrature grid already used for
+    the one-step gains -- no Monte Carlo, so no convergence argument is needed
+    and no sampling noise can distort the comparison, which is how the CUBE-NM
+    result was inverted earlier in this project.
+
+    Still touches no real observation: `x` is not a parameter. The hypothetical
+    outcomes come from the posterior predictive, never from the instance.
     """
     afford = [g for g in available
               if ib.cost[g] <= remaining_tool + 1e-9 and g != ib.probe_group]
@@ -202,18 +238,31 @@ def m2_plan(ib: InstrumentedBayes, logL, available, remaining_tool,
         return None
     first = ib.gains(logL, afford)
     cand = sorted(afford, key=lambda a: -first[a] / ib.cost[a])[:pool]
+    if depth < 2:
+        return cand[0]
 
+    post = ib.b._norm(logL)
+    idx = _subgrid(ib, nodes)
     best, best_v = None, -np.inf
     for a in cand:
-        ib.c.branch_expansions += 1
         rem = remaining_tool - float(ib.cost[a])
+        nxt = [g for g in cand if g != a and ib.cost[g] <= rem + 1e-9]
         v = first[a]
-        if depth > 1 and rem > 0:
-            nxt = [g for g in cand if g != a and ib.cost[g] <= rem + 1e-9]
-            if nxt:
-                sub = ib.gains(logL, nxt)
-                ib.c.branch_expansions += len(nxt)
-                v += max(sub[g] / ib.cost[g] for g in nxt) * ib.cost[a]
+        if nxt and a in ib.b._col_slot_of:
+            slot = ib.b._col_slot_of[a]
+            pdf = ib.b._pdf[:, slot, :][:, idx]          # (H, nodes)
+            w = (post[:, None] * pdf).sum(axis=0)        # outcome density
+            w = w / max(w.sum(), 1e-300)
+            cont = 0.0
+            for t, node in enumerate(idx):
+                if w[t] < 1e-6:
+                    continue
+                # THE FIX: advance the belief state for this hypothetical outcome
+                ib.c.branch_expansions += 1
+                logL_next = logL + np.log(np.maximum(pdf[:, t], 1e-300))
+                g2 = ib.gains(logL_next, nxt)
+                cont += w[t] * max(g2[q] / ib.cost[q] for q in nxt)
+            v += cont * float(ib.cost[a])
         if v / ib.cost[a] > best_v:
             best_v, best = v / ib.cost[a], a
     return best

@@ -194,6 +194,10 @@ class ProbeBayes:
         self._grid = np.linspace(-2.0, 3.0, grid_nodes)
         bc = np.arange(self.K, c.probe_col)
         self._col_slot = {int(x): i for i, x in enumerate(bc)}
+        self._col_slot_of = {g: self._col_slot[self.group_cols[g][0]]
+                             for g in range(c.n_groups)
+                             if len(self.group_cols[g]) == 1
+                             and self.group_cols[g][0] in self._col_slot}
         d = (self._grid[None, None, :] - mu[:, bc][:, :, None]) / sd[:, bc][:, :, None]
         self._pdf = np.exp(-0.5 * d * d) / sd[:, bc][:, :, None]
 
