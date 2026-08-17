@@ -139,3 +139,15 @@ def test_partial_credit_flows_through_the_budget_accounting(world):
     assert tr.spent == pytest.approx(sum(tr.costs))
     assert tr.spent < sum(env.cap(m) for m in tr.modes), "charged the cap"
     assert 0.0 <= tr.utility <= 1.0
+
+
+def test_heuristic_features_come_from_the_family(world):
+    """The third generalization defect of this kind: calibrate() iterated a
+    hardcoded arithmetic feature tuple and raised KeyError on puzzles."""
+    from governor.phase4.family import ARITHMETIC, PUZZLES as PZ
+    from governor.phase4.pipeline import calibrate
+    assert set(PZ.heuristic_features).isdisjoint(ARITHMETIC.heuristic_features)
+    cache, pool = world
+    env, E = _env(cache, pool[:60])
+    cal = calibrate(env, pool[:60], E)
+    assert cal.heuristic_feature in PZ.heuristic_features

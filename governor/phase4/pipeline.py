@@ -69,7 +69,7 @@ def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
     best_s = max(sched_u, key=lambda s: (sched_u[s], -len(s)))
 
     best_h, best_hu = None, -np.inf
-    for f in HEURISTIC_FEATURES:
+    for f in (env.family.heuristic_features or HEURISTIC_FEATURES):
         vals = _feature_values(env, eps, f)
         for q in HEURISTIC_QUANTILES:
             thr = float(np.quantile(vals, q))

@@ -25,6 +25,11 @@ class Family:
     feature_names: tuple[str, ...]
     system_prompt: str
     grade: Callable | None = None          # None = binary exact match
+    # Features the single-threshold heuristic baseline may use, and the one the
+    # smoke fixture treats as "difficulty". Both were hardcoded to family one
+    # until the second family hit KeyError on them.
+    heuristic_features: tuple[str, ...] = ()
+    difficulty_feature: str = ""
 
     def vector(self, prompt: str, names=None) -> np.ndarray:
         f = self.features(prompt)
@@ -36,13 +41,18 @@ ARITHMETIC = Family(
     features=_arith.features,
     feature_names=_arith.FEATURE_NAMES,
     system_prompt=_arith.SYSTEM_PROMPT,
-    grade=None)
+    grade=None,
+    heuristic_features=("chars", "numerals", "sum_numeral_log10", "words_n"),
+    difficulty_feature="sum_numeral_log10")
 
 PUZZLES = Family(
     name="puzzles",
     features=_puz.features,
     feature_names=_puz.FEATURE_NAMES,
     system_prompt=_puz.SYSTEM_PROMPT_PUZZLE,
-    grade=_puz.grade)
+    grade=_puz.grade,
+    heuristic_features=("n_clues", "n_people", "clues_ordering",
+                        "clues_per_person"),
+    difficulty_feature="n_clues")
 
 FAMILIES = {f.name: f for f in (ARITHMETIC, PUZZLES)}
