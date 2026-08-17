@@ -1,0 +1,45 @@
+{
+  "exp_id": "E0005-structure",
+  "title": "Phase 4R structural search: which configuration can pose an allocation problem at all?",
+  "verdict": "CONFIG-FOUND",
+  "summary": {
+    "verdict": "CONFIG-FOUND",
+    "n_configs": 81,
+    "n_satisfying_both": 1,
+    "chosen": {
+      "n_items": 6,
+      "low": 300,
+      "high": 700,
+      "budget": 2868,
+      "n_pool": 40,
+      "n_episodes": 6,
+      "p_useful_item": 0.475,
+      "P_X_gt_K": 0.6666666666666666,
+      "EX_over_K": 1.888888888888889,
+      "act_over_cap": 0.8030797101449276,
+      "mean_X": 2.8333333333333335,
+      "mean_K": 1.5,
+      "cheap": 0.05555555555555555,
+      "greedy": 0.13888888888888887,
+      "oracle": 0.2777777777777778,
+      "ceiling": 0.13888888888888892,
+      "S1": true,
+      "S2": true
+    }
+  },
+  "git_commit": "efceee1bc5936fcf4f1652244a2fe34976d1754f",
+  "config_hash": "f68893034f7772e87ecc0cdcb1ebe2493e120de13f94e2fc71794ed9b39ffd9c",
+  "nonce": "a7c5882a43a8489cac354996072c6303",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "64a1437eced9eb2085cc91c35e610e0e9fab9ffb675eee7df07c30d900d4e038",
+  "raw_rows": 81,
+  "wall_s": 23.2,
+  "finished_utc": "2026-08-17T11:16:37Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
