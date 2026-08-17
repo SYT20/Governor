@@ -13,3 +13,4 @@ experiments/MCP-*/
 results/s1_math.sqlite
 results/*.pkl
 results/*.pkl
+results/s1_text.pkl
