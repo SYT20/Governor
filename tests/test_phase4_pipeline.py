@@ -117,7 +117,10 @@ def test_traps_are_green_in_the_healthy_world(world):
     cal_pool, cal_env, test_env = world
     cal = calibrate(cal_env, cal_pool, range(60))
     R, trace = evaluate_heldout(test_env, cal, range(60))
-    s = summarise(R, cal, test_env, trace, commit="run", froze_commit="prereg")
+    s = summarise(R, cal, test_env, trace, commit="run", froze_commit="prereg",
+                  selection_item_ids=[i.item_id for i in cal_pool],
+                  evaluation_item_ids=[it.item_id for e in test_env.episodes
+                                       for it in e])
     assert s["red"] == [], {k: v for k, v in s["traps"].items() if not v[0]}
 
 
@@ -149,6 +152,18 @@ def test_governor_spends_no_more_than_greedy(world):
     g = R["GOVERNOR"].metrics(test_env.budget)
     gr = R["greedy"].metrics(test_env.budget)
     assert g["deep_calls_per_episode"] <= gr["deep_calls_per_episode"] + 1e-9
+
+
+def test_split_leakage_trap_fires_when_the_same_items_are_used_twice(world):
+    """If the calibration items are also the evaluation items, the trap must go
+    red even though every other check is green."""
+    cal_pool, cal_env, test_env = world
+    cal = calibrate(cal_env, cal_pool, range(60))
+    R, trace = evaluate_heldout(test_env, cal, range(60))
+    ids = [i.item_id for i in cal_pool]
+    s = summarise(R, cal, test_env, trace, commit="run", froze_commit="prereg",
+                  selection_item_ids=ids, evaluation_item_ids=ids)
+    assert "split_leakage" in s["red"]
 
 
 def test_paired_ci_is_paired():

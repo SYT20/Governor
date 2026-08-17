@@ -23,7 +23,7 @@
   "metric": "U(clairvoyant optimum) - U(budget-limited greedy) through the canonical executor; 95% CI from a cluster bootstrap over items; PASS iff the CI lower bound exceeds 0.02",
   "params": {
     "ceiling_gate": 0.02,
-    "n_bootstrap": 100
+    "n_bootstrap": 200
   },
   "notes": "No API calls. Configuration chosen by S1+S2 in E0005 before any ceiling was consulted.",
   "runtime": {
@@ -34,11 +34,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "44c1a46d45a95108e6c4ea91468da6d20d513c88",
-  "git_dirty": [
-    "scripts/p4r_ceiling.py",
-    "experiments/E0007-structure-clean/"
-  ],
-  "nonce": "f5989a0ef089410fbfb0f65d681fdc6a",
-  "started_utc": "2026-08-17T11:30:01Z"
+  "git_commit": "8450754aaffc395611b0e6969d4e15d5af14ed78",
+  "git_dirty": [],
+  "nonce": "4a06245f2c324a6c8c716e83cb5da7c2",
+  "started_utc": "2026-08-17T11:31:09Z"
 }

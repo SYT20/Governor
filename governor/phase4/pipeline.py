@@ -130,7 +130,12 @@ PREREG = "PREREGISTRATION-phase4-nemotron.md"
 
 
 def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
-              trace: list, commit: str = "", froze_commit: str | None = None) -> dict:
+              trace: list, commit: str = "", froze_commit: str | None = None,
+              selection_item_ids: Sequence[str] | None = None,
+              evaluation_item_ids: Sequence[str] | None = None) -> dict:
+    """Callers MUST name the items the model was fitted on and the items it is
+    scored on. Leaving them out makes `split_leakage` red, which is the point:
+    silence about a split is not evidence of a clean one."""
     M = {k: r.metrics(env.budget) for k, r in R.items()}
     deltas = {b: paired_ci(R["GOVERNOR"].U, R[b].U) for b in BASELINES}
     den = M["oracle"]["U"] - M[cal.base]["U"]
@@ -153,6 +158,12 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
         "heldout_commit": commit,
         **token_evidence(R["GOVERNOR"], env),
     }
+    if selection_item_ids is not None and evaluation_item_ids is not None:
+        ev["selection_item_ids"] = list(selection_item_ids)
+        ev["evaluation_item_ids"] = list(evaluation_item_ids)
+    else:
+        ev["selection_item_ids"] = []
+        ev["evaluation_item_ids"] = [it.item_id for e in env.episodes for it in e]
     traps = run_trap_checks(ev)
     traps["secret_scan"] = secret_scan()
     red = [n for n, (ok, _) in traps.items() if not ok]

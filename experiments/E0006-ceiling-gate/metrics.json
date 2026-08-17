@@ -9,8 +9,8 @@
       "ceiling_vs_fixed": 0.11111111111111113,
       "greedy_deep": 1.5,
       "n_episodes": 6,
-      "boot_mean": 0.10548611111111111,
-      "ci_lo": 0.02777777777777779,
+      "boot_mean": 0.10972222222222222,
+      "ci_lo": 0.027777777777777762,
       "ci_hi": 0.19444444444444445,
       "n_items": 40,
       "passes_gate": true
