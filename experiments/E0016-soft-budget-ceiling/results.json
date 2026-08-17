@@ -1,23 +1,26 @@
 {
   "exp_id": "E0016-soft-budget-ceiling",
   "title": "Soft expected-budget ceiling on external s1 data",
-  "verdict": "SOFT-BUDGET-NO-HEADROOM",
+  "verdict": "SOFT-BUDGET-HEADROOM",
   "summary": {
-    "verdict": "SOFT-BUDGET-NO-HEADROOM",
-    "benchmarks_with_headroom": [],
-    "max_ceiling_math": NaN,
-    "max_ceiling_gpqa": NaN,
-    "at_tokens_math": 521.918,
-    "at_tokens_gpqa": 1251.7121212121212
+    "verdict": "SOFT-BUDGET-HEADROOM",
+    "benchmarks_with_headroom": [
+      "math",
+      "gpqa"
+    ],
+    "max_ceiling_math": 0.1703452535335831,
+    "max_ceiling_gpqa": 0.2680974525299935,
+    "at_tokens_math": 813.0578333333333,
+    "at_tokens_gpqa": 1535.8207070707072
   },
-  "git_commit": "d5bf2c4013c8509f66ecd1de99ba17f44292ca1d",
-  "config_hash": "33ee29028920f849b3c0e6bca0f36b263fc9d2eb2ae6fec181a4633daf155e56",
-  "nonce": "c5e29121d3a345919b0f8565c2155b23",
+  "git_commit": "7c141e058f570232002bbdb79ce6d5db1b118955",
+  "config_hash": "72d8f1d01996bc34c5c2d64a8d17adc4450012da30e752fea7237a9af612db9a",
+  "nonce": "786d4bd4d1c94e4ab858dc37147edef2",
   "raw_file": "raw.jsonl",
-  "raw_sha256": "9999186750798de029a238295ef515c4d44eae2fe9c16caa78e50452516033ab",
+  "raw_sha256": "fbe129dab431661877f6e41e32ceb4dd36e0788c1b61cf274d15a2e211be7088",
   "raw_rows": 50,
-  "wall_s": 1.7,
-  "finished_utc": "2026-08-17T20:20:56Z",
+  "wall_s": 1.2,
+  "finished_utc": "2026-08-17T20:21:46Z",
   "trap_checks": {
     "secret_scan": {
       "ok": true,

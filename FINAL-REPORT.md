@@ -35,8 +35,26 @@ run past it. **Hard worst-case reservation and a self-terminating model are
 structurally incompatible**, and that is a property of the resource model, not
 of the controller or the task.
 
-**Two external resource contracts were tried and they fail on OPPOSITE
-criteria** (E0013, E0014, both on s1-32B / MATH-500, exact tokenizer counts):
+**THREE resource contracts have now been tested on external data, and the third
+passes.**
+
+| contract | binds? | headroom? | verdict |
+|---|---|---|---|
+| hard worst-case reservation | no (`act/cap` 0.68) | yes (+0.168) | eliminated (E0013) |
+| forced Wait units, MATH | yes (1.0) | no (+0.009) | eliminated (E0014) |
+| forced Wait units, GPQA | yes (1.0) | no (+0.017) | eliminated (E0015) |
+| **soft expected budget** | **yes — it IS actual consumption** | **MATH +0.170, GPQA +0.268** | **PASS (E0016)** |
+
+`E[Σ actual generation tokens] ≤ B`, against the *strong* baseline: a fixed
+policy may randomise between adjacent budget levels to match the expected budget
+exactly (the upper concave envelope), not merely pick the best single level. The
+oracle is the exact multiple-choice-knapsack optimum via a Lagrangian sweep.
+Exact `simplescaling/s1-32B` tokenizer counts. Third-party data throughout.
+
+**This is the contract the Governor should be built on, and it is the first one
+that has both properties.** The learned controller has not yet been run under it.
+
+**The two earlier contracts fail on OPPOSITE criteria** (E0013, E0014, both on s1-32B / MATH-500, exact tokenizer counts):
 
 | contract | unit binds? | headroom? | verdict |
 |---|---|---|---|

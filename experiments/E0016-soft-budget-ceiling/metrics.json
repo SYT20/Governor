@@ -3,320 +3,320 @@
     "rows": [
       {
         "budget_tokens": 521.918,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.64,
+        "oracle": 0.64,
+        "ceiling": 0.0
       },
       {
         "budget_tokens": 667.4879166666667,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.6869576589436107,
+        "oracle": 0.8529731606472554,
+        "ceiling": 0.16601550170364465
       },
       {
         "budget_tokens": 813.0578333333333,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.7339153178872213,
+        "oracle": 0.9042605714208044,
+        "ceiling": 0.1703452535335831
       },
       {
         "budget_tokens": 958.62775,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.780872976830832,
+        "oracle": 0.9365331632653061,
+        "ceiling": 0.1556601864344741
       },
       {
         "budget_tokens": 1104.1976666666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.8052699268683405,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.14473007313165942
       },
       {
         "budget_tokens": 1249.7675833333333,
-        "best_fixed": NaN,
+        "best_fixed": 0.8141616902670248,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.13583830973297517
       },
       {
         "budget_tokens": 1395.3375,
-        "best_fixed": NaN,
+        "best_fixed": 0.823053453665709,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.12694654633429092
       },
       {
         "budget_tokens": 1540.9074166666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.8319452170643933,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.11805478293560667
       },
       {
         "budget_tokens": 1686.4773333333333,
-        "best_fixed": NaN,
+        "best_fixed": 0.8408369804630775,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.10916301953692242
       },
       {
         "budget_tokens": 1832.04725,
-        "best_fixed": NaN,
+        "best_fixed": 0.8497287438617618,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.10027125613823817
       },
       {
         "budget_tokens": 1977.617166666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.8577987930399718,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.0922012069600282
       },
       {
         "budget_tokens": 2123.1870833333332,
-        "best_fixed": NaN,
+        "best_fixed": 0.8639023602218106,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.0860976397781894
       },
       {
         "budget_tokens": 2268.757,
-        "best_fixed": NaN,
+        "best_fixed": 0.8700059274036493,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.07999407259635061
       },
       {
         "budget_tokens": 2414.326916666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.8761094945854881,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.07389050541451181
       },
       {
         "budget_tokens": 2559.8968333333332,
-        "best_fixed": NaN,
+        "best_fixed": 0.882213061767327,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.06778693823267301
       },
       {
         "budget_tokens": 2705.46675,
-        "best_fixed": NaN,
+        "best_fixed": 0.8883166289491659,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.0616833710508341
       },
       {
         "budget_tokens": 2851.036666666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.8944201961310047,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.0555798038689953
       },
       {
         "budget_tokens": 2996.6065833333337,
-        "best_fixed": NaN,
+        "best_fixed": 0.9005237633128435,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.049476236687156505
       },
       {
         "budget_tokens": 3142.1765,
-        "best_fixed": NaN,
+        "best_fixed": 0.9066273304946822,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.04337266950531771
       },
       {
         "budget_tokens": 3287.746416666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.912730897676521,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.03726910232347891
       },
       {
         "budget_tokens": 3433.3163333333337,
-        "best_fixed": NaN,
+        "best_fixed": 0.91883446485836,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.03116553514164
       },
       {
         "budget_tokens": 3578.88625,
-        "best_fixed": NaN,
+        "best_fixed": 0.9249380320401988,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.0250619679598012
       },
       {
         "budget_tokens": 3724.456166666667,
-        "best_fixed": NaN,
+        "best_fixed": 0.9310415992220376,
         "oracle": 0.95,
-        "ceiling": NaN
+        "ceiling": 0.018958400777962403
       },
       {
         "budget_tokens": 3870.0260833333336,
-        "best_fixed": 0.9310852007713277,
+        "best_fixed": 0.932,
         "oracle": 0.95,
-        "ceiling": 0.01891479922867223
+        "ceiling": 0.017999999999999905
       },
       {
         "budget_tokens": 4015.596,
-        "best_fixed": 0.93,
+        "best_fixed": 0.932,
         "oracle": 0.95,
-        "ceiling": 0.019999999999999907
+        "ceiling": 0.017999999999999905
       }
     ],
     "best": {
-      "budget_tokens": 521.918,
-      "best_fixed": NaN,
-      "oracle": NaN,
-      "ceiling": NaN
+      "budget_tokens": 813.0578333333333,
+      "best_fixed": 0.7339153178872213,
+      "oracle": 0.9042605714208044,
+      "ceiling": 0.1703452535335831
     }
   },
   "gpqa": {
     "rows": [
       {
         "budget_tokens": 1251.7121212121212,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.3787878787878788,
+        "oracle": 0.6300508138365805,
+        "ceiling": 0.2512629350487017
       },
       {
         "budget_tokens": 1393.7664141414143,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.41350964479112795,
+        "oracle": 0.6795840272085631,
+        "ceiling": 0.2660743824174352
       },
       {
         "budget_tokens": 1535.8207070707072,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.4482314107943771,
+        "oracle": 0.7163288633243706,
+        "ceiling": 0.2680974525299935
       },
       {
         "budget_tokens": 1677.875,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.4829531767976262,
+        "oracle": 0.7222222222222222,
+        "ceiling": 0.23926904542459598
       },
       {
         "budget_tokens": 1819.929292929293,
-        "best_fixed": NaN,
-        "oracle": NaN,
-        "ceiling": NaN
+        "best_fixed": 0.4999127104136572,
+        "oracle": 0.7222222222222222,
+        "ceiling": 0.222309511808565
       },
       {
         "budget_tokens": 1961.9835858585861,
-        "best_fixed": NaN,
+        "best_fixed": 0.5074959099658667,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.21472631225635552
       },
       {
         "budget_tokens": 2104.037878787879,
-        "best_fixed": NaN,
+        "best_fixed": 0.5150791095180762,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.20714311270414598
       },
       {
         "budget_tokens": 2246.092171717172,
-        "best_fixed": NaN,
+        "best_fixed": 0.5226623090702857,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.19955991315193655
       },
       {
         "budget_tokens": 2388.1464646464647,
-        "best_fixed": NaN,
+        "best_fixed": 0.5302455086224952,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.191976713599727
       },
       {
         "budget_tokens": 2530.200757575758,
-        "best_fixed": NaN,
+        "best_fixed": 0.5378287081747046,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.18439351404751758
       },
       {
         "budget_tokens": 2672.255050505051,
-        "best_fixed": NaN,
+        "best_fixed": 0.5454119077269142,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.17681031449530804
       },
       {
         "budget_tokens": 2814.3093434343436,
-        "best_fixed": NaN,
+        "best_fixed": 0.5529951072791236,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.1692271149430986
       },
       {
         "budget_tokens": 2956.363636363637,
-        "best_fixed": NaN,
+        "best_fixed": 0.5605783068313331,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.16164391539088907
       },
       {
         "budget_tokens": 3098.4179292929293,
-        "best_fixed": NaN,
+        "best_fixed": 0.5681615063835426,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.15406071583867964
       },
       {
         "budget_tokens": 3240.4722222222226,
-        "best_fixed": NaN,
+        "best_fixed": 0.5757447059357521,
         "oracle": 0.7222222222222222,
-        "ceiling": NaN
+        "ceiling": 0.1464775162864701
       },
       {
         "budget_tokens": 3382.526515151516,
-        "best_fixed": 0.5804484189366107,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.1417738032856115
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 3524.5808080808083,
-        "best_fixed": 0.5793660469111063,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.14285617531111594
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 3666.6351010101016,
-        "best_fixed": 0.5782836748856018,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.14393854733662037
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 3808.689393939394,
-        "best_fixed": 0.5772013028600974,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.1450209193621248
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 3950.7436868686873,
-        "best_fixed": 0.576118930834593,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.14610329138762923
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 4092.7979797979806,
-        "best_fixed": 0.5750365588090884,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.14718566341313377
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 4234.852272727273,
-        "best_fixed": 0.573954186783584,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.1482680354386382
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 4376.906565656566,
-        "best_fixed": 0.5728718147580796,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.14935040746414263
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 4518.96085858586,
-        "best_fixed": 0.5717894427325751,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.15043277948964706
+        "ceiling": 0.14141414141414144
       },
       {
         "budget_tokens": 4661.015151515152,
-        "best_fixed": 0.5707070707070707,
+        "best_fixed": 0.5808080808080808,
         "oracle": 0.7222222222222222,
-        "ceiling": 0.1515151515151515
+        "ceiling": 0.14141414141414144
       }
     ],
     "best": {
-      "budget_tokens": 1251.7121212121212,
-      "best_fixed": NaN,
-      "oracle": NaN,
-      "ceiling": NaN
+      "budget_tokens": 1535.8207070707072,
+      "best_fixed": 0.4482314107943771,
+      "oracle": 0.7163288633243706,
+      "ceiling": 0.2680974525299935
     }
   }
 }
