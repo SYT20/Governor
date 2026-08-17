@@ -129,6 +129,40 @@ def governor_alloc(Q: np.ndarray, T: np.ndarray, lam: float) -> np.ndarray:
     return np.argmax(Q - lam * T, axis=1)
 
 
+def enforced_alloc(order_idx, choose, T_actual: np.ndarray,
+                   levels: list[int], total_budget: float,
+                   prompt_tokens: int = 64) -> np.ndarray:
+    """Sequential allocation with a HARD runtime budget.
+
+    E0019 tuned lambda so the constraint held on the CALIBRATION half, reported
+    the baseline at the nominal budget, and the Governor then spent 15% over on
+    evaluation -- which is the entire reason its "+0.0282 BEATS" was withdrawn.
+    Tuning cannot guarantee a constraint on data it has not seen. Enforcement
+    can.
+
+    Budget forcing truncates a level-b generation at b tokens, so b is a true
+    upper bound on that call's cost. Reserving b is therefore safe, and because
+    the call usually stops early the slack returns to the pool for later items.
+    That gives a hard guarantee -- sum of actual <= n*B -- without throwing away
+    the under-spend the way worst-case reservation did in E0013.
+    """
+    n = len(order_idx)
+    remaining = float(total_budget) * n
+    out = np.zeros(n, dtype=int)
+    for pos, i in enumerate(order_idx):
+        left = n - pos - 1
+        wanted = int(choose(i))
+        # walk down until this level plus a cheapest-level reserve for every
+        # remaining item fits in what is left
+        j = wanted
+        while j > 0 and (levels[j] + prompt_tokens
+                         + left * (levels[0] + prompt_tokens)) > remaining:
+            j -= 1
+        out[i] = j
+        remaining -= float(T_actual[i, j])       # charge what it ACTUALLY cost
+    return out
+
+
 def myopic_alloc(Q: np.ndarray, tau: float) -> np.ndarray:
     """Cheapest level whose predicted correctness clears tau; else the dearest.
 

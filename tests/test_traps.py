@@ -111,3 +111,22 @@ def test_budget_adherence_catches_the_E0019_defect():
     assert budget_adherence(5643, 6486, baseline_cost=6138)[0], (
         "a baseline that spent MORE handicaps the policy and is fair")
     assert run_trap_checks({})["budget_adherence"][0] is False
+
+
+def test_enforced_allocation_never_exceeds_the_budget():
+    """The regression test for the withdrawn E0019 result: a policy may not
+    spend more than it was given, on ANY data, tuned or not."""
+    import numpy as np
+    from governor.phase4.softbudget import enforced_alloc
+    rng = np.random.default_rng(0)
+    levels = [500, 1000, 2000, 4000, 8000]
+    n = 200
+    T = np.array([[min(rng.integers(200, b + 1), b) for b in levels]
+                  for _ in range(n)], float)
+    for B in (600.0, 900.0, 1500.0, 3000.0):
+        idx = enforced_alloc(range(n), lambda i: len(levels) - 1, T, levels, B)
+        spent = T[np.arange(n), idx].sum()
+        assert spent <= B * n + 1e-6, (B, spent, B * n)
+    # and it still uses the budget rather than collapsing to the cheapest level
+    idx = enforced_alloc(range(n), lambda i: len(levels) - 1, T, levels, 3000.0)
+    assert idx.max() > 0
