@@ -1,0 +1,50 @@
+{
+  "exp_id": "E0010-phase5-design",
+  "title": "Phase 5 design: configurations screened by the derived headroom law",
+  "verdict": "CONFIG-FOUND",
+  "summary": {
+    "verdict": "CONFIG-FOUND",
+    "n_configs": 146,
+    "n_passing_all": 10,
+    "chosen": {
+      "n_items": 12,
+      "low": 300,
+      "high": 700,
+      "budget": 6486,
+      "n_sel_items": 40,
+      "n_ev_items": 55,
+      "p": 0.475,
+      "k_sel": 5.666666666666667,
+      "k_ev": 5.75,
+      "k": 6,
+      "ideal": 0.19275932722944855,
+      "ideal_at_k_minus_1": 0.1870329130534857,
+      "s3_drop": 0.029707585403358827,
+      "act_over_cap": 0.8030797101449276,
+      "measured_selection": 0.25,
+      "realised": 1.2969541012270487,
+      "S1": true,
+      "S2": true,
+      "S3": true
+    }
+  },
+  "git_commit": "aab0e2d3300708da86fe442988a12a17ad90c31d",
+  "config_hash": "7bea05f760e7f8bba41458d9e519690bb4e036f2be900444fb73681be39d0721",
+  "nonce": "82bf292982eb4834a41a8f132a74769f",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "06f0012a73b715f4cc8cb56f4a552794ab16e5d9c2b7efe09ad4112279a35f26",
+  "raw_rows": 146,
+  "wall_s": 20.5,
+  "finished_utc": "2026-08-17T19:10:16Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=40 evaluation=360 overlap=0"
+    }
+  },
+  "red_traps": []
+}

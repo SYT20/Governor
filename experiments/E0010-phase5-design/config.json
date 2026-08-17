@@ -1,0 +1,60 @@
+{
+  "exp_id": "E0010-phase5-design",
+  "title": "Phase 5 design: configurations screened by the derived headroom law",
+  "model": "qwen/qwen3.6-27b",
+  "budget": {
+    "swept": "per configuration"
+  },
+  "seeds": {
+    "pool": 1000,
+    "grouping": 7
+  },
+  "split": {
+    "frozen_by": "configs/phase4r_split.json",
+    "selection_items": 40
+  },
+  "metric": "S1 = ceiling(n,k,p) from the closed form; S2 = actual/cap; S3 = ceiling(n,k-1)/ceiling(n,k) and cross-split k drift; measured ceiling = U(clairvoyant) - U(greedy) via the executor",
+  "params": {
+    "S1_min": 0.12,
+    "S2_min": 0.7,
+    "S3_ratio": 0.8,
+    "S3_drift": 0.3,
+    "n_items": [
+      6,
+      8,
+      10,
+      12
+    ],
+    "mode_pairs": [
+      [
+        300,
+        700
+      ],
+      [
+        700,
+        1400
+      ],
+      [
+        300,
+        1400
+      ],
+      [
+        700,
+        2800
+      ]
+    ]
+  },
+  "notes": "Selection by S1/S2/S3 only. The measured ceiling is reported for every cell and never used to select.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "aab0e2d3300708da86fe442988a12a17ad90c31d",
+  "git_dirty": [],
+  "nonce": "82bf292982eb4834a41a8f132a74769f",
+  "started_utc": "2026-08-17T19:09:55Z"
+}
