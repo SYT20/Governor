@@ -42,6 +42,27 @@ Every row is backed by a recorded experiment that re-verifies from disk
 | forced Wait units (MATH, GPQA) | yes | no, +0.009 / +0.017 |
 | **soft expected budget + hard runtime cap** | **yes** | **yes** — the one in use |
 
+## Why the real-LLM claim cannot be settled here (E0022)
+
+Power computed from the **observed per-item paired variance**, not from a CI
+half-width:
+
+| comparison | n | mean | sd | items required for CI lower bound > 0 |
+|---|---|---|---|---|
+| Governor − myopic, all items | 250 | +0.0040 | 0.3293 | **26,031** |
+| Governor − myopic, disagreements only | 107 | +0.0093 | 0.5046 | 11,199 |
+
+**MATH-500 contains 500 items.** The required sample is ~52× the entire
+benchmark. The claim can be neither established nor refuted on this dataset.
+
+This is structural, not a compute or tooling limit. Most items produce identical
+allocations (d = 0) while disagreements contribute ±1, so the mean is small over
+a large standard deviation — the worst ratio for detection.
+
+*Correction:* I previously estimated 2000–3000 items. That was wrong by ~10×
+because it scaled from a bootstrap CI half-width instead of the per-item paired
+variance. The correct figure is above.
+
 ## Reproduce
 
 ```bash

@@ -1,0 +1,32 @@
+{
+  "exp_id": "E0022-power",
+  "title": "Power analysis for the real-LLM claim",
+  "verdict": "SAMPLE-UNATTAINABLE",
+  "summary": {
+    "n_required_all_items": 26031.082730923696,
+    "n_required_disagreements": 11199.206279245283,
+    "benchmark_size": 500,
+    "multiple_of_benchmark": 52.06216546184739,
+    "disagreement_rate": 0.428,
+    "verdict": "SAMPLE-UNATTAINABLE"
+  },
+  "git_commit": "6160560108a89f704894e4b118fc0dc398ec0eca",
+  "config_hash": "1e7412655851305ec23acdb61f26eba6b7e4e5ba75b6d2844bb461bb93074f94",
+  "nonce": "62f96b49addf4a4c907ee51e9dd4fb75",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "2d1230940800e8cb1328080c926dd5668c899c354b92ab9392a8b02a376dd38c",
+  "raw_rows": 2,
+  "wall_s": 0.3,
+  "finished_utc": "2026-08-17T21:28:14Z",
+  "trap_checks": {
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

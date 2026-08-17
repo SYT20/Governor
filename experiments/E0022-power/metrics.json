@@ -1,0 +1,18 @@
+{
+  "rows": [
+    {
+      "comparison": "Governor - myopic, all items",
+      "n_observed": 250,
+      "mean": 0.004,
+      "sd": 0.3292683870078191,
+      "n_required": 26031.082730923696
+    },
+    {
+      "comparison": "Governor - myopic, disagreements only",
+      "n_observed": 107,
+      "mean": 0.009345794392523364,
+      "sd": 0.5046075834353343,
+      "n_required": 11199.206279245283
+    }
+  ]
+}
