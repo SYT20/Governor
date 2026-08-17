@@ -23,7 +23,6 @@
       "lines",
       "words_n",
       "has_starter",
-      "difficulty_ord",
       "is_codeforces",
       "is_leetcode",
       "is_atcoder",
@@ -32,8 +31,8 @@
       "n_examples",
       "n_digits"
     ],
-    "lambda": 0.0009045400432760668,
-    "tau": 0.0,
+    "lambda": 0.000695284799378598,
+    "tau": 0.0225,
     "predictor": "logistic+isotonic"
   },
   "notes": "softbudget.py reused unchanged; only the family adapter is new.",
@@ -45,8 +44,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "cca15fabe3ae2de4489b6e5d6e217e8d9f1e5391",
+  "git_commit": "aac6c87b8d7b903ba5cd5c7552c1d5c8ebad839d",
   "git_dirty": [],
-  "nonce": "90c2105fecb54841bbc9f06e36dae849",
-  "started_utc": "2026-08-17T22:01:38Z"
+  "nonce": "87c9a2b5af944b65bc46ab9dad3d14ea",
+  "started_utc": "2026-08-17T22:03:00Z"
 }

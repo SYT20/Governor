@@ -1,15 +1,15 @@
 # E0024-lcb-governor — Governor on LiveCodeBench sample allocation (architecture reused)
 
-**Verdict: BLOCKED**
+**Verdict: INCONCLUSIVE**
 
 | field | value |
 |---|---|
 | model | `Gemini-Pro-1.5 (May) generations, published by LiveCodeBench` |
-| commit | `cca15fabe3ae2de4489b6e5d6e217e8d9f1e5391` |
+| commit | `aac6c87b8d7b903ba5cd5c7552c1d5c8ebad839d` |
 | budget | `{"axis": "samples k in 1..10", "B_star": 153.48846666666665, "contract": "SOFT_EXPECTED_BUDGET + hard runtime cap", "charged": "exact tokenizer count over published LiveCodeBench generations"}` |
 | seeds | `{"split": "sha256(question_id) parity", "bootstrap": 0}` |
 | split | `{"calibration": 210, "evaluation": 190}` |
-| raw rows | 190 (`raw.jsonl`, sha256 `6591a9274ba43e21`) |
+| raw rows | 190 (`raw.jsonl`, sha256 `7cf6e316726c03d6`) |
 | wall | 0.1 s |
 
 ## Metric
@@ -22,18 +22,18 @@ pass@k-style utility at matched realised cost; primary = Governor minus the rand
 {
   "governor_U": 0.3736842105263158,
   "myopic_U": 0.3736842105263158,
-  "fixed_matched": 0.37373385687666427,
-  "oracle": 0.37894736842105264,
-  "governor_tokens": 128.8421052631579,
+  "fixed_matched": 0.37647407751278233,
+  "oracle": 0.43157894736842106,
+  "governor_tokens": 151.21052631578948,
   "B_star": 153.48846666666665,
-  "primary_mean": -4.973870632859506e-05,
-  "primary_lo": -0.00024407986546674533,
+  "primary_mean": -0.0027819797365463057,
+  "primary_lo": -0.006584622967170927,
   "primary_hi": 0.0,
   "secondary_mean": 0.0,
   "secondary_lo": 0.0,
   "secondary_hi": 0.0,
   "mcnemar_p": 1.0,
-  "n_disagree": 1,
+  "n_disagree": 45,
   "n_required_gov_vs_myopic": Infinity,
   "verdict": "INCONCLUSIVE"
 }
@@ -41,10 +41,10 @@ pass@k-style utility at matched realised cost; primary = Governor minus the rand
 
 ## Trap checks
 
-- **RED** `oracle_leakage` — forbidden_features=['difficulty_ord']
+- GREEN `oracle_leakage` — forbidden_features=[]
 - GREEN `exact_token_counts` — token_cost_source='exact tokenizer count over published LiveCodeBench generations'
 - GREEN `split_leakage` — selection=210 evaluation=190 overlap=0
-- GREEN `budget_adherence` — realised=129 budget=153 over=-16.1% baseline=129 baseline_short_by=+0.0%
+- GREEN `budget_adherence` — realised=151 budget=153 over=-1.5% baseline=151 baseline_short_by=+0.0%
 - GREEN `secret_scan` — files_with_credentials=[]
 
 ## Notes

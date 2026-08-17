@@ -21,7 +21,7 @@ Every row is backed by a recorded experiment that re-verifies from disk
 
 | claim | status | evidence |
 |---|---|---|
-| **The Governor beats a strong fixed policy on real LLM data** | **INCONCLUSIVE** | MATH +0.0121 [−0.0396, +0.0510] at enforced, matched cost (E0021) |
+| **The Governor beats a strong fixed policy on real LLM data** | **INCONCLUSIVE / NEGATIVE on 3 axes** | MATH tokens +0.0121 [−0.0396, +0.0510] (E0021); GPQA +0.0000 (E0021); LiveCodeBench samples −0.0028 [−0.0066, +0.0000] (E0024) |
 | The Governor beats a fixed policy on GPQA | INCONCLUSIVE | +0.0000 — enforcement collapses all policies to one allocation |
 | Opportunity-cost pricing beats difficulty ranking | **UNRESOLVED after 4 attempts** | +0.0202 [−0.0200, +0.0600]; McNemar p=0.42 on 101 disagreements (E0020, E0021) |
 | A probe pays for itself | NOT TESTED | At B*=846 a 500-token probe is 59% of the budget; untestable at this operating point |
@@ -41,6 +41,38 @@ Every row is backed by a recorded experiment that re-verifies from disk
 | hard worst-case reservation | no — `act/cap` 0.28–0.68 | yes, +0.168 |
 | forced Wait units (MATH, GPQA) | yes | no, +0.009 / +0.017 |
 | **soft expected budget + hard runtime cap** | **yes** | **yes** — the one in use |
+
+## Third external axis: LiveCodeBench sample allocation (E0023, E0024)
+
+MATH-500 was closed as unsettleable, so the **allocation axis** was changed
+rather than the benchmark enlarged. LiveCodeBench's published submissions carry
+pass/fail for 10 independent samples on 400 problems with the raw generations —
+a complete multi-budget table at zero API cost.
+
+**Ceiling PASSES** (E0023): +0.0573 at E[tokens]=219, ~2.9x the threshold.
+
+**Governor does not capture it** (E0024), all traps green, budget adherent
+(−1.5%), architecture reused unchanged:
+
+| policy | U | tokens | mean k |
+|---|---|---|---|
+| GOVERNOR | 0.3737 | 151 | 1.23 |
+| myopic | 0.3737 | 153 | 1.14 |
+| fixed @ matched cost | 0.3765 | 151 | |
+| oracle | **0.4316** | 151 | |
+
+`GOV − fixed = −0.0028 [−0.0066, +0.0000]`; `GOV − myopic = +0.0000`.
+
+**The diagnostic is the striking part: 45 allocation disagreements produced ZERO
+outcome differences.** The two policies chose different sample counts on 45
+problems and the pass/fail outcome was identical on every one. Given the
+structure — 54.5% never pass at any k, 30.5% pass at k=1 — the controller is
+reallocating among problems where reallocation *cannot* change the result. This
+is precisely the failure Damani et al. report on code, where an online allocator
+falls below uniform because it cannot identify unsolvable items.
+
+The ceiling (+0.055 here) lives almost entirely in the 15% mixed problems, and
+the text-only features do not find them.
 
 ## Why the real-LLM claim cannot be settled here (E0022)
 
