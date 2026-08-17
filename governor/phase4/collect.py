@@ -78,10 +78,22 @@ CREATE INDEX IF NOT EXISTS idx_item ON calls(item_id, max_tokens);
 """
 
 
-def _key(model: str, item_id: str, prompt: str, max_tokens: int, temp: float,
-         system: str = "") -> str:
-    h = hashlib.sha256(
-        f"{model}|{system}|{prompt}|{max_tokens}|{temp}".encode()).hexdigest()
+def _key(model: str, item_id: str, prompt: str, max_tokens: int,
+         temp: float) -> str:
+    """STABLE. Changing this silently invalidates every collected row.
+
+    A version of this briefly folded the system prompt in. Every one of the 262
+    rows collected up to that point became a cache miss, and the next run would
+    have re-collected all of them -- against a hard cap of 1000 requests per
+    day. `tests/test_cache_key_stable.py` pins the format so the mistake cannot
+    repeat silently.
+
+    The system prompt is deliberately NOT part of the key. It is a property of
+    the task family, and families are already separated three ways over: they
+    use different cache files, different item-id prefixes, and different prompt
+    text. Adding it bought nothing and cost the cache.
+    """
+    h = hashlib.sha256(f"{model}|{prompt}|{max_tokens}|{temp}".encode()).hexdigest()
     return f"{item_id}:{max_tokens}:{h[:16]}"
 
 
@@ -163,7 +175,7 @@ class ResponseCache:
 
     def get(self, item: Item, max_tokens: int) -> CallRecord | None:
         k = _key(self.model, item.item_id, item.prompt, max_tokens,
-                 self.temperature, self.system_prompt)
+                 self.temperature)
         with self.lock:
             row = self.conn.execute(
                 "SELECT content,finish_reason,prompt_tokens,completion_tokens,"
@@ -193,7 +205,7 @@ class ResponseCache:
 
     def put(self, item: Item, max_tokens: int, rec: CallRecord, attempts: int) -> None:
         k = _key(self.model, item.item_id, item.prompt, max_tokens,
-                 self.temperature, self.system_prompt)
+                 self.temperature)
         with self.lock:
             self.conn.execute(
                 "INSERT OR REPLACE INTO calls VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
