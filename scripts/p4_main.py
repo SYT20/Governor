@@ -26,8 +26,8 @@ from governor.phase4.collect import (  # noqa: E402
     RateLimited, ResponseCache, api_key, collect,
 )
 from governor.phase4.config import (  # noqa: E402
-    CAL_GROUP_SEED, CAL_POOL_SEED, ENGINES, PROMPT_CAP, TEST_GROUP_SEED,
-    TEST_POOL_SEED,
+    CAL_GROUP_SEED, CAL_POOL_SEED, ENGINES, PROMPT_CAP, TARGET_DEEP_CALLS,
+    TEST_GROUP_SEED, TEST_POOL_SEED, budget_for_target_scarcity,
 )
 from governor.phase4.env import DEEP, P4Env, make_episodes  # noqa: E402
 from governor.phase4.pipeline import (  # noqa: E402
@@ -58,7 +58,8 @@ def main() -> int:
     ap.add_argument("--engine", required=True, choices=list(ENGINES))
     ap.add_argument("--low", type=int, required=True)
     ap.add_argument("--high", type=int, required=True)
-    ap.add_argument("--budget", type=float, required=True)
+    ap.add_argument("--budget", type=float, default=None,
+                    help="omit to derive it by Amendment 1 on calibration")
     ap.add_argument("--cal-items", type=int, default=300)
     ap.add_argument("--test-items", type=int, default=400)
     ap.add_argument("--exp", default="E0002")
@@ -76,7 +77,8 @@ def main() -> int:
     print("=" * 84)
     print(f"E0002  PHASE 4 PRIMARY TEST — {cfg['model']}")
     print("=" * 84)
-    print(f"  LOW={a.low} HIGH={a.high} EPISODE_BUDGET={a.budget:.0f} "
+    print(f"  LOW={a.low} HIGH={a.high} "
+          f"EPISODE_BUDGET={'derive on calibration' if a.budget is None else f'{a.budget:.0f}'} "
           f"(cap_low={PROMPT_CAP + a.low} cap_high={PROMPT_CAP + a.high})")
     print(f"  calibration pool {CAL_POOL_SEED}: {pool_stats(cal_pool)}")
     print(f"  test pool        {TEST_POOL_SEED}: {pool_stats(test_pool)}", flush=True)
@@ -103,6 +105,22 @@ def main() -> int:
 
     cal_eps = make_episodes(cal_pool, a.cal_items // 4, CAL_GROUP_SEED)
     test_eps = make_episodes(test_pool, a.test_items // 4, TEST_GROUP_SEED)
+
+    budget_sweep = []
+    if a.budget is None:
+        # AMENDMENT 1: the budget is the experiment's scarcity setting and is
+        # derived on CALIBRATION, before the test pool is touched. The frozen
+        # cap-based formula produced a budget that did not bind at all.
+        def factory(b: float) -> P4Env:
+            return P4Env(cache, cal_eps, a.low, a.high, b, PROMPT_CAP)
+        a.budget, budget_sweep = budget_for_target_scarcity(
+            factory, list(range(len(cal_eps))), a.low, a.high)
+        print(f"\n  AMENDMENT 1 — budget derived on calibration: {a.budget} tokens "
+              f"(smallest with greedy deep-calls >= {TARGET_DEEP_CALLS})")
+        for row in budget_sweep[::max(1, len(budget_sweep) // 10)]:
+            print(f"      B={row['budget']:<6} greedy_deep={row['greedy_deep_calls']:.2f} "
+                  f"U={row['U']:.4f}")
+
     cal_env = P4Env(cache, cal_eps, a.low, a.high, a.budget, PROMPT_CAP)
     test_env = P4Env(cache, test_eps, a.low, a.high, a.budget, PROMPT_CAP)
     C, T = list(range(len(cal_eps))), list(range(len(test_eps)))
@@ -112,7 +130,10 @@ def main() -> int:
         title=f"Phase 4 primary: Governor + {cfg['model']} vs best fixed policy",
         model=cfg["model"],
         budget={"episode_total_tokens": a.budget, "low": a.low, "high": a.high,
-                "charged": "usage.total_tokens", "prompt_cap": PROMPT_CAP},
+                "charged": "usage.total_tokens", "prompt_cap": PROMPT_CAP,
+                "derivation": "amendment 1: smallest calibration budget with "
+                              f"greedy deep-calls >= {TARGET_DEEP_CALLS}",
+                "sweep": budget_sweep},
         seeds={"cal_pool": CAL_POOL_SEED, "test_pool": TEST_POOL_SEED,
                "cal_group": CAL_GROUP_SEED, "test_group": TEST_GROUP_SEED},
         split={"cal_items": a.cal_items, "cal_episodes": len(cal_eps),

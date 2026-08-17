@@ -63,6 +63,82 @@ Feasibility is checked against `cap(m)`; the charge is the actual
 `total_tokens`. A policy therefore cannot overspend, and unspent budget is
 reported as utilization rather than quietly reallocated.
 
+---
+
+## AMENDMENT 1 — 2026-08-17, after the E0001 curve, before any policy comparison
+
+**Status of the split at the time of writing: the test pool has not been
+generated, no policy has been executed, and no held-out number exists.** Only
+the 40-item calibration curve has been seen. This amendment changes the budget
+formula and nothing else. The engine selection, mode selection, primary
+hypothesis, and pass criterion are unchanged.
+
+### What the curve showed
+
+| budget | acc | starved | mean total_tokens | cap | used / cap |
+|---|---|---|---|---|---|
+| 300 | 0.050 | 95% | 369 | 428 | 86% |
+| 700 | 0.525 | 48% | 665 | 828 | 80% |
+| 1400 | 0.950 | 5% | 784 | 1528 | 51% |
+| 2800 | 1.000 | 0% | 817 | 2928 | 28% |
+
+The frozen rule selects LOW=700, HIGH=2800, and the frozen budget formula gives
+`4*828 + 2*(2928-828) = 7512`.
+
+### The defect
+
+The formula reserves each call at its **cap**, and assumed a call costs roughly
+its cap. At HIGH the model stops after 817 tokens of a 2928-token reservation —
+28%. Under-spend returns the difference to the pool, so:
+
+```
+B = 5000  greedy realises 1 deep call of 4
+B = 5200  greedy realises 2
+B = 5300  greedy realises 3
+B = 5412  greedy realises 4
+B = 7512  greedy realises 4      <- the preregistered budget
+```
+
+At 7512 **the budget does not bind**. Greedy, all-deep, and the Governor all
+upgrade every item, the oracle is matched by a fixed schedule, and the
+experiment measures nothing. This is a defect in the formula, not a result.
+
+### The amendment
+
+The formula's stated intent was "room for exactly two upgrades out of four". It
+expressed that in worst-case reservations, which are not what a call costs.
+Restate it in realised terms:
+
+> **TOTAL_BUDGET** := the smallest `B` on the grid
+> `range(4*cap_low, 4*cap_low + 4*(cap_high - cap_low), 50)` such that the
+> greedy policy's **mean realised deep calls on the CALIBRATION split** is
+> `>= 2.0`.
+
+Computed on calibration only. Feasibility still reserves the cap, so the hard
+budget remains provably un-violable; only the total changes.
+
+### Why this is not tuning
+
+The quantity being set is the **scarcity of the resource**, which is the
+experiment's independent variable, not its outcome. It is chosen by a stated
+rule on the calibration split before the test pool is touched, and the criterion
+("greedy gets about half the items") is the same criterion the original formula
+was trying to express. Nothing about which policy wins enters the choice.
+
+The budget also remains a **swept dimension** in the Step 7 robustness sweep
+(0.6x - 1.6x), so the result is reported across scarcity levels rather than at
+one chosen point.
+
+### Engine
+
+Nemotron returned `X-RateLimit-Limit: 50, Remaining: 0`,
+`limit_source: openrouter_free_tier_daily` — 50 free requests per day against a
+requirement of ~1400. It produced no curve, so it does not qualify under the
+frozen rule and the selection falls through to **qwen/qwen3.6-27b**. No
+amendment is needed for this; the rule already excludes throttled engines.
+
+---
+
 ## Splits (frozen)
 
 | split | pool seed | purpose |

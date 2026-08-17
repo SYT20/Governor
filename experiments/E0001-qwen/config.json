@@ -1,0 +1,54 @@
+{
+  "exp_id": "E0001-qwen",
+  "title": "Phase 4 reasoning curve and frozen engine/mode selection",
+  "model": "qwen/qwen3.6-27b",
+  "budget": {
+    "grid_max_tokens": [
+      300,
+      700,
+      1400,
+      2800
+    ],
+    "charged": "usage.total_tokens"
+  },
+  "seeds": {
+    "calibration_pool": 1000
+  },
+  "split": {
+    "calibration_items": 40,
+    "test": "not touched"
+  },
+  "metric": "mean exact-integer correctness over calibration items at each max_tokens budget; engine/mode chosen by the frozen rule in PREREGISTRATION-phase4-nemotron.md",
+  "params": {
+    "grid": [
+      300,
+      700,
+      1400,
+      2800
+    ],
+    "sat_tol": 0.02,
+    "min_gap": 0.15,
+    "prompt_cap": 128,
+    "preference": [
+      "nemotron",
+      "qwen",
+      "gptoss"
+    ],
+    "engines": {
+      "qwen": "qwen/qwen3.6-27b"
+    }
+  },
+  "notes": "Every (item, budget) pair is called once and cached; all later policies read the same responses (common random numbers).",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "5ac8b7e2fa2164a556fe882d0ecd2a311e51bbe6",
+  "git_dirty": true,
+  "nonce": "b5e91ad94e994e239332af96ae5b9100",
+  "started_utc": "2026-08-17T10:07:55Z"
+}

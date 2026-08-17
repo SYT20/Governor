@@ -35,16 +35,51 @@ HEURISTIC_FEATURES = ("chars", "numerals", "sum_numeral_log10", "words_n")
 HEURISTIC_QUANTILES = (0.25, 0.4, 0.5, 0.6, 0.75)
 
 
-def episode_budget(low: int, high: int) -> int:
-    """4*cap(LOW) + 2*(cap(HIGH) - cap(LOW)); cap(m) = PROMPT_CAP + m.
+TARGET_DEEP_CALLS = 2.0          # "about half the items can be upgraded"
 
-    Worst-case room for exactly two upgrades out of four items. Because calls
-    are charged what they USE and reserved at their CAP, a policy will often
-    afford more than two -- that slack is measured and reported, not assumed
-    away, and the robustness sweep varies this number.
+
+def episode_budget(low: int, high: int) -> int:
+    """SUPERSEDED by `budget_for_target_scarcity` (Amendment 1).
+
+    Kept because E0001 recorded a selection made with it, and deleting the
+    function would make that record unreproducible. It reserves each call at its
+    CAP and assumed a call costs roughly its cap; at HIGH=2800 the engine stops
+    after 817 of 2928 reserved tokens, so the budget it returns does not bind at
+    all -- greedy upgrades every item and there is no allocation problem left to
+    measure. See the amendment in PREREGISTRATION-phase4-nemotron.md.
     """
     cap_lo, cap_hi = PROMPT_CAP + low, PROMPT_CAP + high
     return int(4 * cap_lo + 2 * (cap_hi - cap_lo))
+
+
+def budget_for_target_scarcity(env_factory, eps, low: int, high: int,
+                               target: float = TARGET_DEEP_CALLS,
+                               step: int = 50) -> tuple[int, list[dict]]:
+    """Amendment 1: the smallest budget at which greedy realises `target` deep
+    calls per episode ON CALIBRATION.
+
+    Sets the SCARCITY of the resource, which is the experiment's independent
+    variable. Computed on the calibration split before the test pool is touched;
+    nothing about which policy wins enters it. The sweep is returned so the
+    whole curve is recorded, not just the chosen point.
+    """
+    import numpy as np
+
+    from governor.phase4.env import DEEP
+    from governor.phase4.evaluate import constant, execute
+    from governor.phase4.policies import greedy
+
+    cap_lo, cap_hi = PROMPT_CAP + low, PROMPT_CAP + high
+    grid = list(range(4 * cap_lo, 4 * cap_lo + 4 * (cap_hi - cap_lo) + step, step))
+    sweep, chosen = [], None
+    for b in grid:
+        env = env_factory(float(b))
+        res = execute(env, "greedy", constant(greedy(env)), eps)
+        deep = float(np.mean([sum(m == DEEP for m in ms) for ms in res.modes]))
+        sweep.append({"budget": b, "greedy_deep_calls": deep, "U": res.mean})
+        if chosen is None and deep >= target:
+            chosen = b
+    return (chosen if chosen is not None else grid[-1]), sweep
 
 
 def select_modes(acc: dict[int, float]) -> dict:
