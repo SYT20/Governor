@@ -22,10 +22,18 @@ CAL_GROUP_SEED, TEST_GROUP_SEED = 11, 22
 ENGINES = {
     "nemotron": dict(provider=OPENROUTER, model="nvidia/nemotron-nano-9b-v2:free",
                      cache="results/p4_cache_nemotron.sqlite", workers=8, tpm=None),
+    # tpm=None: MEASURED, not modelled. The TokenPacer was built on a two-call
+    # observation suggesting Groq bills TPM against RESERVED max_completion_tokens.
+    # At our actual call rate the bucket never depletes -- a 2800-cap call left
+    # x-ratelimit-remaining-tokens at 7928/8000 with a 539 ms refill -- so the
+    # pacer was reserving 2960 tokens per call against a limit that was not
+    # binding, and throttling us to 0.1 calls/min while the API answered in
+    # 1.4 s. The binding limit is 1000 REQUESTS/day. Rely on the collector's
+    # 429 backoff, which is measurement rather than prediction.
     "qwen":     dict(provider=GROQ, model="qwen/qwen3.6-27b",
-                     cache="results/p4_cache_qwen.sqlite", workers=6, tpm=8000),
+                     cache="results/p4_cache_qwen.sqlite", workers=6, tpm=None),
     "gptoss":   dict(provider=GROQ, model="openai/gpt-oss-120b",
-                     cache="results/p4_cache_gptoss.sqlite", workers=6, tpm=8000),
+                     cache="results/p4_cache_gptoss.sqlite", workers=6, tpm=None),
 }
 # Fixed a priori: the directive names nemotron, so nemotron wins any tie. Picking
 # the engine with the largest measured gap would be selecting on the outcome.
