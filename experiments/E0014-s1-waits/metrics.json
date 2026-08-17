@@ -1,0 +1,334 @@
+{
+  "ladder": [
+    {
+      "waits": 1,
+      "accuracy": 0.928,
+      "mean_tokens": 4726.37,
+      "sd_tokens": 3673.9666026108625
+    },
+    {
+      "waits": 2,
+      "accuracy": 0.93,
+      "mean_tokens": 5290.18,
+      "sd_tokens": 4177.68411534429
+    },
+    {
+      "waits": 3,
+      "accuracy": 0.922,
+      "mean_tokens": 5636.626,
+      "sd_tokens": 4304.720104968963
+    },
+    {
+      "waits": 4,
+      "accuracy": 0.922,
+      "mean_tokens": 6347.806,
+      "sd_tokens": 5425.796655640902
+    },
+    {
+      "waits": 5,
+      "accuracy": 0.918,
+      "mean_tokens": 7684.366,
+      "sd_tokens": 7367.762728810151
+    },
+    {
+      "waits": 6,
+      "accuracy": 0.918,
+      "mean_tokens": 9089.412,
+      "sd_tokens": 8916.01712011905
+    },
+    {
+      "waits": 7,
+      "accuracy": 0.916,
+      "mean_tokens": 10442.824,
+      "sd_tokens": 10014.691449117341
+    },
+    {
+      "waits": 8,
+      "accuracy": 0.918,
+      "mean_tokens": 11807.258,
+      "sd_tokens": 10835.679540639618
+    }
+  ],
+  "pairs": [
+    {
+      "low_waits": 1,
+      "high_waits": 2,
+      "p_help": 0.006,
+      "p_hurt": 0.004,
+      "net_gain": 0.002,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 1.1192902798553648
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 3,
+      "p_help": 0.006,
+      "p_hurt": 0.012,
+      "net_gain": -0.006,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 1.19259093130669
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 4,
+      "p_help": 0.004,
+      "p_hurt": 0.01,
+      "net_gain": -0.006,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.3430615884918022
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 5,
+      "p_help": 0.004,
+      "p_hurt": 0.014,
+      "net_gain": -0.01,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.6258494362481144
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 6,
+      "p_help": 0.008,
+      "p_hurt": 0.018,
+      "net_gain": -0.01,
+      "ideal_n12": 0.006990553182640633,
+      "S1": false,
+      "token_ratio": 1.9231274741503523
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 7,
+      "p_help": 0.004,
+      "p_hurt": 0.016,
+      "net_gain": -0.012,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 2.209480848939038
+    },
+    {
+      "low_waits": 1,
+      "high_waits": 8,
+      "p_help": 0.004,
+      "p_hurt": 0.014,
+      "net_gain": -0.01,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 2.498166245977357
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 3,
+      "p_help": 0.004,
+      "p_hurt": 0.012,
+      "net_gain": -0.008,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.0654885088976178
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 4,
+      "p_help": 0.004,
+      "p_hurt": 0.012,
+      "net_gain": -0.008,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.199922497911224
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 5,
+      "p_help": 0.004,
+      "p_hurt": 0.016,
+      "net_gain": -0.012,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.452571746140963
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 6,
+      "p_help": 0.006,
+      "p_hurt": 0.018,
+      "net_gain": -0.012,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 1.7181668676680188
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 7,
+      "p_help": 0.0,
+      "p_hurt": 0.014,
+      "net_gain": -0.014,
+      "ideal_n12": 0.0,
+      "S1": false,
+      "token_ratio": 1.9740016407759282
+    },
+    {
+      "low_waits": 2,
+      "high_waits": 8,
+      "p_help": 0.004,
+      "p_hurt": 0.016,
+      "net_gain": -0.012,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 2.231919896865513
+    },
+    {
+      "low_waits": 3,
+      "high_waits": 4,
+      "p_help": 0.006,
+      "p_hurt": 0.006,
+      "net_gain": 0.0,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 1.1261712237072319
+    },
+    {
+      "low_waits": 3,
+      "high_waits": 5,
+      "p_help": 0.004,
+      "p_hurt": 0.008,
+      "net_gain": -0.004,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.363291799030129
+    },
+    {
+      "low_waits": 3,
+      "high_waits": 6,
+      "p_help": 0.004,
+      "p_hurt": 0.008,
+      "net_gain": -0.004,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.6125625507173973
+    },
+    {
+      "low_waits": 3,
+      "high_waits": 7,
+      "p_help": 0.002,
+      "p_hurt": 0.008,
+      "net_gain": -0.006,
+      "ideal_n12": 0.00181147934210708,
+      "S1": false,
+      "token_ratio": 1.8526728578408431
+    },
+    {
+      "low_waits": 3,
+      "high_waits": 8,
+      "p_help": 0.006,
+      "p_hurt": 0.01,
+      "net_gain": -0.004,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 2.094738590071436
+    },
+    {
+      "low_waits": 4,
+      "high_waits": 5,
+      "p_help": 0.002,
+      "p_hurt": 0.006,
+      "net_gain": -0.004,
+      "ideal_n12": 0.00181147934210708,
+      "S1": false,
+      "token_ratio": 1.2105546388783779
+    },
+    {
+      "low_waits": 4,
+      "high_waits": 6,
+      "p_help": 0.008,
+      "p_hurt": 0.012,
+      "net_gain": -0.004,
+      "ideal_n12": 0.006990553182640633,
+      "S1": false,
+      "token_ratio": 1.4318982023080102
+    },
+    {
+      "low_waits": 4,
+      "high_waits": 7,
+      "p_help": 0.004,
+      "p_hurt": 0.01,
+      "net_gain": -0.006,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.6451076167104037
+    },
+    {
+      "low_waits": 4,
+      "high_waits": 8,
+      "p_help": 0.006,
+      "p_hurt": 0.01,
+      "net_gain": -0.004,
+      "ideal_n12": 0.005305907049641893,
+      "S1": false,
+      "token_ratio": 1.8600533790730216
+    },
+    {
+      "low_waits": 5,
+      "high_waits": 6,
+      "p_help": 0.008,
+      "p_hurt": 0.008,
+      "net_gain": 0.0,
+      "ideal_n12": 0.006990553182640633,
+      "S1": false,
+      "token_ratio": 1.182844752579458
+    },
+    {
+      "low_waits": 5,
+      "high_waits": 7,
+      "p_help": 0.004,
+      "p_hurt": 0.006,
+      "net_gain": -0.002,
+      "ideal_n12": 0.0035798295072696864,
+      "S1": false,
+      "token_ratio": 1.358970147960157
+    },
+    {
+      "low_waits": 5,
+      "high_waits": 8,
+      "p_help": 0.008,
+      "p_hurt": 0.008,
+      "net_gain": 0.0,
+      "ideal_n12": 0.006990553182640633,
+      "S1": false,
+      "token_ratio": 1.5365298841830282
+    },
+    {
+      "low_waits": 6,
+      "high_waits": 7,
+      "p_help": 0.01,
+      "p_hurt": 0.012,
+      "net_gain": -0.002,
+      "ideal_n12": 0.00863459402365589,
+      "S1": false,
+      "token_ratio": 1.148899840825787
+    },
+    {
+      "low_waits": 6,
+      "high_waits": 8,
+      "p_help": 0.01,
+      "p_hurt": 0.01,
+      "net_gain": 0.0,
+      "ideal_n12": 0.00863459402365589,
+      "S1": false,
+      "token_ratio": 1.2990123013457855
+    },
+    {
+      "low_waits": 7,
+      "high_waits": 8,
+      "p_help": 0.008,
+      "p_hurt": 0.006,
+      "net_gain": 0.002,
+      "ideal_n12": 0.006990553182640633,
+      "S1": false,
+      "token_ratio": 1.130657569255213
+    }
+  ]
+}

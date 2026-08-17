@@ -1,0 +1,43 @@
+{
+  "exp_id": "E0014-s1-waits",
+  "title": "Fully-consumed reasoning units on external s1 data",
+  "model": "s1-32B via simplescaling/results (forcingignore{N}wait)",
+  "budget": {
+    "unit": "forced Wait continuation",
+    "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "charged": "exact tokens, simplescaling/s1-32B tokenizer"
+  },
+  "seeds": {
+    "split": "n/a - screen only"
+  },
+  "split": {
+    "items": 500,
+    "benchmark": "MATH-500"
+  },
+  "metric": "p(help) = fraction of items correct at high waits and wrong at low; ideal ceiling from the closed-form headroom law at n=12",
+  "params": {
+    "S1_min": 0.12
+  },
+  "notes": "Token counts are exact, not len/4. The E0013 approximation was off 25-35% and varied with N, so it is used for nothing here.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "d5e69bc198b3dc59910d2be0f3a9405e1a5a67d6",
+  "git_dirty": [],
+  "nonce": "e64d15c71c1d4bda9ac6b45a969e7ba7",
+  "started_utc": "2026-08-17T19:46:07Z"
+}

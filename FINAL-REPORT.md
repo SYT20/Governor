@@ -35,6 +35,20 @@ run past it. **Hard worst-case reservation and a self-terminating model are
 structurally incompatible**, and that is a property of the resource model, not
 of the controller or the task.
 
+**Two external resource contracts were tried and they fail on OPPOSITE
+criteria** (E0013, E0014, both on s1-32B / MATH-500, exact tokenizer counts):
+
+| contract | unit binds? | headroom? | verdict |
+|---|---|---|---|
+| token cap | **no** — `act/cap` 0.68, model self-terminates on 98%+ | yes, ideal +0.168 | S2 fails |
+| forced Wait units | **yes** — injections cannot be declined | **no**, ideal +0.009 | S1 fails |
+
+The wait ladder sits entirely *above* the transition: at one Wait the model is
+already at 0.928 against a 0.932 saturation, and extra forced reasoning hurts
+more often than it helps in 22 of 28 pairs. So the fully-consumed unit is a
+clean resource that buys nothing, and the token cap is a real lever that cannot
+be reserved against.
+
 **Qualification 1 — it does not separate from budget-limited greedy**
 (+0.1056 [−0.0208, +0.2089]).
 **Qualification 2 — it does not separate from its own myopic ablation**

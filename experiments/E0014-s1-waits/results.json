@@ -1,0 +1,29 @@
+{
+  "exp_id": "E0014-s1-waits",
+  "title": "Fully-consumed reasoning units on external s1 data",
+  "verdict": "UNIT-BINDS-NO-HEADROOM",
+  "summary": {
+    "verdict": "UNIT-BINDS-NO-HEADROOM",
+    "n_pairs": 28,
+    "n_pass_S1": 0,
+    "best_ideal": 0.00863459402365589,
+    "best_p_help": 0.01,
+    "accuracy_at_1_wait": 0.928,
+    "accuracy_at_8_waits": 0.918
+  },
+  "git_commit": "d5e69bc198b3dc59910d2be0f3a9405e1a5a67d6",
+  "config_hash": "e3ea6e01bf681c91cc74fad8e233d13b64cf484da497b8923d7ddbea07790ac4",
+  "nonce": "e64d15c71c1d4bda9ac6b45a969e7ba7",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "773a8f5de7e0cbfdd690d60c9b31c8e7525b8c6d69bb933bf49d143558ae22f6",
+  "raw_rows": 36,
+  "wall_s": 2.1,
+  "finished_utc": "2026-08-17T19:46:09Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
