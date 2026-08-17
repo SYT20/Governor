@@ -16,14 +16,14 @@
   },
   "split": {
     "in_selection_items": 40,
-    "held_out_items": 6,
+    "held_out_items": 24,
     "frozen_split_sha256": "fef2ff3cebdaa4b674ff7bf89ba0ac4df02c5fa701e11cc0d919ab0354425fb4",
     "independent_unit": "ITEM (episodes are groupings of a shared pool, so an episode-level CI would be anticonservative)"
   },
   "metric": "U(clairvoyant optimum) - U(budget-limited greedy) through the canonical executor; 95% CI from a cluster bootstrap over items; PASS iff the CI lower bound exceeds 0.02",
   "params": {
     "ceiling_gate": 0.02,
-    "n_bootstrap": 200
+    "n_bootstrap": 400
   },
   "notes": "No API calls. Configuration chosen by S1+S2 in E0005 before any ceiling was consulted.",
   "runtime": {
@@ -34,8 +34,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "8450754aaffc395611b0e6969d4e15d5af14ed78",
+  "git_commit": "5a795feb569ea8b0f832b7539c4a57d726b3d103",
   "git_dirty": [],
-  "nonce": "4a06245f2c324a6c8c716e83cb5da7c2",
-  "started_utc": "2026-08-17T11:31:09Z"
+  "nonce": "8426605cf417482a930cf1ff43a40bf4",
+  "started_utc": "2026-08-17T12:44:50Z"
 }
