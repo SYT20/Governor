@@ -47,26 +47,78 @@ class LevelPredictors:
         return Q, T
 
 
+class _Const:
+    """Fallback when a level's target has one class (e.g. accuracy 1.0)."""
+    def __init__(self, v):
+        self.v = float(v)
+    def predict(self, X):
+        return np.full(len(X), self.v)
+    def predict_proba(self, X):
+        p = np.full(len(X), self.v)
+        return np.column_stack([1 - p, p])
+
+
+class _ProbaAdapter:
+    """Expose predict() as P(correct) so the allocator sees a probability."""
+    def __init__(self, clf):
+        self.clf = clf
+    def predict(self, X):
+        return self.clf.predict_proba(X)[:, 1]
+
+
 def fit_predictors(X: np.ndarray, correct: np.ndarray, tokens: np.ndarray,
-                   levels: list[int], seed: int = 0) -> LevelPredictors:
+                   levels: list[int], seed: int = 0, kind: str = "logistic",
+                   calibrate: str | None = None) -> LevelPredictors:
     """One correctness model and one cost model per level.
 
-    Ridge rather than boosted trees: with a few hundred calibration items and a
-    binary target per level, boosting overfits -- measured in Phase 4, where it
-    reported cv_R2 = -0.062 on 40 items while a single feature correlated +0.72.
+    CORRECTNESS IS BINARY, SO THE LOSS MUST BE. E0017 fitted RIDGE to it,
+    reported R^2 near zero, and that was read as "no signal"; on the same data a
+    logistic model scores AUC 0.613-0.741 (E0018). Squared error on a sparse
+    binary target says almost nothing about discriminability.
+
+    RANKING IS NOT ENOUGH. The Lagrangian computes qhat - lambda*that, so the
+    SCALE of qhat prices the tokens, not just its order. `calibrate` applies
+    Platt ("sigmoid") or isotonic calibration, fitted on calibration data only.
+
+    Cost stays on ridge: tokens are continuous and squared error is the right
+    loss for them.
     """
-    from sklearn.linear_model import Ridge
+    from sklearn.calibration import CalibratedClassifierCV
+    from sklearn.linear_model import LogisticRegression, Ridge
     from sklearn.model_selection import KFold, cross_val_predict
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
     lp = LevelPredictors(levels=list(levels))
     cv = KFold(5, shuffle=True, random_state=seed)
     for j, b in enumerate(levels):
-        for name, y, store, r2 in (("q", correct[:, j], lp.q, lp.cv_r2_q),
-                                   ("t", tokens[:, j], lp.t, lp.cv_r2_t)):
-            m = Ridge(alpha=1.0)
-            oof = cross_val_predict(Ridge(alpha=1.0), X, y, cv=cv)
-            ss = float(np.sum((y - y.mean()) ** 2)) or 1e-12
-            r2[b] = 1.0 - float(np.sum((y - oof) ** 2)) / ss
-            store[b] = m.fit(X, y)
+        y = correct[:, j]
+        if kind == "ridge" or len(np.unique(y)) < 2:
+            if len(np.unique(y)) < 2:
+                lp.q[b] = _Const(y.mean())
+                lp.cv_r2_q[b] = 0.0
+            else:
+                oof = cross_val_predict(Ridge(alpha=1.0), X, y, cv=cv)
+                ss = float(np.sum((y - y.mean()) ** 2)) or 1e-12
+                lp.cv_r2_q[b] = 1.0 - float(np.sum((y - oof) ** 2)) / ss
+                lp.q[b] = Ridge(alpha=1.0).fit(X, y)
+        else:
+            base = make_pipeline(StandardScaler(),
+                                 LogisticRegression(max_iter=2000))
+            if calibrate:
+                clf = CalibratedClassifierCV(base, method=calibrate, cv=5)
+            else:
+                clf = base
+            clf.fit(X, y)
+            lp.q[b] = _ProbaAdapter(clf)
+            # Brier from out-of-fold probabilities, on calibration data only.
+            oof = cross_val_predict(base, X, y, cv=cv, method="predict_proba")[:, 1]
+            lp.cv_r2_q[b] = float(np.mean((oof - y) ** 2))     # Brier, lower better
+        yt = tokens[:, j]
+        oof = cross_val_predict(Ridge(alpha=1.0), X, yt, cv=cv)
+        ss = float(np.sum((yt - yt.mean()) ** 2)) or 1e-12
+        lp.cv_r2_t[b] = 1.0 - float(np.sum((yt - oof) ** 2)) / ss
+        lp.t[b] = Ridge(alpha=1.0).fit(X, yt)
     return lp
 
 
