@@ -1,0 +1,57 @@
+{
+  "engines": [
+    {
+      "engine": "qwen",
+      "model": "qwen/qwen3.6-27b",
+      "curve": [
+        {
+          "budget": 300,
+          "n": 40,
+          "acc": 0.05,
+          "answered": 1.0,
+          "starved": 0.95,
+          "mean_total_tokens": 368.825,
+          "mean_latency_s": 0.8362957417964936
+        },
+        {
+          "budget": 700,
+          "n": 40,
+          "acc": 0.525,
+          "answered": 1.0,
+          "starved": 0.475,
+          "mean_total_tokens": 664.95,
+          "mean_latency_s": 1.420772635936737
+        },
+        {
+          "budget": 1400,
+          "n": 40,
+          "acc": 0.95,
+          "answered": 1.0,
+          "starved": 0.05,
+          "mean_total_tokens": 783.925,
+          "mean_latency_s": 1.617468923330307
+        },
+        {
+          "budget": 2800,
+          "n": 40,
+          "acc": 1.0,
+          "answered": 1.0,
+          "starved": 0.0,
+          "mean_total_tokens": 816.7,
+          "mean_latency_s": 1.7293353021144866
+        }
+      ],
+      "selection": {
+        "high": 2800,
+        "low": 700,
+        "acc_high": 1.0,
+        "acc_low": 0.525,
+        "gap": 0.475,
+        "qualifies": true,
+        "episode_budget": 7512
+      },
+      "prompts_over_cap": 0,
+      "throttled": false
+    }
+  ]
+}

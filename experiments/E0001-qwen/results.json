@@ -1,0 +1,36 @@
+{
+  "exp_id": "E0001-qwen",
+  "title": "Phase 4 reasoning curve and frozen engine/mode selection",
+  "verdict": "PASS",
+  "summary": {
+    "chosen_engine": "qwen",
+    "chosen_model": "qwen/qwen3.6-27b",
+    "selection": {
+      "high": 2800,
+      "low": 700,
+      "acc_high": 1.0,
+      "acc_low": 0.525,
+      "gap": 0.475,
+      "qualifies": true,
+      "episode_budget": 7512
+    },
+    "qualified": [
+      "qwen"
+    ]
+  },
+  "git_commit": "8bbebc33b06509a34dacdb1ff76b3236ef38ffd0",
+  "config_hash": "712e48733eb7d7f0ccaa31b6d385379a3622ce9f5f6adee6e922cf92ec846b3e",
+  "nonce": "b655b803b6344093869e00718dcb4478",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "dea3e3c1924faa563296b18d44dd2170ad408a6ce177ef36184700c2ee442d92",
+  "raw_rows": 160,
+  "wall_s": 1.3,
+  "finished_utc": "2026-08-17T10:15:36Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
