@@ -70,6 +70,7 @@ the Governor has never been changed to accommodate one.
 | `E0020-*` | robustness | NOT RUN |
 | `E0005-structure` | **Phase 4R structural search**, 81 configurations, no API calls | CONFIG-FOUND — 1 of 81 passes S1+S2 |
 | `E0006-ceiling-gate` | ceiling gate on that configuration | in-selection PASS; held-out INCONCLUSIVE, collecting |
+| `E0007-structure-clean` | search re-run on the frozen selection half ONLY | CONFIG-FOUND — **identical** configuration |
 | (deferred) | second task family with an LLM; local Qwen | quota-blocked |
 
 ## 4. Metrics
@@ -215,6 +216,35 @@ tokens/hour, so `scripts/p4r_patient_collect.py` waits it out.
 
 **The new configuration is also 2.9x cheaper**: 1256 reserved tokens per item
 against 3684, i.e. 159 items/day rather than 54.
+
+### 4.8 The split, audited and then made structural
+
+A reviewer flagged that E0005 might have selected its configuration using items
+E0006 later called held-out. **Checked against the record first**: the *selected*
+configuration's S1/S2 were computed on **40 items, not 89** — only the
+`(700, 2800)` pairs saw the larger pool, and those were the ones rejected. The
+winner's qualification was clean.
+
+The residual concern was real, though: evaluation items influenced which
+alternatives were *rejected*, and a protocol that needs a metrics file read to
+establish cleanliness is not a protocol. Three changes:
+
+1. `configs/phase4r_split.json` freezes the split **by item id**, derived from
+   the pool seed and *not* from cache state. A `pool[:40]` slice silently moves
+   as collection proceeds, so the held-out set would change identity between
+   runs.
+2. The search is restricted to the selection half by construction.
+3. **`split_leakage` is trap #12.** Overlap between the set a configuration was
+   chosen on and the set it is scored on is a red check, and *missing* split
+   evidence is red too — silence about a split is not evidence of a clean one.
+   Adding it immediately turned a previously-green pipeline test red, which is
+   the check doing its job.
+
+**E0007 re-ran the search on the frozen selection half alone and selected the
+identical configuration** — same `n=6, LOW=300, HIGH=700, B=2868`, same
+`P(X>K)=0.67`, `E[X]/K=1.89`, `actual/cap=0.80`. The `(700, 2800)` rows, now on
+40 items, still fail S2 at 0.28 with ceilings of exactly 0.0000. The leakage had
+**zero effect on the outcome**, shown by execution rather than argued.
 
 ## 5. Budgets, models, runtime
 
