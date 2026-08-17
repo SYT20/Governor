@@ -123,6 +123,16 @@ class RateLimited(RuntimeError):
     """Sustained throttling. Raised instead of recording a degraded run."""
 
 
+class DailyQuotaExhausted(RateLimited):
+    """The per-day token budget is gone. Retrying cannot help until it resets.
+
+    Distinguished from ordinary throttling because the response is different: a
+    TPM 429 means slow down, a TPD 429 means come back tomorrow. Burning the
+    retry ladder on the second wastes minutes and hides the real message, which
+    is the only place the limit is actually named.
+    """
+
+
 class TokenPacer:
     """Groq bills TPM against RESERVED `max_completion_tokens`, not actual use.
 
@@ -282,7 +292,7 @@ def collect(cache: ResponseCache, items: list[Item], budgets: list[int],
     for pair in todo:
         q.put(pair)
     state = {"fetched": 0, "errors": 0, "consec_429": 0, "stop": False,
-             "t0": time.time()}
+             "daily": "", "t0": time.time()}
     slock = threading.Lock()
     errors: list[str] = []
     pacer = TokenPacer(tpm) if tpm else None
@@ -317,6 +327,16 @@ def collect(cache: ResponseCache, items: list[Item], budgets: list[int],
                     break
                 except urllib.error.HTTPError as e:
                     if e.code == 429:
+                        detail = ""
+                        try:
+                            detail = e.read()[:400].decode(errors="ignore")
+                        except Exception:                    # noqa: BLE001
+                            pass
+                        if "per day" in detail or "TPD" in detail or "RPD" in detail:
+                            with slock:
+                                state["stop"] = True
+                                state["daily"] = detail
+                            return
                         with slock:
                             state["consec_429"] += 1
                             if state["consec_429"] >= throttle_abort:
@@ -343,6 +363,11 @@ def collect(cache: ResponseCache, items: list[Item], budgets: list[int],
     for t in ts:
         t.join()
 
+    if state["daily"]:
+        raise DailyQuotaExhausted(
+            f"per-day quota exhausted after {state['fetched']} calls this run. "
+            f"Cache retained ({cache.count()} rows) -- rerun after the reset to "
+            f"resume.\n    provider said: {state['daily'][:300]}")
     if state["consec_429"] >= throttle_abort:
         raise RateLimited(
             f"{throttle_abort} consecutive HTTP 429 after {state['fetched']} "
