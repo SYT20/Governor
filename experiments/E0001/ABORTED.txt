@@ -1,0 +1,4 @@
+2026-08-17
+Superseded by E0001-qwen. This run collected the qwen curve but could not
+finalize: HEAD moved mid-run (the ledger correctly refused). The responses it
+collected are in results/p4_cache_qwen.sqlite and were reused.

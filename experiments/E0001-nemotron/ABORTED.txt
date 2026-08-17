@@ -1,0 +1,5 @@
+2026-08-17
+Nemotron produced zero calls: X-RateLimit-Limit 50, Remaining 0,
+limit_source=openrouter_free_tier_daily. The collector refused to record a
+throttled run and the ledger refused a summary with an empty raw file. Both
+guards behaved correctly; there is no data because there was no data.
