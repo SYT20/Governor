@@ -21,7 +21,8 @@ Every row is backed by a recorded experiment that re-verifies from disk
 
 | claim | status | evidence |
 |---|---|---|
-| **The Governor beats a strong fixed policy on real LLM data** | **INCONCLUSIVE / NEGATIVE on 3 axes** | MATH tokens +0.0121 [−0.0396, +0.0510] (E0021); GPQA +0.0000 (E0021); LiveCodeBench samples −0.0028 [−0.0066, +0.0000] (E0024) |
+| **The Governor beats a strong fixed policy on real LLM data** | **UNRESOLVED across 4 experiments** | MATH tokens +0.0121 [−0.0396, +0.0510] (E0021); GPQA +0.0000 (E0021); LCB samples −0.0028 [−0.0066, +0.0000] (E0024); LCB samples + probe +0.0046 [−0.0047, +0.0171] (E0025) |
+| Early-generation signal recovers the allocation gain | **INCONCLUSIVE** — but directionally positive: −0.0028 → +0.0046, and 0-0 → 2-0 on discordant outcomes (E0024 → E0025) |
 | The Governor beats a fixed policy on GPQA | INCONCLUSIVE | +0.0000 — enforcement collapses all policies to one allocation |
 | Opportunity-cost pricing beats difficulty ranking | **UNRESOLVED after 4 attempts** | +0.0202 [−0.0200, +0.0600]; McNemar p=0.42 on 101 disagreements (E0020, E0021) |
 | A probe pays for itself | NOT TESTED | At B*=846 a 500-token probe is 59% of the budget; untestable at this operating point |
@@ -73,6 +74,41 @@ falls below uniform because it cannot identify unsolvable items.
 
 The ceiling (+0.055 here) lives almost entirely in the 15% mixed problems, and
 the text-only features do not find them.
+
+## FINAL EXPERIMENT: early-generation signal (E0025) — INCONCLUSIVE, hard stop
+
+The diagnosed problem was that problem text does not locate the items worth
+spending on. The final mechanism tested was the one the evidence pointed at:
+give every problem a **2-sample probe, always paid for**, and read the signal
+off those generations — length, whether a code block parsed, program size, and
+cross-sample **agreement** (do the two independent samples produce the same
+program). Sample correctness never enters a feature.
+
+| policy | U | tokens | mean k |
+|---|---|---|---|
+| GOVERNOR | 0.4000 | 294 | 2.39 |
+| myopic | 0.3895 | 271 | 2.05 |
+| fixed @ matched cost | 0.3952 | 294 | |
+| oracle | **0.4526** | 294 | ceiling **+0.0574** |
+
+`GOV − fixed = +0.0046 [−0.0047, +0.0171]` — **not separable**.
+`GOV − myopic = +0.0104 [+0.0000, +0.0263]`.
+
+**The probe did move the needle in the predicted direction.** Against E0024's
+text-only Governor (−0.0028, and 45 disagreements producing *zero* outcome
+differences), the probe version reaches +0.0046 with 51 disagreements producing
+**2 wins and 0 losses**. Directionally consistent with the hypothesis; nowhere
+near significant.
+
+**One trap is RED**: `budget_adherence` — the Governor spent 294 against a
+nominal B*=279 (+5.2%), because the mean-cost reserve is not a hard guarantee.
+The *primary comparison is unaffected*: the fixed baseline is scored at the
+Governor's own realised 294 tokens, so the contest is matched. But by this
+project's own rule a red trap blocks a PASS, and the verdict is INCONCLUSIVE
+regardless of it.
+
+**HARD STOP.** This was the final proposed mechanism. The allocation claim is
+recorded as unresolved. No further benchmarks.
 
 ## Why the real-LLM claim cannot be settled here (E0022)
 

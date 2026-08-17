@@ -1,0 +1,59 @@
+{
+  "exp_id": "E0025-lcb-probe",
+  "title": "FINAL: early-generation signal for sample allocation",
+  "model": "Gemini-Pro-1.5 (May) generations, published by LiveCodeBench",
+  "budget": {
+    "axis": "samples k in 2..10, probe=2 always paid",
+    "B_star": 279.16776666666664,
+    "charged": "exact tokenizer count over published LiveCodeBench generations"
+  },
+  "seeds": {
+    "split": "sha256(question_id) parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration": 210,
+    "evaluation": 190
+  },
+  "metric": "pass-within-k at matched realised cost; primary = Governor minus the randomised fixed envelope at the Governor's own cost",
+  "params": {
+    "features": [
+      "chars",
+      "lines",
+      "words_n",
+      "has_starter",
+      "is_codeforces",
+      "is_leetcode",
+      "is_atcoder",
+      "n_constraints",
+      "max_bound_log10",
+      "n_examples",
+      "n_digits",
+      "pr_tokens",
+      "pr_len_ratio",
+      "pr_has_code",
+      "pr_code_lines",
+      "pr_identical",
+      "pr_similarity",
+      "pr_has_loop",
+      "pr_has_try",
+      "pr_mean_chars"
+    ],
+    "probe_samples": 2,
+    "lambda": 0.000468559924064467,
+    "tau": 0.0275
+  },
+  "notes": "Sample correctness never enters a feature; only generation text and cross-sample agreement. Hard stop on a non-PASS.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "19555afb8e6f0b8deb3fbcaf213051efb226147f",
+  "git_dirty": [],
+  "nonce": "75fcb1b599ac43898c5eb2b128ef0cdb",
+  "started_utc": "2026-08-17T22:16:59Z"
+}
