@@ -1,0 +1,38 @@
+{
+  "exp_id": "E0018-probe-signal",
+  "title": "Early-reasoning probe features: signal check and E0017 retraction",
+  "verdict": "PROBE-SIGNAL-ON-MATH",
+  "summary": {
+    "verdict": "PROBE-SIGNAL-ON-MATH",
+    "best_auc_math": 0.7408088235294118,
+    "best_auc_gpqa": 0.5416666666666667,
+    "retracts": "E0017 diagnosis (not its result)"
+  },
+  "git_commit": "8817befd98786b41bd1ce464d7f8fb5967767e83",
+  "config_hash": "cad5c81aead07ff5b934138723cce8d19f1bf3571a4698af1d4a04e00c792d55",
+  "nonce": "7ad839ac384c42baa9cc22ef56e5f189",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "83fdbc61d76d62c85d2f9714c707e64bb75a4ad3459d20f2ba3ff0fabe5f0364",
+  "raw_rows": 8,
+  "wall_s": 0.3,
+  "finished_utc": "2026-08-17T20:40:03Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=1 evaluation=1 overlap=0"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

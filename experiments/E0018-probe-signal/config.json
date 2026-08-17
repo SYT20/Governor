@@ -1,0 +1,57 @@
+{
+  "exp_id": "E0018-probe-signal",
+  "title": "Early-reasoning probe features: signal check and E0017 retraction",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "probe_tokens": 500,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity",
+    "cv": 0
+  },
+  "split": {
+    "rule": "doc_id parity; calibration half only"
+  },
+  "metric": "cross-validated AUC for P(gain>0) from question-only, probe-only and combined features; ridge R2 reported alongside to show the metric artefact",
+  "params": {
+    "probe_features": [
+      "p_tokens",
+      "p_terminated",
+      "p_wait",
+      "p_alt",
+      "p_eq",
+      "p_boxed",
+      "p_lines",
+      "p_digits",
+      "p_recheck"
+    ],
+    "question_features": [
+      "chars",
+      "words_n",
+      "digits",
+      "latex_cmds",
+      "has_frac",
+      "has_sqrt",
+      "has_matrix",
+      "has_sum",
+      "n_equations",
+      "max_number_log10",
+      "question_marks",
+      "lines"
+    ]
+  },
+  "notes": "Answer stability across budgets is deliberately excluded: it reads the outcome the allocator is trying to predict.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "8817befd98786b41bd1ce464d7f8fb5967767e83",
+  "git_dirty": [],
+  "nonce": "7ad839ac384c42baa9cc22ef56e5f189",
+  "started_utc": "2026-08-17T20:40:03Z"
+}

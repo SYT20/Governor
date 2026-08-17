@@ -1,0 +1,76 @@
+{
+  "rows": [
+    {
+      "benchmark": "math",
+      "target_budget": 1000,
+      "base_rate": 0.18,
+      "auc_question": 0.4865040650406504,
+      "auc_probe": 0.6255826558265583,
+      "auc_both": 0.5811382113821139,
+      "ridge_r2_question": -0.06635849221096057
+    },
+    {
+      "benchmark": "math",
+      "target_budget": 2000,
+      "base_rate": 0.232,
+      "auc_question": 0.6130567528735632,
+      "auc_probe": 0.65625,
+      "auc_both": 0.6898347701149425,
+      "ridge_r2_question": -0.06306829984734574
+    },
+    {
+      "benchmark": "math",
+      "target_budget": 4000,
+      "base_rate": 0.288,
+      "auc_question": 0.6307740324594258,
+      "auc_probe": 0.6729868913857677,
+      "auc_both": 0.7141853932584269,
+      "ridge_r2_question": -0.041269082608326624
+    },
+    {
+      "benchmark": "math",
+      "target_budget": 8000,
+      "base_rate": 0.32,
+      "auc_question": 0.6713235294117647,
+      "auc_probe": 0.7040441176470589,
+      "auc_both": 0.7408088235294118,
+      "ridge_r2_question": 0.020374095351741506
+    },
+    {
+      "benchmark": "gpqa",
+      "target_budget": 1000,
+      "base_rate": 0.15151515151515152,
+      "auc_question": 0.3746031746031746,
+      "auc_probe": 0.5444444444444445,
+      "auc_both": 0.3920634920634921,
+      "ridge_r2_question": -0.1935592809975677
+    },
+    {
+      "benchmark": "gpqa",
+      "target_budget": 2000,
+      "base_rate": 0.23232323232323232,
+      "auc_question": 0.37299771167048057,
+      "auc_probe": 0.5692219679633866,
+      "auc_both": 0.44279176201373,
+      "ridge_r2_question": -0.10448525092217853
+    },
+    {
+      "benchmark": "gpqa",
+      "target_budget": 4000,
+      "base_rate": 0.2727272727272727,
+      "auc_question": 0.5540123456790124,
+      "auc_probe": 0.48096707818930035,
+      "auc_both": 0.5416666666666667,
+      "ridge_r2_question": -0.11179915609565749
+    },
+    {
+      "benchmark": "gpqa",
+      "target_budget": 8000,
+      "base_rate": 0.26262626262626265,
+      "auc_question": 0.49789251844046367,
+      "auc_probe": 0.42571127502634354,
+      "auc_both": 0.5226554267650159,
+      "ridge_r2_question": -0.17799394793641765
+    }
+  ]
+}
