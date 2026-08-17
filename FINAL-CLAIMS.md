@@ -1,0 +1,52 @@
+# FINAL CLAIMS
+
+Every row is backed by a recorded experiment that re-verifies from disk
+(`make verify`). A positive point estimate is never reported as VERIFIED.
+
+## VERIFIED
+
+| claim | evidence | experiment | limitation |
+|---|---|---|---|
+| The allocation architecture beats the best constant schedule in a synthetic environment with real headroom | U 0.8247 vs 0.7887, Δ +0.0359 [+0.0262, +0.0457], 72% of oracle headroom, pinned at 1e-12 | `env6-reference` | Synthetic; difficulty is an injected latent bit |
+| A closed-form law predicts the adaptive ceiling before any controller is built | `ceiling(n,k,p) = (E[min(k,X)] − k·p)/n`; matches simulation to 4e-3; explains both prior family rejections with different causes (39.5% vs 91.2% realisation) | `headroom.py`, E0004–E0007 | Binary gains; continuous case by simulation |
+| The soft expected-budget contract has material adaptive headroom on external data | MATH +0.170, GPQA +0.268 against a randomised-envelope fixed baseline and a multiple-choice-knapsack oracle | E0016 | Ceiling only — says nothing about reachability |
+| Observable features carry allocation signal on external MATH | AUC 0.671 question-only, 0.741 with a 500-token probe | E0018 | GPQA ≈ 0.52, no usable signal |
+| The predictor's loss materially changes allocation | ridge +0.0065 → logistic +0.0318 on identical inputs | E0019 | Both measured before budget enforcement |
+| Ares is trace-identical to the frozen executor | identical actions, costs, spend, utility on two environments and two task families; Env 6 reference reproduced at 1e-12 | `tests/test_ares.py` | — |
+| The MCP harness reuses the same control loop | test asserts it reproduces `run_episode` exactly | `tests/test_mcp.py` | — |
+| The architecture is task-family independent | second family (constraint puzzles, continuous reward) runs through unchanged interfaces by passing one argument | `tests/test_second_family_e2e.py` | Synthetic responses |
+| A local MLX backend fits the frozen M2 contract | Qwen3-1.7B-4bit, curve qualifies under the frozen rule | E0009 | n=6; feasibility, not competence |
+
+## NOT VERIFIED
+
+| claim | status | evidence |
+|---|---|---|
+| **The Governor beats a strong fixed policy on real LLM data** | **INCONCLUSIVE** | MATH +0.0121 [−0.0396, +0.0510] at enforced, matched cost (E0021) |
+| The Governor beats a fixed policy on GPQA | INCONCLUSIVE | +0.0000 — enforcement collapses all policies to one allocation |
+| Opportunity-cost pricing beats difficulty ranking | **UNRESOLVED after 4 attempts** | +0.0202 [−0.0200, +0.0600]; McNemar p=0.42 on 101 disagreements (E0020, E0021) |
+| A probe pays for itself | NOT TESTED | At B*=846 a 500-token probe is 59% of the budget; untestable at this operating point |
+
+## WITHDRAWN
+
+| claim | why |
+|---|---|
+| `v1.8` "Governor beats best fixed on external MATH, +0.0282 [+0.0033, +0.0525]" | The Governor spent 973 tokens against a budget of 846 (+15%) and was scored against a baseline at the *nominal* budget. At matched realised cost the sign flipped to −0.0131. Trap 14 now blocks it. |
+| E0017's diagnosis "features carry no signal" | Ridge R² on a sparse binary target; logistic AUC on the same data is 0.613–0.741. The *result* stood; the *diagnosis* did not. |
+| Gemini reasoning curve | 492/500 HTTP 429. VOID, not a weak-model result. |
+
+## ELIMINATED RESOURCE CONTRACTS
+
+| contract | binds? | headroom? |
+|---|---|---|
+| hard worst-case reservation | no — `act/cap` 0.28–0.68 | yes, +0.168 |
+| forced Wait units (MATH, GPQA) | yes | no, +0.009 / +0.017 |
+| **soft expected budget + hard runtime cap** | **yes** | **yes** — the one in use |
+
+## Reproduce
+
+```bash
+make test          # 235 tests
+make smoke         # end-to-end, both families, MCP, traps, ledger
+make verify        # re-verify every experiment from disk
+python scripts/enforced_governor.py --bench math
+```
