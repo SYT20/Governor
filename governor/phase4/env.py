@@ -43,9 +43,13 @@ class P4State:
 
 
 class P4Env:
-    """Four items per episode; `modes` are two token budgets."""
+    """N items per episode; `modes` are two token budgets.
 
-    n_decisions = 4
+    `n_decisions` is an INSTANCE attribute, inferred from the episodes. Phase 4R
+    varies episode length to change how many useful reasoning opportunities
+    compete for a fixed number of upgrades, which is the quantity that decides
+    whether allocation has any value at all.
+    """
 
     def __init__(self, cache: ResponseCache, episodes: Sequence[Sequence[Item]],
                  low: int, high: int, budget: float, prompt_cap: int = 128,
@@ -53,6 +57,7 @@ class P4Env:
         self.cache = cache
         self.grade = grade          # task-family reward; None = binary correct
         self.episodes = [tuple(e) for e in episodes]
+        self.n_decisions = len(self.episodes[0]) if self.episodes else 0
         self.tokens = {CHEAP: int(low), DEEP: int(high)}
         self.prompt_cap = int(prompt_cap)
         self.budget = float(budget)

@@ -86,9 +86,17 @@ def clairvoyant(env: P4Env, ep: int) -> Policy:
     ignores that is not a ceiling. Enumeration has no such assumption: it uses
     the same executor and the same budget as every other policy.
     """
+    # PRUNING THAT IS EXACT, NOT A HEURISTIC. Upgrading an item whose realised
+    # gain is <= 0 cannot raise utility and can only consume budget that a
+    # later item might need, so it is weakly dominated. Restricting the search
+    # to subsets of BENEFICIAL items is therefore exactly optimal, and it turns
+    # 2^n into 2^(number that benefit) -- which is what makes 10-item episodes
+    # tractable at all.
+    useful = [i for i in range(env.n_decisions)
+              if env.realised_gain(env.episodes[ep][i]) > 0]
     best_u, best_s = -1.0, frozenset()
-    for r in range(env.n_decisions + 1):
-        for s in itertools.combinations(range(env.n_decisions), r):
+    for r in range(len(useful) + 1):
+        for s in itertools.combinations(useful, r):
             try:
                 u = _run(env, fixed_schedule(env, set(s)), ep)
             except RuntimeError:                 # assignment does not fit
