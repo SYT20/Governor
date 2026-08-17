@@ -37,7 +37,7 @@ CHEAP, DEEP = "H", "M2"
 @dataclass(slots=True)
 class P4State:
     t: int
-    correct: int
+    correct: float
     items: tuple[Item, ...]
     log: list[dict]
 
@@ -48,8 +48,10 @@ class P4Env:
     n_decisions = 4
 
     def __init__(self, cache: ResponseCache, episodes: Sequence[Sequence[Item]],
-                 low: int, high: int, budget: float, prompt_cap: int = 128):
+                 low: int, high: int, budget: float, prompt_cap: int = 128,
+                 grade=None):
         self.cache = cache
+        self.grade = grade          # task-family reward; None = binary correct
         self.episodes = [tuple(e) for e in episodes]
         self.tokens = {CHEAP: int(low), DEEP: int(high)}
         self.prompt_cap = int(prompt_cap)
@@ -102,13 +104,13 @@ class P4Env:
 
     def step(self, s: P4State, mode: str):
         it = s.items[s.t]
-        o = outcome(self.cache, it, self.tokens[mode])
+        o = outcome(self.cache, it, self.tokens[mode], self.grade)
         cost = float(o["total_tokens"])
         if cost > self.cap(mode):
             raise RuntimeError(
                 f"{it.item_id} charged {cost} > cap {self.cap(mode)}: the "
                 f"worst-case bound policies reserve against is wrong")
-        s2 = P4State(t=s.t + 1, correct=s.correct + o["correct"],
+        s2 = P4State(t=s.t + 1, correct=s.correct + o["score"],
                      items=s.items, log=[*s.log, {"mode": mode, **o}])
         return s2, cost
 
@@ -117,15 +119,15 @@ class P4Env:
 
     # -- analysis (never visible to a policy) --------------------------------
 
-    def realised_gain(self, it: Item) -> int:
+    def realised_gain(self, it: Item) -> float:
         """correct(HIGH) - correct(LOW) for one item, from the cached calls.
 
         The teacher signal and the oracle's input. Legitimate offline on the
         CALIBRATION split; on the test split it is only ever used to compute the
         oracle upper bound, never to make a decision the Governor also makes.
         """
-        return (outcome(self.cache, it, self.tokens[DEEP])["correct"]
-                - outcome(self.cache, it, self.tokens[CHEAP])["correct"])
+        return (outcome(self.cache, it, self.tokens[DEEP], self.grade)["score"]
+                - outcome(self.cache, it, self.tokens[CHEAP], self.grade)["score"])
 
     def episode_log(self, ep: int, policy) -> list[dict]:
         from governor.gate.executor import run_episode

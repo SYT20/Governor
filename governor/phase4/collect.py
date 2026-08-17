@@ -78,8 +78,10 @@ CREATE INDEX IF NOT EXISTS idx_item ON calls(item_id, max_tokens);
 """
 
 
-def _key(model: str, item_id: str, prompt: str, max_tokens: int, temp: float) -> str:
-    h = hashlib.sha256(f"{model}|{prompt}|{max_tokens}|{temp}".encode()).hexdigest()
+def _key(model: str, item_id: str, prompt: str, max_tokens: int, temp: float,
+         system: str = "") -> str:
+    h = hashlib.sha256(
+        f"{model}|{system}|{prompt}|{max_tokens}|{temp}".encode()).hexdigest()
     return f"{item_id}:{max_tokens}:{h[:16]}"
 
 
@@ -143,7 +145,12 @@ class TokenPacer:
 
 class ResponseCache:
     def __init__(self, path: Path = CACHE, model: str = MODEL,
-                 temperature: float = 0.0, provider: Provider = OPENROUTER):
+                 temperature: float = 0.0, provider: Provider = OPENROUTER,
+                 system_prompt: str = SYSTEM_PROMPT):
+        # The system prompt is per TASK FAMILY (the puzzles ask for an
+        # assignment, not an integer) and is part of the cache key, so two
+        # families can never read each other's rows.
+        self.system_prompt = system_prompt
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.model, self.temperature, self.provider = model, temperature, provider
@@ -155,7 +162,8 @@ class ResponseCache:
     # -- reads ---------------------------------------------------------------
 
     def get(self, item: Item, max_tokens: int) -> CallRecord | None:
-        k = _key(self.model, item.item_id, item.prompt, max_tokens, self.temperature)
+        k = _key(self.model, item.item_id, item.prompt, max_tokens,
+                 self.temperature, self.system_prompt)
         with self.lock:
             row = self.conn.execute(
                 "SELECT content,finish_reason,prompt_tokens,completion_tokens,"
@@ -184,7 +192,8 @@ class ResponseCache:
     # -- writes --------------------------------------------------------------
 
     def put(self, item: Item, max_tokens: int, rec: CallRecord, attempts: int) -> None:
-        k = _key(self.model, item.item_id, item.prompt, max_tokens, self.temperature)
+        k = _key(self.model, item.item_id, item.prompt, max_tokens,
+                 self.temperature, self.system_prompt)
         with self.lock:
             self.conn.execute(
                 "INSERT OR REPLACE INTO calls VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -200,10 +209,10 @@ class ResponseCache:
 # -- fetching ------------------------------------------------------------------
 
 def _one_call(key: str, provider: Provider, model: str, item: Item,
-              max_tokens: int, temperature: float,
-              timeout: int = 180) -> CallRecord:
+              max_tokens: int, temperature: float, timeout: int = 180,
+              system_prompt: str = SYSTEM_PROMPT) -> CallRecord:
     body = {"model": model,
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+            "messages": [{"role": "system", "content": system_prompt},
                          {"role": "user", "content": item.prompt}],
             provider.budget_field: int(max_tokens), "temperature": temperature}
     t0 = time.time()
@@ -280,7 +289,8 @@ def collect(cache: ResponseCache, items: list[Item], budgets: list[int],
                     if pacer:
                         pacer.acquire(b + PROMPT_RESERVE)
                     rec = _one_call(api_key, cache.provider, cache.model, item,
-                                    b, cache.temperature)
+                                    b, cache.temperature,
+                                    system_prompt=cache.system_prompt)
                     cache.put(item, b, rec, attempt)
                     with slock:
                         state["fetched"] += 1
@@ -341,14 +351,23 @@ def split_reasoning(content: str) -> tuple[int, int]:
     return 0, len(content)
 
 
-def outcome(cache: ResponseCache, item: Item, max_tokens: int) -> dict:
-    """The full measured outcome of one (item, budget) call, for the env."""
+def outcome(cache: ResponseCache, item: Item, max_tokens: int,
+            grade=None) -> dict:
+    """The full measured outcome of one (item, budget) call, for the env.
+
+    `grade(item, text) -> float in [0,1]` lets a task family define its own
+    reward. The arithmetic family is binary, so `score == correct` and nothing
+    moves; the second family scores partial credit per slot, which is the point
+    of having two -- an architecture that only works for 0/1 rewards has not
+    been shown to generalise.
+    """
     r = cache.require(item, max_tokens)
     think_c, ans_c = split_reasoning(r.content)
     rt = r.reasoning_tokens
     if rt == 0 and think_c:                        # inline trace: apportion
         rt = int(round(r.completion_tokens * think_c / max(think_c + ans_c, 1)))
-    return {"correct": int(is_correct(item, r.content)),
+    score = float(grade(item, r.content)) if grade else float(is_correct(item, r.content))
+    return {"score": score, "correct": int(score >= 1.0 - 1e-9),
             "answered": int(r.answered), "starved": int(r.starved),
             "parsed": parse_answer(r.content),
             "total_tokens": r.total_tokens,
