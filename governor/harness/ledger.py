@@ -75,8 +75,26 @@ def git_commit() -> str:
     return _git("rev-parse", "HEAD")
 
 
-def git_dirty() -> bool:
-    return bool(_git("status", "--porcelain"))
+def git_dirty(exclude: Path | None = None) -> list[str]:
+    """Paths that differ from HEAD, ignoring anything under `exclude`.
+
+    An experiment writes its own directory while it runs, so counting those
+    files as drift would make every experiment unfinalizable. What must be clean
+    is the CODE -- everything outside the run's own output.
+    """
+    out = []
+    rel = None
+    if exclude is not None:
+        try:
+            rel = str(exclude.resolve().relative_to(ROOT))
+        except ValueError:
+            rel = None
+    for line in _git("status", "--porcelain").splitlines():
+        path = line[3:].strip().strip('"')
+        if rel and (path == rel or path.startswith(rel + "/")):
+            continue
+        out.append(path)
+    return out
 
 
 def file_commit(path: str) -> str:
@@ -135,11 +153,11 @@ class ExperimentSpec:
     params: dict[str, Any] = field(default_factory=dict)
     notes: str = ""
 
-    def to_config(self) -> dict[str, Any]:
+    def to_config(self, exclude_dir: Path | None = None) -> dict[str, Any]:
         d = asdict(self)
         d["runtime"] = runtime_fingerprint()
         d["git_commit"] = git_commit()
-        d["git_dirty"] = git_dirty()
+        d["git_dirty"] = git_dirty(exclude=exclude_dir)
         return d
 
 
@@ -165,7 +183,7 @@ class ExperimentRun:
         self.nonce = uuid.uuid4().hex          # stamps every raw row
         self.t0 = time.time()
         self.commit = git_commit()
-        self.config = self.spec.to_config()
+        self.config = self.spec.to_config(exclude_dir=self.dir)
         self.config["nonce"] = self.nonce
         self.config["started_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                                    time.gmtime(self.t0))
@@ -234,9 +252,10 @@ class ExperimentRun:
         recorded = (self.dir / "git_commit.txt").read_text().strip()
         if head != recorded:
             bad.append(f"HEAD moved during the run: {recorded[:8]} -> {head[:8]}")
-        if git_dirty():
-            bad.append("working tree is dirty -- the commit hash does not "
-                       "describe the code that ran")
+        dirty = git_dirty(exclude=self.dir)
+        if dirty:
+            bad.append(f"working tree is dirty -- the commit hash does not "
+                       f"describe the code that ran: {dirty[:6]}")
         return bad
 
     # -- finalize ------------------------------------------------------------

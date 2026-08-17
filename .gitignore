@@ -7,3 +7,5 @@ results/*.sqlite
 results/*.txt
 .env
 .env.*
+results/*.log
+experiments/*/raw.jsonl
