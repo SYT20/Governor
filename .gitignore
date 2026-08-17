@@ -12,3 +12,4 @@ experiments/*/raw.jsonl
 experiments/MCP-*/
 results/s1_math.sqlite
 results/*.pkl
+results/*.pkl
