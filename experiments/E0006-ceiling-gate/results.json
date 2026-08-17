@@ -1,0 +1,45 @@
+{
+  "exp_id": "E0006-ceiling-gate",
+  "title": "Phase 4R ceiling gate on the S1+S2-selected configuration",
+  "verdict": "GATE-INCONCLUSIVE-NEED-ITEMS",
+  "summary": {
+    "verdict": "GATE-INCONCLUSIVE-NEED-ITEMS",
+    "config": {
+      "n_items": 6,
+      "low": 300,
+      "high": 700,
+      "budget": 2868
+    },
+    "in_selection": {
+      "cheap": 0.05555555555555555,
+      "greedy": 0.13888888888888887,
+      "oracle": 0.2777777777777778,
+      "best_fixed": 0.16666666666666666,
+      "ceiling": 0.13888888888888892,
+      "ceiling_vs_fixed": 0.11111111111111113,
+      "greedy_deep": 1.5,
+      "n_episodes": 6,
+      "boot_mean": 0.10548611111111111,
+      "ci_lo": 0.02777777777777779,
+      "ci_hi": 0.19444444444444445,
+      "n_items": 40,
+      "passes_gate": true
+    },
+    "held_out": null
+  },
+  "git_commit": "bb1c413df1898c1ce5dad1785765f07308aa0af9",
+  "config_hash": "b82cc427b30eaf6a2051ac2ae9607dfd736c49d53bc064968679a2fd3c7095e2",
+  "nonce": "3c4c231c6c5845b1abbd8287955638fd",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "1f85e840726178bbc0b573af11ffc84ccd09fb3ccc566b7446f2a4a200de5bf5",
+  "raw_rows": 2,
+  "wall_s": 1.1,
+  "finished_utc": "2026-08-17T11:18:11Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
