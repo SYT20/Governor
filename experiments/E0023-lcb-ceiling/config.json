@@ -1,0 +1,39 @@
+{
+  "exp_id": "E0023-lcb-ceiling",
+  "title": "LiveCodeBench sample-allocation ceiling (no API calls)",
+  "model": "Gemini-Pro-1.5 (May) generations, published by LiveCodeBench",
+  "budget": {
+    "axis": "number of samples k in 1..10",
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "charged": "exact tokenizer count over the published generations"
+  },
+  "seeds": {
+    "split": "not yet split - ceiling screen only"
+  },
+  "split": {
+    "problems": 400,
+    "samples_per_problem": 10
+  },
+  "metric": "U(multiple-choice-knapsack oracle) - U(best fixed k, randomised between adjacent k to match the expected budget), at identical expected tokens",
+  "params": {
+    "epsilon": 0.02,
+    "structure": {
+      "never_pass": 0.545,
+      "always_pass": 0.305,
+      "mixed": 0.15
+    }
+  },
+  "notes": "Allocation axis changed, benchmark not merely enlarged. MATH-500 was closed by E0022 as statistically unsettleable.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "83548521500ea5e9e31fe9a50ae0bcda4cc4ce99",
+  "git_dirty": [],
+  "nonce": "71d4d21f5e4a4a9da209ae52168054b8",
+  "started_utc": "2026-08-17T21:53:10Z"
+}

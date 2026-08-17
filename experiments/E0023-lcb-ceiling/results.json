@@ -1,0 +1,33 @@
+{
+  "exp_id": "E0023-lcb-ceiling",
+  "title": "LiveCodeBench sample-allocation ceiling (no API calls)",
+  "verdict": "CEILING-PASS",
+  "summary": {
+    "verdict": "CEILING-PASS",
+    "max_ceiling": 0.0572506425083526,
+    "at_tokens": 219.49824999999998,
+    "n_problems": 400,
+    "never_pass": 0.545,
+    "always_pass": 0.305,
+    "mixed": 0.15
+  },
+  "git_commit": "83548521500ea5e9e31fe9a50ae0bcda4cc4ce99",
+  "config_hash": "aee36815724550f126394d7143af57356f2443bdfe26685c010a0bd05b92923d",
+  "nonce": "71d4d21f5e4a4a9da209ae52168054b8",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "9730dd1d702fd0295e361d1fee2163570c62bdf60b255bb6f57b31f3271a271b",
+  "raw_rows": 12,
+  "wall_s": 1.4,
+  "finished_utc": "2026-08-17T21:53:12Z",
+  "trap_checks": {
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='exact tokenizer count over the published generations'"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
