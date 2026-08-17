@@ -1,0 +1,53 @@
+{
+  "exp_id": "E0021-enforced-math",
+  "title": "Budget-enforced Governor at matched realised cost (math)",
+  "verdict": "INCONCLUSIVE",
+  "summary": {
+    "benchmark": "math",
+    "B_star": 845.7475505084745,
+    "governor_U": 0.788,
+    "governor_tokens": 845.0,
+    "unenforced_tokens": 973.484,
+    "fixed_at_matched_cost": 0.7839630154876651,
+    "primary_mean": 0.004299469140605342,
+    "primary_lo": -0.04877645931250004,
+    "primary_hi": 0.04337600430865811,
+    "secondary_mean": 0.012410000000000003,
+    "secondary_lo": -0.028000000000000025,
+    "secondary_hi": 0.05599999999999994,
+    "mcnemar_p": 0.7011080384254456,
+    "n_disagree": 102,
+    "verdict": "INCONCLUSIVE"
+  },
+  "git_commit": "b3ce7df3714daa82bd26be5110e30abd4cfd549b",
+  "config_hash": "dafc1b9fa102a605f723e3d2f280443e4a8d866e19329a1b1e1700ef0ea15e9d",
+  "nonce": "58100adbf00c4562b458239a57d57c9a",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "97cf04975f2ea66a4338147c59aa88b7a7bc1dfa4214a5e51edd08a376b6a812",
+  "raw_rows": 250,
+  "wall_s": 0.2,
+  "finished_utc": "2026-08-17T21:17:12Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=250 evaluation=250 overlap=0"
+    },
+    "budget_adherence": {
+      "ok": true,
+      "detail": "realised=845 budget=846 over=-0.1% baseline=845 baseline_short_by=+0.0%"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

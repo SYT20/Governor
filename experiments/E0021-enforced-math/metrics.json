@@ -1,0 +1,20 @@
+{
+  "policies": {
+    "governor_unenforced": {
+      "U": 0.812,
+      "tokens": 973.484
+    },
+    "GOVERNOR": {
+      "U": 0.788,
+      "tokens": 845.0
+    },
+    "myopic_unenforced": {
+      "U": 0.776,
+      "tokens": 829.812
+    },
+    "myopic": {
+      "U": 0.776,
+      "tokens": 829.812
+    }
+  }
+}
