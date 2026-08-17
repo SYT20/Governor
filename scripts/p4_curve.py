@@ -28,46 +28,15 @@ from governor.harness.traps import secret_scan  # noqa: E402
 from governor.phase4.collect import (  # noqa: E402
     GROQ, OPENROUTER, RateLimited, ResponseCache, api_key, collect, outcome,
 )
+from governor.phase4 import config as cfgmod  # noqa: E402
 from governor.phase4.tasks import make_pool, pool_stats  # noqa: E402
 
-# ---- FROZEN before any data was collected (see the preregistration) ----------
-GRID = [300, 700, 1400, 2800]
-CAL_POOL_SEED, CURVE_N = 1000, 40
-SAT_TOL, MIN_GAP = 0.02, 0.15
-PROMPT_CAP = 128
-
-ENGINES = {
-    "nemotron": dict(provider=OPENROUTER, model="nvidia/nemotron-nano-9b-v2:free",
-                     cache="results/p4_cache_nemotron.sqlite", workers=4, tpm=None),
-    "qwen":     dict(provider=GROQ, model="qwen/qwen3.6-27b",
-                     cache="results/p4_cache_qwen.sqlite", workers=6, tpm=8000),
-    "gptoss":   dict(provider=GROQ, model="openai/gpt-oss-120b",
-                     cache="results/p4_cache_gptoss.sqlite", workers=6, tpm=8000),
-}
-# Tie-break fixed in advance: the directive names nemotron as the Phase 4
-# engine, so if more than one engine qualifies, nemotron wins -- not the one
-# with the biggest gap, which would be selecting the engine on the outcome.
-PREFERENCE = ["nemotron", "qwen", "gptoss"]
-
-
-def select_modes(acc: dict[int, float]) -> dict:
-    """The frozen rule. HIGH = cheapest saturating budget; LOW = the dearest
-    budget below it that is materially worse."""
-    grid = sorted(acc)
-    best = max(acc.values())
-    high = next(b for b in grid if acc[b] >= best - SAT_TOL)
-    lows = [b for b in grid if b < high and acc[b] <= acc[high] - MIN_GAP]
-    low = max(lows) if lows else None
-    return {"high": high, "low": low, "acc_high": acc[high],
-            "acc_low": acc[low] if low is not None else None,
-            "gap": (acc[high] - acc[low]) if low is not None else None,
-            "qualifies": low is not None}
-
-
-def episode_budget(low: int, high: int) -> int:
-    """4*cap(LOW) + 2*(cap(HIGH) - cap(LOW)); cap(m) = PROMPT_CAP + m."""
-    cap_lo, cap_hi = PROMPT_CAP + low, PROMPT_CAP + high
-    return int(4 * cap_lo + 2 * (cap_hi - cap_lo))
+# All frozen constants live in governor/phase4/config.py so there is one copy.
+GRID, CURVE_N = cfgmod.GRID, cfgmod.CURVE_N
+SAT_TOL, MIN_GAP, PROMPT_CAP = cfgmod.SAT_TOL, cfgmod.MIN_GAP, cfgmod.PROMPT_CAP
+CAL_POOL_SEED = cfgmod.CAL_POOL_SEED
+ENGINES, PREFERENCE = cfgmod.ENGINES, cfgmod.PREFERENCE
+select_modes, episode_budget = cfgmod.select_modes, cfgmod.episode_budget
 
 
 def run_engine(name: str, pool, run, n: int) -> dict:

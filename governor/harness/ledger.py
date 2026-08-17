@@ -79,6 +79,17 @@ def git_dirty() -> bool:
     return bool(_git("status", "--porcelain"))
 
 
+def file_commit(path: str) -> str:
+    """Commit that last changed `path`.
+
+    Used as the `frozen_before_heldout` evidence: the preregistration's commit
+    must predate the commit that produced the held-out numbers. Comparing the
+    run's commit to itself would make that check meaningless, which is what it
+    was in its first form.
+    """
+    return _git("log", "-1", "--format=%H", "--", path)
+
+
 def runtime_fingerprint() -> dict[str, str]:
     """Versions of everything that can move a number without a commit."""
     out = {"python": sys.version.split()[0], "platform": platform.platform(),

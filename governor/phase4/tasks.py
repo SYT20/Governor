@@ -160,9 +160,9 @@ def features(prompt: str) -> dict[str, float]:
     }
 
 
-def feature_vector(prompt: str) -> np.ndarray:
+def feature_vector(prompt: str, names=FEATURE_NAMES) -> np.ndarray:
     f = features(prompt)
-    return np.array([f[k] for k in FEATURE_NAMES], float)
+    return np.array([f[k] for k in names], float)
 
 
 # -- answer checking -----------------------------------------------------------

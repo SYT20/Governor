@@ -330,15 +330,32 @@ def collect(cache: ResponseCache, items: list[Item], budgets: list[int],
             "cached": cache.count(), "error_sample": errors[:5]}
 
 
+def split_reasoning(content: str) -> tuple[int, int]:
+    """(reasoning chars, answer chars). Used to apportion completion tokens for
+    engines that inline their trace instead of reporting `reasoning_tokens`."""
+    if "<think>" in content and "</think>" in content:
+        head, tail = content.split("</think>", 1)
+        return len(head.replace("<think>", "")), len(tail)
+    if "<think>" in content:                       # truncated mid-thought
+        return len(content), 0
+    return 0, len(content)
+
+
 def outcome(cache: ResponseCache, item: Item, max_tokens: int) -> dict:
     """The full measured outcome of one (item, budget) call, for the env."""
     r = cache.require(item, max_tokens)
+    think_c, ans_c = split_reasoning(r.content)
+    rt = r.reasoning_tokens
+    if rt == 0 and think_c:                        # inline trace: apportion
+        rt = int(round(r.completion_tokens * think_c / max(think_c + ans_c, 1)))
     return {"correct": int(is_correct(item, r.content)),
             "answered": int(r.answered), "starved": int(r.starved),
             "parsed": parse_answer(r.content),
             "total_tokens": r.total_tokens,
             "completion_tokens": r.completion_tokens,
-            "reasoning_tokens": r.reasoning_tokens,
+            "reasoning_tokens": rt,
+            "reasoning_tokens_reported": r.reasoning_tokens,
+            "answer_tokens": max(0, r.completion_tokens - rt),
             "prompt_tokens": r.prompt_tokens,
             "latency_s": r.latency_s, "finish_reason": r.finish_reason}
 
