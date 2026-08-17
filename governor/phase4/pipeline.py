@@ -153,6 +153,9 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
         "scored_via_executor": True,
         # Costs come from the provider's reported usage, not an estimate.
         "token_cost_source": token_cost_source,
+        # A policy compared at a budget it did not respect is not a comparison.
+        "realised_cost": float(np.mean(R["GOVERNOR"].spent)),
+        "budget": float(env.budget),
         "decisions": [r["mode"] for r in trace],
         "cell_ids": [f"m{env.n_decisions - r['t']}_k{r['k']}" for r in trace],
         # The real evidence: the commit that froze the selection rules must

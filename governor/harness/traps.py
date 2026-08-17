@@ -128,6 +128,29 @@ def split_leakage(selection_item_ids, evaluation_item_ids):
             + (f" e.g. {sorted(both)[:3]}" if both else ""))
 
 
+def budget_adherence(realised_cost, budget, baseline_cost=None, tol=0.02):
+    """A policy compared at a budget it did not respect is not a comparison.
+
+    E0019 reported the Governor beating the best fixed policy by +0.0282 "at
+    identical expected budget". It was spending 973 tokens against a budget of
+    846 -- 15% over -- because the Lagrangian was tuned to hit the budget on the
+    CALIBRATION half and the evaluation half costs more. Scored against a fixed
+    baseline given the same 973 tokens, the Governor LOST by 0.0131.
+
+    Tuning on calibration is correct; reporting the baseline at the nominal
+    budget rather than at the realised cost is not. Always compare at matched
+    REALISED cost.
+    """
+    over = float(realised_cost) / float(budget) - 1.0 if budget else float("inf")
+    ok = abs(over) <= tol
+    detail = f"realised={realised_cost:.0f} budget={budget:.0f} over={over:+.1%}"
+    if baseline_cost is not None:
+        gap = float(baseline_cost) / float(realised_cost) - 1.0
+        ok = ok and abs(gap) <= tol
+        detail += f" baseline={baseline_cost:.0f} mismatch={gap:+.1%}"
+    return ok, detail
+
+
 def exact_token_counts(source: str, tolerance: float = 0.05):
     """Token costs must come from a TOKENIZER, never an estimate.
 
@@ -178,6 +201,7 @@ def run_trap_checks(ev: dict) -> dict[str, tuple[bool, str]]:
         "frozen_before_heldout": ("froze_commit", "heldout_commit"),
         "split_leakage": ("selection_item_ids", "evaluation_item_ids"),
         "exact_token_counts": ("token_cost_source",),
+        "budget_adherence": ("realised_cost", "budget"),
         "secret_scan": (),
     }
     fns = globals()

@@ -98,3 +98,14 @@ def test_exact_token_counts_rejects_estimates():
     for bad in ("len/4", "estimate", "approx", "chars/4", ""):
         assert not exact_token_counts(bad)[0], bad
     assert run_trap_checks({})["exact_token_counts"][0] is False
+
+
+def test_budget_adherence_catches_the_E0019_defect():
+    """E0019 reported +0.0282 "at identical budget" while spending 15% over.
+    At matched realised cost the sign flipped to -0.0131."""
+    from governor.harness.traps import budget_adherence, run_trap_checks
+    assert not budget_adherence(973, 846)[0]           # the actual defect
+    assert budget_adherence(850, 846)[0]               # within tolerance
+    assert not budget_adherence(973, 973, baseline_cost=846)[0]  # baseline cheaper
+    assert budget_adherence(973, 973, baseline_cost=975)[0]
+    assert run_trap_checks({})["budget_adherence"][0] is False

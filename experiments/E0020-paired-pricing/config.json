@@ -1,0 +1,47 @@
+{
+  "exp_id": "E0020-paired-pricing",
+  "title": "Paired Governor-vs-myopic on decision disagreements (MATH)",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "B_star": 846.0,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 250,
+    "evaluation_items": 250,
+    "conditioning": "disagreement set defined by frozen policies; no held-out outcome used to select items"
+  },
+  "metric": "McNemar exact on discordant correctness among items where the two frozen policies choose different budget levels; paired mean difference with bootstrap CI reported alongside",
+  "params": {
+    "predictor": "logistic+isotonic",
+    "lambda": 0.00024271827883278399,
+    "tau": 0.395,
+    "levels": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000,
+      32000
+    ]
+  },
+  "notes": "Nothing changed from E0019 except the analysis.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "4b1368899256d67cd8807644a7794ff9e7996299",
+  "git_dirty": [],
+  "nonce": "860fbb1e8302489fb963c2b543899339",
+  "started_utc": "2026-08-17T21:03:08Z"
+}

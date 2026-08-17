@@ -1,0 +1,48 @@
+{
+  "exp_id": "E0020-paired-pricing",
+  "title": "Paired Governor-vs-myopic on decision disagreements (MATH)",
+  "verdict": "PRICING-UNRESOLVED",
+  "summary": {
+    "n_evaluation": 250,
+    "n_disagree": 112,
+    "b_gov_right_myo_wrong": 19,
+    "c_gov_wrong_myo_right": 10,
+    "mcnemar_p": 0.13604594767093658,
+    "paired_all_mean": 0.035752,
+    "paired_all_lo": -0.004,
+    "paired_all_hi": 0.076,
+    "paired_dis_mean": 0.08063392857142858,
+    "paired_dis_lo": -0.008928571428571428,
+    "paired_dis_hi": 0.17857142857142858,
+    "gov_higher_level": 91,
+    "gov_lower_level": 21,
+    "verdict": "PRICING-UNRESOLVED"
+  },
+  "git_commit": "4b1368899256d67cd8807644a7794ff9e7996299",
+  "config_hash": "9d63b015c8c9fbae28ea43bc23a5101c4d24ea6d82ed2d90c18c46e903820688",
+  "nonce": "860fbb1e8302489fb963c2b543899339",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "b09c23a57dea1edad46df818a1b30c27c8c66363b37973f7039ee6535ef4feaf",
+  "raw_rows": 112,
+  "wall_s": 0.4,
+  "finished_utc": "2026-08-17T21:03:09Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=250 evaluation=250 overlap=0"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
