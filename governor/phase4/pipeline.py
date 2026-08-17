@@ -132,7 +132,8 @@ PREREG = "PREREGISTRATION-phase4-nemotron.md"
 def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
               trace: list, commit: str = "", froze_commit: str | None = None,
               selection_item_ids: Sequence[str] | None = None,
-              evaluation_item_ids: Sequence[str] | None = None) -> dict:
+              evaluation_item_ids: Sequence[str] | None = None,
+              token_cost_source: str = "provider usage.total_tokens") -> dict:
     """Callers MUST name the items the model was fitted on and the items it is
     scored on. Leaving them out makes `split_leakage` red, which is the point:
     silence about a split is not evidence of a clean one."""
@@ -150,6 +151,8 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
         "answered_rate": M["GOVERNOR"]["answered_rate"],
         "utility": M["GOVERNOR"]["U"],
         "scored_via_executor": True,
+        # Costs come from the provider's reported usage, not an estimate.
+        "token_cost_source": token_cost_source,
         "decisions": [r["mode"] for r in trace],
         "cell_ids": [f"m{env.n_decisions - r['t']}_k{r['k']}" for r in trace],
         # The real evidence: the commit that froze the selection rules must
