@@ -9,3 +9,4 @@ results/*.txt
 .env.*
 results/*.log
 experiments/*/raw.jsonl
+experiments/MCP-*/

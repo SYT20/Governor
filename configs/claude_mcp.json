@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "governor": {
+      "command": "python",
+      "args": ["-m", "governor.mcp.server"],
+      "cwd": ".",
+      "env": {"PYTHONPATH": "."}
+    }
+  }
+}
