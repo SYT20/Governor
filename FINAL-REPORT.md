@@ -3,10 +3,12 @@
 Final report. Every number here is traceable to an experiment directory, a
 commit, and a raw file. Numbers that are not are marked as such.
 
-**Status: Phase 4 PREMISE FAILS on this task family.** The preregistered
-held-out test was not run, and running it would have been pointless: the ceiling
-available to *any* allocator is at most **+0.046** at every budget (E0004). The
-Env 6 result stands. See §4.4 and §8.
+**Status.** Phase 4 as originally specified is CLOSED: the ceiling available to
+*any* allocator peaked at **+0.046** (E0004), so the held-out test would have
+measured noise. Phase 4R found, from preregistered structural criteria, a
+configuration whose in-selection ceiling is **+0.1055 [+0.0278, +0.1944]** —
+2.5x the gate. The held-out confirmation is collecting. The Env 6 result stands
+throughout. See §4.4–§4.7.
 
 ---
 
@@ -66,6 +68,8 @@ the Governor has never been changed to accommodate one.
 | `E0002` | preregistered primary test | NOT RUN — see §4.4 |
 | `E0010` | ablations | NOT RUN — nothing to ablate against |
 | `E0020-*` | robustness | NOT RUN |
+| `E0005-structure` | **Phase 4R structural search**, 81 configurations, no API calls | CONFIG-FOUND — 1 of 81 passes S1+S2 |
+| `E0006-ceiling-gate` | ceiling gate on that configuration | in-selection PASS; held-out INCONCLUSIVE, collecting |
 | (deferred) | second task family with an LLM; local Qwen | quota-blocked |
 
 ## 4. Metrics
@@ -159,6 +163,58 @@ greedy 0.7727: **−0.062 [−0.136, +0.000]** — not separable from zero, poin
 estimate negative. All ten trap checks green. Consistent with §4.4: there was
 nothing to win. Recorded with verdict `PILOT` and must not be quoted as a
 Phase 4 result.
+
+### 4.6 Phase 4R — structural search (E0005)
+
+Two criteria, **frozen before the search ran**, from the Phase 4 post-mortem:
+
+- **S1 competition** — `P(X > K) >= 0.60` and `E[X]/K >= 1.8`, where `X` is the
+  number of useful reasoning opportunities in an episode and `K` the number of
+  affordable upgrades. Phase 4 had `P(X>K) = 0.275`, `E[X]/K = 0.95`.
+- **S2 decidability** — `mean(actual DEEP cost) / cap(DEEP) >= 0.70`. Phase 4
+  had **0.28**, so feasibility rather than preference decided most calls.
+
+81 configurations over (items per episode, LOW, HIGH, budget), all against
+cached responses. **The configuration is selected by S1 and S2; the ceiling is
+reported for every cell and never used to select** — and only one cell of 81
+survives both, so there was no room to choose.
+
+The search confirms the post-mortem exactly. Every configuration satisfying S1
+but failing S2 has a ceiling of **0.0000**:
+
+| n | LOW | HIGH | act/cap | S1 | ceiling |
+|---|---|---|---|---|---|
+| 6 | 700 | 2800 | 0.33 | pass | +0.0000 |
+| 8 | 700 | 2800 | 0.33 | pass | +0.0000 |
+| 10 | 700 | 2800 | 0.33 | pass | +0.0000 |
+| **6** | **300** | **700** | **0.80** | **pass** | **+0.1389** |
+
+More items per episode does **not** create an allocation problem on its own.
+Making the reservation mean something does. S2 was the binding constraint, and
+an "8–12 items" rule would have missed it.
+
+**Selected: 6 items, LOW=300, HIGH=700, budget=2868.** `P(X>K)=0.67`,
+`E[X]/K=1.89`, `actual/cap=0.80`, `X=2.83` useful opportunities against
+`K=1.50` affordable upgrades.
+
+### 4.7 Phase 4R — the ceiling gate (E0006)
+
+| split | items | eps | all-cheap | best fixed | greedy | oracle | ceiling | 95% CI (item bootstrap) |
+|---|---|---|---|---|---|---|---|---|
+| in-selection | 40 | 6 | 0.0556 | 0.1667 | 0.1389 | 0.2778 | +0.1389 | +0.1055 [+0.0278, +0.1944] |
+| held-out | 0 | — | — | — | — | — | — | **INCONCLUSIVE — no items yet** |
+
+The in-selection CI clears the 0.02 gate, and the oracle roughly **doubles**
+greedy's utility. That is informative and **it is not the gate**: these are the
+items S1 and S2 were computed on. The script refuses to promote it, returns
+non-zero, and reports what is missing.
+
+The held-out set needs LOW=300 responses for 49 items that already have
+HIGH=700 — 49 calls, ~21k tokens. Groq's per-day bucket refills at roughly 10k
+tokens/hour, so `scripts/p4r_patient_collect.py` waits it out.
+
+**The new configuration is also 2.9x cheaper**: 1256 reserved tokens per item
+against 3684, i.e. 159 items/day rather than 54.
 
 ## 5. Budgets, models, runtime
 
