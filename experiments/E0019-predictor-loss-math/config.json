@@ -1,0 +1,57 @@
+{
+  "exp_id": "E0019-predictor-loss-math",
+  "title": "Predictor loss and calibration, no probe (math)",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "reported_at": 845.7475505084745,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 250,
+    "evaluation_items": 250
+  },
+  "metric": "mean correctness at matched expected tokens; variants differ ONLY in the correctness predictor's loss and calibration; the variant is chosen by calibration-side Brier, never by outcome",
+  "params": {
+    "variants": [
+      "ridge",
+      "logistic",
+      "logistic+sigmoid",
+      "logistic+isotonic"
+    ],
+    "selected": "logistic+isotonic",
+    "features": [
+      "chars",
+      "words_n",
+      "digits",
+      "latex_cmds",
+      "has_frac",
+      "has_sqrt",
+      "has_matrix",
+      "has_sum",
+      "n_equations",
+      "max_number_log10",
+      "question_marks",
+      "lines"
+    ]
+  },
+  "notes": "No probe. The probe must earn its own token cost and that is a separate question.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "a99dff4afabaa84f2633ea1cdf266032fdd7f965",
+  "git_dirty": [
+    "scripts/predictor_loss.py"
+  ],
+  "nonce": "b303c9af410a47429655486f0de096a7",
+  "started_utc": "2026-08-17T20:50:56Z"
+}

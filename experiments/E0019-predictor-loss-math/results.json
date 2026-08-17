@@ -1,0 +1,56 @@
+{
+  "exp_id": "E0019-predictor-loss-math",
+  "title": "Predictor loss and calibration, no probe (math)",
+  "verdict": "FAIL",
+  "summary": {
+    "benchmark": "math",
+    "selected_variant": "logistic+isotonic",
+    "brier_by_variant": {
+      "ridge": 0.1031069443542856,
+      "logistic": 0.1025614654843342,
+      "logistic+sigmoid": 0.10645121299835673,
+      "logistic+isotonic": 0.09754714197497064
+    },
+    "ece_by_variant": {
+      "ridge": 0.038783382515682883,
+      "logistic": 0.04414660273451976,
+      "logistic+sigmoid": 0.06937631194715257,
+      "logistic+isotonic": 0.02957908757236396
+    },
+    "primary_mean": 0.01852908576231339,
+    "primary_lo": -0.004756770202844495,
+    "primary_hi": 0.04240067864351982,
+    "secondary_mean": 0.031839999999999986,
+    "secondary_lo": 0.0,
+    "secondary_hi": 0.064,
+    "ceiling": 0.07049103830653236,
+    "verdict": "FAIL"
+  },
+  "git_commit": "a99dff4afabaa84f2633ea1cdf266032fdd7f965",
+  "config_hash": "0b345e46f161c0a87fbaee47d7a979175e83f9ecce2d19f429afab2fe71267d3",
+  "nonce": "987a1f6c55494f8c94eddaf2fb2a2445",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "5a09bc5ee2b1b1943b3ea0b058d009c0f82fee5be2feac27cb798b1f3dba9ba7",
+  "raw_rows": 28,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-17T20:50:25Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=250 evaluation=250 overlap=0"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

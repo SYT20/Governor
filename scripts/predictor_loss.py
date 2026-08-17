@@ -104,8 +104,21 @@ def main() -> int:
     print(f"  {int(cal.sum())} calibration / {int(ev.sum())} evaluation items; "
           f"no probe; contract and allocator unchanged")
 
+    # OPERATING POINT CHOSEN ON CALIBRATION DATA, BY CEILING.
+    # The first grid was seven evenly-spaced budgets and never sampled the
+    # max-ceiling point, so every variant was scored where only +0.07 was
+    # available instead of +0.17. The budget is a property of the environment,
+    # so it is selected where a perfect allocator would gain most -- computed on
+    # the CALIBRATION half, using no evaluation outcome.
     lo, hi = float(T[:, 0].mean()), float(T[:, -1].mean())
-    grid = np.linspace(lo * 1.15, hi * 0.75, 7)
+    fine = np.linspace(lo * 1.02, hi * 0.9, 60)
+    ceil_cal = [(float(oracle_at(C[cal], T[cal], b)
+                       - envelope_fixed(C[cal], T[cal], b)), float(b))
+                for b in fine]
+    b_star = max(ceil_cal)[1]
+    print(f"  budget chosen on CALIBRATION by ceiling: B*={b_star:.0f} "
+          f"(calibration ceiling {max(ceil_cal)[0]:+.4f})")
+    grid = np.array(sorted({b_star, *np.linspace(lo * 1.15, hi * 0.75, 6)}))
     lam_grid = np.concatenate([[0.0], np.geomspace(1e-7, 5e-2, 400)])
     tau_grid = np.linspace(0.0, 1.0, 401)
 
@@ -137,7 +150,9 @@ def main() -> int:
                    "gov_minus_myopic": g["utility"] - m["utility"],
                    "lam": float(lam), "tau": float(tau)}
             rows.append(row)
-            if best is None or row["gov_minus_fixed"] > best["gov_minus_fixed"]:
+            # The reported point is B*, fixed in advance on calibration --
+            # NOT the budget where this variant happened to do best.
+            if best is None or abs(row["budget"] - b_star) < abs(best["budget"] - b_star):
                 best = row
         summary[name] = {"brier": float(np.mean(briers)) if briers else float("nan"),
                          "ece": float(np.mean(eces)) if eces else float("nan"),
