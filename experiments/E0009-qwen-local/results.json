@@ -1,0 +1,33 @@
+{
+  "exp_id": "E0009-qwen-local",
+  "title": "Local Qwen backend reasoning curve (MLX)",
+  "verdict": "CURVE-VALID",
+  "summary": {
+    "selection": {
+      "high": 2800,
+      "low": 1400,
+      "acc_high": 0.6666666666666666,
+      "acc_low": 0.5,
+      "gap": 0.16666666666666663,
+      "qualifies": true,
+      "episode_budget": 8912
+    },
+    "verdict": "CURVE-VALID",
+    "max_acc": 0.6666666666666666
+  },
+  "git_commit": "8754ea59b001f46d51afb244a444b201d5c37241",
+  "config_hash": "3e820987f932ca86d153c2fb25313741d639340318aeb1de418511f7629ba209",
+  "nonce": "1bf532425d01474e9719c6cc6c498d7f",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "69fd258d2f90813901aacb816645bc3ab551e073efcaf571e8ae93a8727c6733",
+  "raw_rows": 24,
+  "wall_s": 663.9,
+  "finished_utc": "2026-08-17T13:08:15Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

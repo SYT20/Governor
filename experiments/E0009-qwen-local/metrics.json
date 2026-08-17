@@ -1,0 +1,32 @@
+{
+  "curve": [
+    {
+      "budget": 300,
+      "acc": 0.0,
+      "starved": 0.8333333333333334,
+      "mean_total_tokens": 316.3333333333333,
+      "mean_latency_s": 11.232495864232382
+    },
+    {
+      "budget": 700,
+      "acc": 0.5,
+      "starved": 0.3333333333333333,
+      "mean_total_tokens": 576.8333333333334,
+      "mean_latency_s": 21.27503192424774
+    },
+    {
+      "budget": 1400,
+      "acc": 0.5,
+      "starved": 0.3333333333333333,
+      "mean_total_tokens": 810.1666666666666,
+      "mean_latency_s": 30.288214763005573
+    },
+    {
+      "budget": 2800,
+      "acc": 0.6666666666666666,
+      "starved": 0.16666666666666666,
+      "mean_total_tokens": 1180.3333333333333,
+      "mean_latency_s": 47.64600316683451
+    }
+  ]
+}

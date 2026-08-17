@@ -85,7 +85,7 @@ the Governor has never been changed to accommodate one.
 | `E0003-pilot` | underpowered pilot, 44 items, item-level bootstrap | PILOT — Governor −0.062 [−0.136, +0.000] vs greedy |
 | `E0004-ceiling` | **what could ANY allocator gain, swept over every budget** | **PREMISE-FAILS**, max ceiling +0.046 |
 | `E0008-governor-phase4r` | Governor test | **NOT RUN** — gatekeeper refuses; gate failed |
-| `E0009-qwen-local` | local Qwen 1.7B-4bit backend curve (MLX) | backend experiment |
+| `E0009-qwen-local` | local Qwen 1.7B-4bit backend curve (MLX) | CURVE-VALID (n=6, feasibility only) |
 | `E0002` / `E0010` / `E0020-*` | primary, ablations, robustness | NOT RUN — no validated family |
 | `E0005-structure` | **Phase 4R structural search**, 81 configurations, no API calls | CONFIG-FOUND — 1 of 81 passes S1+S2 |
 | `E0006-ceiling-gate` | ceiling gate on that configuration | **CEILING-FAIL** — held-out CI lower bound 0.0000 |
@@ -328,6 +328,36 @@ the terse system prompt the model emits an **empty** `<think></think>` and
 answers in 11 tokens, so a token budget cannot matter to it — the hosted
 `qwen3.6-27b` reasons under the identical prompt. See §4.10.
 
+### 4.10 Local Qwen backend (E0009)
+
+`mlx-community/Qwen3-1.7B-4bit` via MLX. Size chosen from measured hardware —
+8 GB unified memory, ~9 GB free disk — not from what would look best. Fourth
+engine behind the unchanged M2 contract.
+
+| max_tokens | accuracy | starved | mean total_tokens | s/call |
+|---|---|---|---|---|
+| 300 | 0.000 | 83% | 316 | 10.1 |
+| 700 | 0.500 | 33% | 577 | 21.8 |
+| 1400 | 0.500 | 33% | 810 | 28.5 |
+| 2800 | 0.667 | 17% | 1180 | 47.7 |
+
+The frozen mode-selection rule qualifies it: LOW=1400, HIGH=2800, gap 0.167.
+**n=6 items**, so each accuracy carries roughly ±0.2 — this is a backend
+feasibility measurement, not a competence claim.
+
+What it establishes: the M2 seam holds for an engine with completely different
+runtime characteristics — no network, no per-day token quota, and throughput
+bounded by local memory bandwidth (10–48 s/call) rather than someone's rate
+limiter. The Governor was not modified.
+
+One measured oddity worth recording: under a terse "reply with only the integer"
+system prompt with `enable_thinking=True`, this model emits an **empty**
+`<think></think>` and answers in 11 tokens. The hosted `qwen3.6-27b` reasons
+under the identical prompt. A reasoning-budget experiment on a model that has
+been talked out of reasoning would be vacuous, and that is a per-engine
+property worth checking before designing around one.
+
+
 ## 5. Budgets, models, runtime
 
 - Engine: `qwen/qwen3.6-27b` via Groq, `temperature=0`, budget lever
@@ -414,21 +444,50 @@ weak-model result.
 7. **Env 6's Governor is validated; Phase 4's is not yet.** The architecture
    claim rests on Env 6 until E0002 reports.
 
+## 11. Generalization results
+
+| axis | result |
+|---|---|
+| second task family (continuous reward) | interfaces unchanged; **found 3 hardcoding defects** |
+| second environment (Env 6) for Ares | trace-identical, frozen values at 1e-12 |
+| fourth engine behind M2 | local MLX backend, Governor unmodified |
+| MCP harness vs test harness | proven identical execution |
+
+## 12. Trap checks
+
+Twelve executable checks; a red one forces `verdict=BLOCKED` in the ledger and
+missing evidence is red, not silent: greedy collapse, constant schedule, oracle
+leakage, answered-vs-utility, token accounting, execution-vs-scoring,
+progress-as-cognition, MC convergence, invariant-as-intelligence,
+frozen-before-heldout, **split leakage**, secret scan.
+
+They fired for real four times this session: on the degenerate smoke fixture
+(three at once), and `frozen_before_heldout` on its own self-comparison bug.
+
 ## 9. Reproducibility
 
+See `REPRODUCE.md`. Everything below runs with **no API key**:
+
 ```bash
-python -m pytest tests/ -q                 # 191 tests, includes frozen references
-
-export Groq=...                            # or OR_KEY for OpenRouter
-python scripts/p4_curve.py --engines qwen --n 40 --exp E0001-qwen
-python scripts/p4_main.py   --engine qwen --low 700 --high 2800 \
-                            --cal-items 160 --test-items 260
-python scripts/p4_ablate.py --engine qwen --low 700 --high 2800 --budget 5412
-python scripts/p4_robust.py --engine qwen --low 700 --high 2800 --budget 5412
-
-python -c "from governor.harness.ledger import index; \
-           [print(r) for r in index()]"    # every experiment + whether it verifies
+make test      # full regression suite
+make smoke     # end-to-end: both families, Ares, MCP, traps, ledger
+make verify    # re-verify every recorded experiment from disk
+make mcp       # MCP server over real stdio JSON-RPC
 ```
+
+Needing credentials:
+
+```bash
+export Groq=...
+make collect   # fills evaluation items as the per-day bucket refills
+make gate      # Phase 4R held-out ceiling gate
+make governor  # refuses unless the gate recorded CEILING-PASS
+```
+
+**The single highest-value next experiment**: collect ~100 Phase 4R
+evaluation items (about one day of Groq quota) and rerun `make gate`.
+That is what separates "the effect shrank from selection to held-out"
+from "24 items could not tell".
 
 Collection is resumable: responses are cached in `results/p4_cache_*.sqlite`,
 and a re-run fetches only what is missing. **Commit before starting a long run**
