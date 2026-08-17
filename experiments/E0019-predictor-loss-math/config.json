@@ -48,10 +48,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "a99dff4afabaa84f2633ea1cdf266032fdd7f965",
-  "git_dirty": [
-    "scripts/predictor_loss.py"
-  ],
-  "nonce": "b303c9af410a47429655486f0de096a7",
-  "started_utc": "2026-08-17T20:50:56Z"
+  "git_commit": "4f5e1ca8a02dafc6ba5235d37a282708e3303a0c",
+  "git_dirty": [],
+  "nonce": "c079115598b54874a39f714ea8cc47eb",
+  "started_utc": "2026-08-17T20:51:15Z"
 }

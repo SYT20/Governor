@@ -1,15 +1,15 @@
 # E0019-predictor-loss-math — Predictor loss and calibration, no probe (math)
 
-**Verdict: FAIL**
+**Verdict: PASS**
 
 | field | value |
 |---|---|
 | model | `s1-32B via simplescaling/results` |
-| commit | `a99dff4afabaa84f2633ea1cdf266032fdd7f965` |
-| budget | `{"contract": "SOFT_EXPECTED_BUDGET", "reported_at": 600.2057, "charged": "simplescaling/s1-32B tokenizer (exact)"}` |
+| commit | `4f5e1ca8a02dafc6ba5235d37a282708e3303a0c` |
+| budget | `{"contract": "SOFT_EXPECTED_BUDGET", "reported_at": 845.7475505084745, "charged": "simplescaling/s1-32B tokenizer (exact)"}` |
 | seeds | `{"split": "doc_id parity", "bootstrap": 0}` |
 | split | `{"calibration_items": 250, "evaluation_items": 250}` |
-| raw rows | 28 (`raw.jsonl`, sha256 `5a09bc5ee2b1b194`) |
+| raw rows | 28 (`raw.jsonl`, sha256 `c5687a6b7560972b`) |
 | wall | 0.1 s |
 
 ## Metric
@@ -34,14 +34,14 @@ mean correctness at matched expected tokens; variants differ ONLY in the correct
     "logistic+sigmoid": 0.06937631194715257,
     "logistic+isotonic": 0.02957908757236396
   },
-  "primary_mean": 0.01852908576231339,
-  "primary_lo": -0.004756770202844495,
-  "primary_hi": 0.04240067864351982,
-  "secondary_mean": 0.031839999999999986,
-  "secondary_lo": 0.0,
-  "secondary_hi": 0.064,
-  "ceiling": 0.07049103830653236,
-  "verdict": "FAIL"
+  "primary_mean": 0.028175873024499625,
+  "primary_lo": 0.0032500402145681445,
+  "primary_hi": 0.052476586178732826,
+  "secondary_mean": 0.03641599999999998,
+  "secondary_lo": -0.002099999999999996,
+  "secondary_hi": 0.08400000000000007,
+  "ceiling": 0.16379740226795358,
+  "verdict": "PASS"
 }
 ```
 
