@@ -20,6 +20,7 @@ from governor.phase4.collect import (  # noqa: E402
     DailyQuotaExhausted, RateLimited, ResponseCache, api_key, collect,
 )
 from governor.phase4.config import CAL_POOL_SEED, ENGINES  # noqa: E402
+from governor.phase4.split import filter_evaluation, freeze  # noqa: E402
 from governor.phase4.tasks import make_pool  # noqa: E402
 
 WAIT_S = 900
@@ -31,10 +32,18 @@ def main() -> int:
     pool = make_pool(CAL_POOL_SEED, 400)
     key = api_key(cfg["provider"])
     for attempt in range(40):
-        need = [i for i in pool if cache.get(i, 700) and not cache.get(i, 300)]
-        have = sum(1 for i in pool if cache.get(i, 300) and cache.get(i, 700))
-        print(f"[{time.strftime('%H:%M:%S')}] {have} items at both budgets, "
+        # EVALUATION IDS ONLY, by construction. The previous version selected
+        # "has 700, lacks 300", which happened to be the evaluation half only
+        # because every selection item already had 300 -- incidental, not
+        # enforced. Scarce quota must not be spent enlarging the set a
+        # configuration was chosen on.
+        ev = filter_evaluation(pool)
+        need = [i for i in ev if cache.get(i, 700) and not cache.get(i, 300)]
+        have = sum(1 for i in ev if cache.get(i, 300) and cache.get(i, 700))
+        print(f"[{time.strftime('%H:%M:%S')}] {have}/24 EVALUATION items ready, "
               f"{len(need)} still need LOW=300", flush=True)
+        if have >= 24 and not need:
+            print("ENOUGH FOR THE GATE", flush=True)
         if not need:
             print("COLLECTION COMPLETE", flush=True)
             return 0
