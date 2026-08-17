@@ -110,9 +110,24 @@ def test_underspend_returns_slack_and_buys_extra_upgrades(env):
 def test_observation_carries_no_hidden_axis(env):
     s = env.reset(0)
     o = env.observe(s)
-    assert set(o) == {"t", "prompt", "features", "items_left"}
+    assert set(o) == {"t", "prompt", "features", "items_left", "history"}
     for k in ("n_ops", "scale", "framing", "answer"):
         assert k not in o and k not in o["features"]
+
+
+def test_history_never_reveals_correctness(env):
+    """The controller may know what its earlier calls COST and whether they
+    finished. It may not know whether they were right -- nothing reveals that at
+    run time, and a state that carries it is an oracle feed."""
+    s = env.reset(0)
+    for _ in range(3):
+        s, _ = env.step(s, DEEP if s.t == 0 else CHEAP)
+    hist = env.observe(s)["history"]
+    assert len(hist) == 3
+    for h in hist:
+        assert set(h) == {"mode", "total_tokens", "finish_reason", "answered",
+                          "starved"}
+        assert "correct" not in h and "parsed" not in h
 
 
 def test_step_rejects_a_charge_above_the_cap(env, tmp_path):

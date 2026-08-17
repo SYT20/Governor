@@ -103,6 +103,21 @@ def _run(env: P4Env, pol: Policy, ep: int) -> float:
     return run_episode(env, pol, ep, env.budget).utility
 
 
+def myopic(env: P4Env, vp: ValuePredictor, thr: float = 0.0) -> Policy:
+    """Spend whenever the predicted gain clears a FIXED threshold.
+
+    The ablation that matters most. In Env 6 exactly this rule collapsed into
+    greedy: predicted gain was positive for both cue values, so `q > 0` fired on
+    every item and the budget simply truncated. If the DP does no better than
+    this here, the dynamic program is decoration and should be deleted.
+    """
+    def pol(o, b):
+        if not env.feasible(DEEP, b, o["items_left"]):
+            return CHEAP
+        return DEEP if vp.predict_one(o["features"]) > thr else CHEAP
+    return pol
+
+
 # -- the Governor ---------------------------------------------------------------
 
 def governor(env: P4Env, vp: ValuePredictor, dp: OpportunityCostDP,
@@ -124,4 +139,25 @@ def governor(env: P4Env, vp: ValuePredictor, dp: OpportunityCostDP,
                           "thr": round(thr, 5), "mode": mode,
                           "reason": "q>=thr" if mode == DEEP else "reserve"})
         return mode
+    return pol
+
+
+def governor_state(env: P4Env, sp, dp: OpportunityCostDP, components,
+                   ens=None) -> Policy:
+    """The Governor over a composed cognitive state (Step 9 ablation).
+
+    Identical decision rule; only the predictor's input changes. Keeping the
+    rule fixed is what makes the ablation about the STATE rather than about two
+    different controllers.
+    """
+    from governor.phase4.graft import state_features
+
+    def pol(o, b):
+        m = o["items_left"]
+        k = affordable_upgrades(env, b, m)
+        if k <= 0 or not env.feasible(DEEP, b, m):
+            return CHEAP
+        sd = ens.spread(o["features"]) if ens else 0.0
+        q = sp.predict_one(state_features(env, o, b, components, sd))
+        return DEEP if q >= dp.threshold(m, k) else CHEAP
     return pol

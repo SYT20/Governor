@@ -78,16 +78,27 @@ class P4Env:
         return P4State(t=0, correct=0, items=self.episodes[ep], log=[])
 
     def observe(self, s: P4State) -> dict:
-        """Everything the policy may see. TEXT ONLY plus position bookkeeping.
+        """Everything the policy may see.
 
         `n_ops`, `scale` and `framing` exist on the Item and are deliberately
         not here. The prompt is here because a deployed system has it.
+
+        `history` carries what the controller could actually know about its own
+        earlier calls: which mode it chose, how many tokens that cost, whether
+        the call finished, and whether anything came back. It does NOT carry
+        `correct` -- nothing reveals correctness at run time, and a controller
+        that reads it is reading the future. That single omission is the
+        difference between a cognitive state and an oracle feed.
         """
+        hist = [{"mode": c["mode"], "total_tokens": c["total_tokens"],
+                 "finish_reason": c["finish_reason"], "answered": c["answered"],
+                 "starved": c["starved"]} for c in s.log]
         if s.t >= self.n_decisions:
-            return {"t": s.t, "prompt": "", "features": {}, "items_left": 0}
+            return {"t": s.t, "prompt": "", "features": {}, "items_left": 0,
+                    "history": hist}
         it = s.items[s.t]
         return {"t": s.t, "prompt": it.prompt, "features": features(it.prompt),
-                "items_left": self.n_decisions - s.t}
+                "items_left": self.n_decisions - s.t, "history": hist}
 
     def step(self, s: P4State, mode: str):
         it = s.items[s.t]
