@@ -271,6 +271,63 @@ identical configuration** — same `n=6, LOW=300, HIGH=700, B=2868`, same
 40 items, still fail S2 at 0.28 with ceilings of exactly 0.0000. The leakage had
 **zero effect on the outcome**, shown by execution rather than argued.
 
+### 4.9 The stack, independently validated
+
+These do not depend on any task family passing a gate, and all are tested.
+
+**Ares** (`execute(action, state, budget) -> observation, utility, consumed,
+state`). Budget checked *before* the call; a refused action does not advance
+state; a loop asking for something unaffordable fails loudly rather than
+silently substituting the cheap mode. Proven **trace-identical** to the frozen
+`run_episode` on Env 6 and both Phase 4 families — identical actions, costs,
+spend and utility — and Env 6's frozen reference utilities (0.6896875,
+0.813125) are reproducible through the Ares path at 1e-12. Independence from the
+controller is checked against the **import graph**, not the source text.
+
+**MCP harness** — 12 tools over dependency-free JSON-RPC stdio:
+`governor_start`, `governor_next`, `ares_execute`, `governor_status`,
+`budget_status`, `m2_reason`, `graft_get_state`, `graft_update_state`,
+`experiment_run`, `experiment_compare`, `experiment_index`, `gate_status`.
+A test asserts the harness reproduces `run_episode` exactly, so the plugin is
+not a second control loop that can drift. `graft_update_state` writes to an
+isolated scratch dict the allocator never reads, and a test proves a written
+hint cannot change a decision — Env 5 manufactured a +0.035 "cognitive" effect
+from a progress counter, and a writable memory the policy consumed would let
+that recur through a tool call. Every invocation is recorded with tool, args,
+latency, commit and error, **including calls that raised**. The gatekeeper
+applies: `governor_start("phase4r")` raises.
+
+**Second task family** — constraint puzzles: different difficulty cue
+(constraint count and type, not numeral magnitude), different encoding
+(structural counts), different reward (**fraction of seats correct**, so gains
+are continuous rather than in {-1,0,+1}). Every puzzle is re-solved from its
+prompt text at test time rather than trusted from the generator, and a test
+asserts that puzzles sharing a feature vector can have different answers, so the
+observable encoding is not a channel for the solution.
+
+**This family found three real defects** that no amount of review would have:
+`ValuePredictor` and `P4Env` imported family one's feature extractor directly,
+and `calibrate()` iterated a hardcoded arithmetic feature tuple. All three
+worked perfectly and all three were silently arithmetic-only. `Family` is now a
+first-class object and the generalization test passes by changing **one
+argument**.
+
+**Graft** — the cognitive-state ablation harness exists and is unit-tested
+(components: text / progress / budget / history / uncertainty, with a bootstrap
+ensemble for the last). Its *prediction is recorded in the module docstring
+before any run*: only text should matter to the predictor, because an item's
+gain does not depend on where in the episode it appears or on what earlier calls
+cost. **The scientific ablation was not run**, because "keep a component only if
+held-out utility improves" needs a family with validated held-out headroom, and
+neither family has one. Running it on synthetic data would manufacture an answer.
+
+**Local Qwen backend** (`Qwen3-1.7B-4bit` via MLX; 1.7B chosen from measured
+hardware — 8 GB unified memory, ~9 GB free disk — not from what would look
+best). Fourth engine behind the unchanged M2 contract. Measured finding: under
+the terse system prompt the model emits an **empty** `<think></think>` and
+answers in 11 tokens, so a token budget cannot matter to it — the hosted
+`qwen3.6-27b` reasons under the identical prompt. See §4.10.
+
 ## 5. Budgets, models, runtime
 
 - Engine: `qwen/qwen3.6-27b` via Groq, `temperature=0`, budget lever
