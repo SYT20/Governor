@@ -10,7 +10,8 @@ from __future__ import annotations
 import json, os, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-os.environ.setdefault("OR_KEY", "OPENROUTER_API_KEY_REDACTED")
+if not os.environ.get("OR_KEY"):
+    raise SystemExit("set OR_KEY in the environment; never hard-code credentials")
 from governor.gate.llm_m2 import LLMM2
 
 EASY = [(a, b) for a, b in [(23, 14), (31, 12), (42, 11), (25, 13), (34, 21)]]
