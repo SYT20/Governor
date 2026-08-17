@@ -28,9 +28,16 @@ DEFAULT_MODEL = "mlx-community/Qwen3-1.7B-4bit"
 class QwenLocalM2:
     name = "qwen_local"
 
-    def __init__(self, model: str = DEFAULT_MODEL, system_prompt: str | None = None):
+    def __init__(self, model: str = DEFAULT_MODEL, system_prompt: str | None = None,
+                 enable_thinking: bool | None = None):
         self.model_id = model
         self.system_prompt = system_prompt
+        # Qwen3 gates its reasoning trace on a chat-template flag. Measured:
+        # with the standard terse system prompt the 1.7B emits an EMPTY
+        # <think></think> and answers in 11 tokens, so a token budget cannot
+        # matter to it. Recording both settings is the honest way to report
+        # that, rather than picking whichever produces a curve.
+        self.enable_thinking = enable_thinking
         self._model: Any = None
         self._tok: Any = None
 
@@ -49,8 +56,14 @@ class QwenLocalM2:
             if self.system_prompt:
                 msgs.append({"role": "system", "content": self.system_prompt})
             msgs.append({"role": "user", "content": state["prompt"]})
-            prompt = self._tok.apply_chat_template(
-                msgs, add_generation_prompt=True, tokenize=False)
+            kw = ({} if self.enable_thinking is None
+                  else {"enable_thinking": self.enable_thinking})
+            try:
+                prompt = self._tok.apply_chat_template(
+                    msgs, add_generation_prompt=True, tokenize=False, **kw)
+            except TypeError:
+                prompt = self._tok.apply_chat_template(
+                    msgs, add_generation_prompt=True, tokenize=False)
             n_prompt = len(self._tok.encode(prompt))
             text = generate(self._model, self._tok, prompt=prompt,
                             max_tokens=int(reasoning_budget), verbose=False,

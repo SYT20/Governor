@@ -30,10 +30,16 @@ def main() -> int:
     ap.add_argument("--model", default=DEFAULT_MODEL)
     ap.add_argument("--n", type=int, default=12)
     ap.add_argument("--exp", default="E0009-qwen-local")
+    ap.add_argument("--think", action="store_true",
+                    help="permit a reasoning trace instead of the terse prompt")
     a = ap.parse_args()
 
     items = filter_selection(make_pool(CAL_POOL_SEED, 400))[:a.n]
-    m2 = QwenLocalM2(a.model, system_prompt=SYSTEM_PROMPT)
+    sysp = (SYSTEM_PROMPT if not a.think else
+            "Solve the problem. Think step by step, then give the final "
+            "integer on its own line.")
+    m2 = QwenLocalM2(a.model, system_prompt=sysp,
+                     enable_thinking=True if a.think else None)
     print("=" * 78)
     print(f"E0009  LOCAL QWEN CURVE — {a.model}")
     print("=" * 78)
@@ -50,7 +56,8 @@ def main() -> int:
         split={"selection_items": len(items)},
         metric="mean exact-integer correctness at each max_tokens budget, on the "
                "same calibration items as E0001",
-        params={"runtime": "mlx", "grid": GRID},
+        params={"runtime": "mlx", "grid": GRID, "thinking": bool(a.think),
+                "system_prompt": sysp},
         notes="Backend experiment. The Governor is unchanged.")
     run = ExperimentRun(spec, overwrite=True)
 

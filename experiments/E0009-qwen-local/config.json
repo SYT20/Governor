@@ -1,0 +1,43 @@
+{
+  "exp_id": "E0009-qwen-local",
+  "title": "Local Qwen backend reasoning curve (MLX)",
+  "model": "mlx-community/Qwen3-1.7B-4bit",
+  "budget": {
+    "grid_max_tokens": [
+      300,
+      700,
+      1400,
+      2800
+    ],
+    "charged": "completion tokens"
+  },
+  "seeds": {
+    "pool": 1000
+  },
+  "split": {
+    "selection_items": 8
+  },
+  "metric": "mean exact-integer correctness at each max_tokens budget, on the same calibration items as E0001",
+  "params": {
+    "runtime": "mlx",
+    "grid": [
+      300,
+      700,
+      1400,
+      2800
+    ]
+  },
+  "notes": "Backend experiment. The Governor is unchanged.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "da0e1a869e1690c6b8e78bf1ae56f8880506e514",
+  "git_dirty": [],
+  "nonce": "727e67957dc3465cb399d31911fce86c",
+  "started_utc": "2026-08-17T12:32:14Z"
+}
