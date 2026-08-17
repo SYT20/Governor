@@ -47,6 +47,7 @@ class Calibration:
     gains: np.ndarray
     cal_utilities: dict
     base: str
+    predictor_kind: str = "auto"
 
 
 def _feature_values(env: P4Env, eps: Sequence[int], name: str) -> np.ndarray:
@@ -56,7 +57,7 @@ def _feature_values(env: P4Env, eps: Sequence[int], name: str) -> np.ndarray:
 
 
 def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
-              predictor_kind: str = "gbt",
+              predictor_kind: str = "auto",
               feature_names: Sequence[str] = FEATURE_NAMES) -> Calibration:
     scheds = [s for k in range(env.n_decisions + 1)
               for s in itertools.combinations(range(env.n_decisions), k)]
@@ -77,8 +78,22 @@ def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
                 best_h, best_hu = (f, thr), u
 
     gains = np.array([env.realised_gain(it) for it in pool], float)
-    vp = ValuePredictor(kind=predictor_kind)
-    rep = vp.fit(pool, gains, feature_names=feature_names)
+    if predictor_kind == "auto":
+        # Model class chosen by CROSS-VALIDATED R2 ON CALIBRATION. A 40-item
+        # smoke test had gbt at cv_R2 = -0.062 while a single observable feature
+        # (sum_numeral_log10) correlated +0.718 with the gain -- the boosted
+        # trees were overfitting a tiny sample, not reporting an absent signal.
+        # Selecting the class by calibration CV is the standard fix and touches
+        # no test data; the ablation reports every class regardless.
+        cands = {}
+        for k in ("gbt", "ridge", "mean"):
+            p = ValuePredictor(kind=k)
+            cands[k] = (p, p.fit(pool, gains, feature_names=feature_names))
+        predictor_kind = max(cands, key=lambda k: cands[k][1].cv_r2)
+        vp, rep = cands[predictor_kind]
+    else:
+        vp = ValuePredictor(kind=predictor_kind)
+        rep = vp.fit(pool, gains, feature_names=feature_names)
     dp = OpportunityCostDP(vp.q_samples, n_items=env.n_decisions,
                            max_k=env.n_decisions)
 
@@ -91,7 +106,8 @@ def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
         best_schedule=best_s, schedule_utilities={str(k): v for k, v in sched_u.items()},
         heuristic_feature=best_h[0], heuristic_threshold=best_h[1],
         heuristic_utility=best_hu, predictor=vp, dp=dp, report=rep, gains=gains,
-        cal_utilities=cal_u, base=max(cal_u, key=cal_u.get))
+        cal_utilities=cal_u, base=max(cal_u, key=cal_u.get),
+        predictor_kind=predictor_kind)
 
 
 def evaluate_heldout(env: P4Env, cal: Calibration,

@@ -159,7 +159,9 @@ def main() -> int:
           f"pos={float((g > 0).mean()):.3f} zero={float((g == 0).mean()):.3f} "
           f"neg={float((g < 0).mean()):.3f}")
     r = cal.report
-    print(f"    value predictor     : n={r.n} cv_R2={r.cv_r2:+.4f} "
+    print(f"    value predictor     : {cal.predictor_kind} (auto-selected on "
+          f"calibration CV)")
+    print(f"                          n={r.n} cv_R2={r.cv_r2:+.4f} "
           f"MAE={r.cv_mae:.4f} (mean-model {r.baseline_mae:.4f}) "
           f"spread={r.spread:.4f}")
     print(f"    DP thresholds       : {json.dumps(cal.dp.table())}")
