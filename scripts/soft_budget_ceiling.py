@@ -50,16 +50,30 @@ TOKEN_SOURCE = "simplescaling/s1-32B tokenizer (exact)"
 
 
 def envelope(points):
-    """Upper concave envelope of (cost, utility) points, as a lookup function."""
+    """Upper concave envelope of (cost, utility) points, as a lookup function.
+
+    The first version popped a point whenever the incoming one had utility at
+    least as high. Processing in increasing cost order, that removed EVERY
+    cheaper point on a monotone-improving curve and left a one-point hull, which
+    showed up as a best-fixed utility that DECREASED as the budget grew --
+    impossible for an envelope, and the reason to read the table rather than the
+    verdict. A dearer point can never dominate a cheaper one; only the reverse.
+    """
     pts = sorted(points)
+    mono, best_u = [], -float("inf")
+    for c, u in pts:                      # keep only points no cheaper point beats
+        if u > best_u + 1e-12:
+            mono.append((c, u))
+            best_u = u
+    if len(mono) == 1:
+        c0, u0 = mono[0]
+        return (lambda B: u0 if B >= c0 else float("nan")), mono
     hull = []
-    for c, u in pts:
-        while hull and u >= hull[-1][1]:
-            hull.pop()
+    for c, u in mono:
         while len(hull) >= 2:
             (c0, u0), (c1, u1) = hull[-2], hull[-1]
             if (u1 - u0) * (c - c0) <= (u - u0) * (c1 - c0):
-                hull.pop()
+                hull.pop()               # p1 lies below the chord p0 -> p_new
             else:
                 break
         hull.append((c, u))

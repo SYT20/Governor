@@ -1,0 +1,32 @@
+{
+  "exp_id": "E0016-soft-budget-ceiling",
+  "title": "Soft expected-budget ceiling on external s1 data",
+  "verdict": "SOFT-BUDGET-NO-HEADROOM",
+  "summary": {
+    "verdict": "SOFT-BUDGET-NO-HEADROOM",
+    "benchmarks_with_headroom": [],
+    "max_ceiling_math": NaN,
+    "max_ceiling_gpqa": NaN,
+    "at_tokens_math": 521.918,
+    "at_tokens_gpqa": 1251.7121212121212
+  },
+  "git_commit": "d5bf2c4013c8509f66ecd1de99ba17f44292ca1d",
+  "config_hash": "33ee29028920f849b3c0e6bca0f36b263fc9d2eb2ae6fec181a4633daf155e56",
+  "nonce": "c5e29121d3a345919b0f8565c2155b23",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "9999186750798de029a238295ef515c4d44eae2fe9c16caa78e50452516033ab",
+  "raw_rows": 50,
+  "wall_s": 1.7,
+  "finished_utc": "2026-08-17T20:20:56Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    }
+  },
+  "red_traps": []
+}

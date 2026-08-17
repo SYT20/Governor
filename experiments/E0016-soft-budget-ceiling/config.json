@@ -1,0 +1,45 @@
+{
+  "exp_id": "E0016-soft-budget-ceiling",
+  "title": "Soft expected-budget ceiling on external s1 data",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "definition": "E[sum actual generation tokens] <= B",
+    "levels": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000,
+      32000
+    ],
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "n/a - ceiling screen over all items"
+  },
+  "split": {
+    "math": 500,
+    "gpqa": 198
+  },
+  "metric": "U(multiple-choice-knapsack oracle) - U(best fixed policy, randomised between adjacent levels to match the expected budget exactly), both at identical E[tokens]",
+  "params": {
+    "epsilon": 0.02,
+    "baseline": "upper concave envelope of fixed levels",
+    "oracle": "Lagrangian sweep over the multiple-choice knapsack"
+  },
+  "notes": "No API calls. Runs BEFORE any controller, per the project rule that the ceiling is measured first.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "d5bf2c4013c8509f66ecd1de99ba17f44292ca1d",
+  "git_dirty": [],
+  "nonce": "c5e29121d3a345919b0f8565c2155b23",
+  "started_utc": "2026-08-17T20:20:54Z"
+}
