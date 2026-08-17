@@ -124,6 +124,36 @@ prose**.
 
 ---
 
+## 3a. Environment 6 — the first environment to pass the frozen gate
+
+Per-item difficulty with a noisy observable cue. 4 items/episode, each hard with
+p=0.5 INDEPENDENTLY so position carries no information; cue flipped with p=0.15
+is observable, true difficulty is not. H costs 0, M2 costs 1, budget = 2 deep
+calls. Designed so no constant temporal schedule can track difficulty.
+
+    GATE 3   M1 = oracle - constant  +0.0460 [+0.0332, +0.0588]   PASS
+    GATE 5   held-out seed 20260817, 800 episodes
+               H 0.6897 | constant 0.7887 | greedy 0.7884
+               cue 0.8131 | GOVERNOR 0.8247 | oracle 0.8387
+             Governor - constant +0.0359 [+0.0262, +0.0457]
+             Governor - greedy   +0.0362 [+0.0275, +0.0450]
+             Governor - cue      +0.0116 [+0.0078, +0.0153]
+             72% of oracle headroom; 2.00 deep calls of budget 2
+
+**Robustness: 31/36 cells pass**, not "robust across all budgets and noise".
+Five cells are INCONCLUSIVE — positive point estimates (+0.0055 to +0.0125) with
+CIs spanning zero at n=500. The advantage decays monotonically as the cue
+degrades (9/9, 9/9, 7/9, 6/9 at noise 0.10/0.15/0.25/0.35), which is what the
+mechanism predicts; a controller still winning at 35% noise would be suspicious.
+
+**Where the advantage comes from — ablation.** A hand-coded allocator using the
+SAME opportunity-cost rule but analytic gains scores identically to the learned
+Governor: +0.0000 on all three seeds, episode by episode. So the +0.0116 over
+the cue heuristic is produced by the ARCHITECTURE — comparing each item against
+the expected best remaining slot — and not by the model class. The learner's
+contribution is that it recovers that policy from data without being given the
+generative model, which is what makes the same interface portable to an LLM M2.
+
 ## 4. Where the project stands
 
 **Environment 5** (two resources — `B_tool` for acquisition, `B_compute` for
