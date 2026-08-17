@@ -1,0 +1,74 @@
+[
+  {
+    "tag": "easy",
+    "budget": 200,
+    "answered": 0,
+    "correct": 0,
+    "n": 5,
+    "utility": 0.0,
+    "mean_reasoning_tokens": 135.2
+  },
+  {
+    "tag": "hard",
+    "budget": 200,
+    "answered": 0,
+    "correct": 0,
+    "n": 5,
+    "utility": 0.0,
+    "mean_reasoning_tokens": 135.4
+  },
+  {
+    "tag": "easy",
+    "budget": 500,
+    "answered": 5,
+    "correct": 5,
+    "n": 5,
+    "utility": 1.0,
+    "mean_reasoning_tokens": 197.0
+  },
+  {
+    "tag": "hard",
+    "budget": 500,
+    "answered": 1,
+    "correct": 1,
+    "n": 5,
+    "utility": 0.2,
+    "mean_reasoning_tokens": 286.4
+  },
+  {
+    "tag": "easy",
+    "budget": 900,
+    "answered": 5,
+    "correct": 5,
+    "n": 5,
+    "utility": 1.0,
+    "mean_reasoning_tokens": 224.2
+  },
+  {
+    "tag": "hard",
+    "budget": 900,
+    "answered": 4,
+    "correct": 4,
+    "n": 5,
+    "utility": 0.8,
+    "mean_reasoning_tokens": 422.6
+  },
+  {
+    "tag": "easy",
+    "budget": 1500,
+    "answered": 5,
+    "correct": 5,
+    "n": 5,
+    "utility": 1.0,
+    "mean_reasoning_tokens": 195.4
+  },
+  {
+    "tag": "hard",
+    "budget": 1500,
+    "answered": 5,
+    "correct": 5,
+    "n": 5,
+    "utility": 1.0,
+    "mean_reasoning_tokens": 421.2
+  }
+]
