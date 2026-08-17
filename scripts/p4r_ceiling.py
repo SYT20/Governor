@@ -29,12 +29,15 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from governor.harness.ledger import ExperimentRun, ExperimentSpec  # noqa: E402
-from governor.harness.traps import secret_scan  # noqa: E402
+from governor.harness.traps import secret_scan, split_leakage  # noqa: E402
 from governor.phase4.collect import ResponseCache, outcome  # noqa: E402
 from governor.phase4.config import CAL_POOL_SEED, ENGINES, PROMPT_CAP  # noqa: E402
 from governor.phase4.env import DEEP, P4Env, make_episodes  # noqa: E402
 from governor.phase4.evaluate import constant, execute  # noqa: E402
 from governor.phase4.policies import all_cheap, clairvoyant, fixed_schedule, greedy  # noqa: E402
+from governor.phase4.split import (  # noqa: E402
+    SPLIT_FILE, filter_evaluation, filter_selection, freeze, verify_disjoint,
+)
 from governor.phase4.tasks import make_pool  # noqa: E402
 
 CEILING_GATE = 0.02          # frozen project materiality threshold
@@ -79,18 +82,21 @@ def main() -> int:
     ap.add_argument("--high", type=int, default=700)
     ap.add_argument("--budget", type=int, default=2868)
     ap.add_argument("--boot", type=int, default=400)
-    ap.add_argument("--selection-n", type=int, default=40,
-                    help="items S1/S2 were computed on; the rest are held out")
     ap.add_argument("--exp", default="E0006-ceiling-gate")
     a = ap.parse_args()
 
     cfg = ENGINES[a.engine]
     cache = ResponseCache(Path(cfg["cache"]), model=cfg["model"],
                           provider=cfg["provider"])
+    split = freeze()
+    ok_split, split_detail = verify_disjoint()
     pool = [i for i in make_pool(CAL_POOL_SEED, 400)
             if cache.get(i, a.low) and cache.get(i, a.high)]
-    in_sel = pool[:a.selection_n]
-    held = pool[a.selection_n:]
+    # The split comes from the FROZEN id list, not from a slice of whatever
+    # happens to be cached: a slice moves as collection proceeds, so the
+    # "held-out" set would silently change identity between runs.
+    in_sel = filter_selection(pool)
+    held = filter_evaluation(pool)
 
     print("=" * 84)
     print(f"E0006  PHASE 4R CEILING GATE — {cfg['model']}")
@@ -99,8 +105,12 @@ def main() -> int:
           f"budget={a.budget}")
     print(f"  gate:   U(oracle) - U(greedy) > {CEILING_GATE}, 95% CI excluding "
           f"{CEILING_GATE}, on HELD-OUT items")
+    print(f"  split:  {SPLIT_FILE} — {split_detail}")
     print(f"  items:  {len(pool)} cached  ->  {len(in_sel)} in-selection, "
-          f"{len(held)} held out")
+          f"{len(held)} held out (by frozen id, not by slice)")
+    if not ok_split:
+        print("  split is not disjoint; refusing to run the gate.")
+        return 2
 
     gains = np.array([outcome(cache, i, a.high)["correct"]
                       - outcome(cache, i, a.low)["correct"] for i in pool], float)
@@ -159,6 +169,7 @@ def main() -> int:
                 "n_items": a.n_items, "charged": "usage.total_tokens"},
         seeds={"pool": CAL_POOL_SEED, "grouping": 7, "bootstrap": 0},
         split={"in_selection_items": len(in_sel), "held_out_items": len(held),
+               "frozen_split_sha256": split["sha256"],
                "independent_unit": "ITEM (episodes are groupings of a shared "
                                    "pool, so an episode-level CI would be "
                                    "anticonservative)"},
@@ -177,7 +188,11 @@ def main() -> int:
                      "in_selection": results.get("IN-SELECTION"),
                      "held_out": ho},
                  metrics={"results": results},
-                 traps={"secret_scan": secret_scan()}, verdict=verdict)
+                 traps={"secret_scan": secret_scan(),
+                        "split_leakage": split_leakage(
+                            [i.item_id for i in in_sel],
+                            [i.item_id for i in held])},
+                 verdict=verdict)
     print(f"\n  recorded: experiments/{a.exp}/")
     return 0 if verdict == "CEILING-PASS" else 1
 

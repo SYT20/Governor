@@ -1,0 +1,64 @@
+{
+  "exp_id": "E0007-structure-clean",
+  "title": "Phase 4R structural search: which configuration can pose an allocation problem at all?",
+  "model": "qwen/qwen3.6-27b",
+  "budget": {
+    "swept": "per configuration",
+    "charged": "usage.total_tokens"
+  },
+  "seeds": {
+    "pool": 1000,
+    "grouping": 7
+  },
+  "split": {
+    "note": "calibration items only; the gate re-tests on held-out episodes"
+  },
+  "metric": "S1 = P(X>K) and E[X]/K where X is useful opportunities and K affordable upgrades; S2 = mean actual DEEP cost / cap(DEEP); ceiling = U(oracle) - U(greedy) through the canonical executor",
+  "params": {
+    "n_items": [
+      4,
+      6,
+      8,
+      10
+    ],
+    "mode_pairs": [
+      [
+        300,
+        700
+      ],
+      [
+        300,
+        1400
+      ],
+      [
+        300,
+        2800
+      ],
+      [
+        700,
+        1400
+      ],
+      [
+        700,
+        2800
+      ]
+    ],
+    "S1_p_min": 0.6,
+    "S1_ratio_min": 1.8,
+    "S2_ratio_min": 0.7,
+    "ceiling_gate": 0.02
+  },
+  "notes": "Configuration selected by S1 and S2, both frozen before this ran. The ceiling is reported for every cell, never used to select.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "44c1a46d45a95108e6c4ea91468da6d20d513c88",
+  "git_dirty": [],
+  "nonce": "114b2a5eff044c97a50a50cb2e4cf17f",
+  "started_utc": "2026-08-17T11:29:18Z"
+}

@@ -16,13 +16,14 @@
   },
   "split": {
     "in_selection_items": 40,
-    "held_out_items": 0,
+    "held_out_items": 6,
+    "frozen_split_sha256": "fef2ff3cebdaa4b674ff7bf89ba0ac4df02c5fa701e11cc0d919ab0354425fb4",
     "independent_unit": "ITEM (episodes are groupings of a shared pool, so an episode-level CI would be anticonservative)"
   },
   "metric": "U(clairvoyant optimum) - U(budget-limited greedy) through the canonical executor; 95% CI from a cluster bootstrap over items; PASS iff the CI lower bound exceeds 0.02",
   "params": {
     "ceiling_gate": 0.02,
-    "n_bootstrap": 400
+    "n_bootstrap": 100
   },
   "notes": "No API calls. Configuration chosen by S1+S2 in E0005 before any ceiling was consulted.",
   "runtime": {
@@ -33,8 +34,11 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "bb1c413df1898c1ce5dad1785765f07308aa0af9",
-  "git_dirty": [],
-  "nonce": "3c4c231c6c5845b1abbd8287955638fd",
-  "started_utc": "2026-08-17T11:18:10Z"
+  "git_commit": "44c1a46d45a95108e6c4ea91468da6d20d513c88",
+  "git_dirty": [
+    "scripts/p4r_ceiling.py",
+    "experiments/E0007-structure-clean/"
+  ],
+  "nonce": "f5989a0ef089410fbfb0f65d681fdc6a",
+  "started_utc": "2026-08-17T11:30:01Z"
 }
