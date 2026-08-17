@@ -1,0 +1,45 @@
+{
+  "exp_id": "E0003-pilot",
+  "title": "Phase 4 PILOT (underpowered): is there signal worth eight days of quota?",
+  "model": "qwen/qwen3.6-27b",
+  "budget": {
+    "episode_total_tokens": 5412.0,
+    "low": 700,
+    "high": 2800,
+    "charged": "usage.total_tokens"
+  },
+  "seeds": {
+    "pool": 1000,
+    "split": "index parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "cal_items": 44,
+    "test_items": 44,
+    "disjoint": true,
+    "WARNING": "test items come from the CALIBRATION pool; this is NOT the preregistered held-out split"
+  },
+  "metric": "mean fraction correct per episode; paired difference vs the calibration-frozen best fixed policy, 95% CI from a cluster bootstrap over ITEMS (episodes are not independent here)",
+  "params": {
+    "n_bootstrap": 300,
+    "position_feasibility": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "notes": "PILOT. Underpowered by construction and recorded as such. The preregistered E0002 needs 420 items; Groq allows about 54/day.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "a6c56c2f2998d02f0b545a02c933e54630d47f98",
+  "git_dirty": [],
+  "nonce": "a4ba2006d8674f1fbaa842c4f338f5eb",
+  "started_utc": "2026-08-17T10:58:38Z"
+}

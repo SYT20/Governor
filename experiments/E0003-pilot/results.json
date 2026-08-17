@@ -1,0 +1,70 @@
+{
+  "exp_id": "E0003-pilot",
+  "title": "Phase 4 PILOT (underpowered): is there signal worth eight days of quota?",
+  "verdict": "PILOT",
+  "summary": {
+    "primary_baseline": "greedy",
+    "mean": -0.06234848484848485,
+    "lo": -0.13636363636363646,
+    "hi": 0.0,
+    "beats": false,
+    "loses": false,
+    "governor_U": 0.7272727272727273,
+    "baseline_U": 0.7727272727272727,
+    "oracle_U": 0.7954545454545454,
+    "ceiling_available": 0.02356060606060606,
+    "n_test_items": 44,
+    "WARNING": "PILOT: not the preregistered test, not a Phase 4 result"
+  },
+  "git_commit": "a6c56c2f2998d02f0b545a02c933e54630d47f98",
+  "config_hash": "d500f23ec4ba858a9a3f2613e6cf0b9fb5341f4481dc4f27b56175c6b644199c",
+  "nonce": "a4ba2006d8674f1fbaa842c4f338f5eb",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "fdd770c6124ce2cbb6230ff2bb86c8dc1e7b70ebbeafccede3312b3e6c921966",
+  "raw_rows": 311,
+  "wall_s": 0.2,
+  "finished_utc": "2026-08-17T10:58:38Z",
+  "trap_checks": {
+    "greedy_collapse": {
+      "ok": true,
+      "detail": "mean_delta=-0.045455 calls_identical=False"
+    },
+    "constant_schedule": {
+      "ok": true,
+      "detail": "distinct_decision_patterns=7"
+    },
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "answered_vs_utility": {
+      "ok": true,
+      "detail": "answered=1.0000 utility=0.7273 -> ok"
+    },
+    "token_accounting": {
+      "ok": true,
+      "detail": "charged==used:True over_budget_calls=0"
+    },
+    "execution_vs_scoring": {
+      "ok": true,
+      "detail": "scored_through_canonical_executor=True"
+    },
+    "progress_as_cognition": {
+      "ok": true,
+      "detail": "unjustified_progress_features=[]"
+    },
+    "invariant_as_intelligence": {
+      "ok": true,
+      "detail": "cells_with_constant_decision=4/7"
+    },
+    "frozen_before_heldout": {
+      "ok": true,
+      "detail": "froze=407f8743 heldout=pilot"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
