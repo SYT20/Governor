@@ -3,12 +3,31 @@
 Final report. Every number here is traceable to an experiment directory, a
 commit, and a raw file. Numbers that are not are marked as such.
 
-**Status.** Phase 4 as originally specified is CLOSED: the ceiling available to
-*any* allocator peaked at **+0.046** (E0004), so the held-out test would have
-measured noise. Phase 4R found, from preregistered structural criteria, a
-configuration whose in-selection ceiling is **+0.1055 [+0.0278, +0.1944]** —
-2.5x the gate. The held-out confirmation is collecting. The Env 6 result stands
-throughout. See §4.4–§4.7.
+## VERIFIED vs NOT VERIFIED
+
+**Verified.** The Governor architecture on Environment 6 (U=0.8247, +0.0359
+[+0.0262, +0.0457] over the best constant schedule, 72% of oracle headroom,
+frozen at 1e-12). The whole engineering stack: canonical executor, Ares
+per-action layer proven trace-identical on two environments and two task
+families, frozen M2 contract with four engines behind it, experiment ledger that
+refuses unreproducible results, 12 executable trap checks, a 12-tool MCP harness
+that provably reuses the same control loop, and a second task family with a
+continuous reward running through unchanged interfaces.
+
+**Not verified.** That the Governor helps a *real LLM* allocate a token budget.
+Two task families were built for that question and both were rejected before a
+controller was trained:
+
+- **Phase 4** — the ceiling available to any allocator peaked at **+0.046**
+  across every budget (E0004). Rejected.
+- **Phase 4R** — structurally redesigned, in-selection ceiling **+0.1055
+  [+0.0278, +0.1944]**, but the held-out gate returned **+0.0860 [+0.0000,
+  +0.1667]**. The 95% lower bound is 0.0000, not above 0.02. Rejected (E0006).
+
+No Governor was trained on either. `p4r_governor.py` refuses to run, verified.
+
+This report is written to that outcome. The headline claim of the project —
+budget-aware allocation helps a real LLM — **is not established here.**
 
 ---
 
@@ -65,11 +84,11 @@ the Governor has never been changed to accommodate one.
 | E0001-nemotron | same, nemotron | NOT RUN — throttled to zero |
 | `E0003-pilot` | underpowered pilot, 44 items, item-level bootstrap | PILOT — Governor −0.062 [−0.136, +0.000] vs greedy |
 | `E0004-ceiling` | **what could ANY allocator gain, swept over every budget** | **PREMISE-FAILS**, max ceiling +0.046 |
-| `E0002` | preregistered primary test | NOT RUN — see §4.4 |
-| `E0010` | ablations | NOT RUN — nothing to ablate against |
-| `E0020-*` | robustness | NOT RUN |
+| `E0008-governor-phase4r` | Governor test | **NOT RUN** — gatekeeper refuses; gate failed |
+| `E0009-qwen-local` | local Qwen 1.7B-4bit backend curve (MLX) | backend experiment |
+| `E0002` / `E0010` / `E0020-*` | primary, ablations, robustness | NOT RUN — no validated family |
 | `E0005-structure` | **Phase 4R structural search**, 81 configurations, no API calls | CONFIG-FOUND — 1 of 81 passes S1+S2 |
-| `E0006-ceiling-gate` | ceiling gate on that configuration | in-selection PASS; held-out INCONCLUSIVE, collecting |
+| `E0006-ceiling-gate` | ceiling gate on that configuration | **CEILING-FAIL** — held-out CI lower bound 0.0000 |
 | `E0007-structure-clean` | search re-run on the frozen selection half ONLY | CONFIG-FOUND — **identical** configuration |
 | (deferred) | second task family with an LLM; local Qwen | quota-blocked |
 
@@ -198,21 +217,27 @@ an "8–12 items" rule would have missed it.
 `E[X]/K=1.89`, `actual/cap=0.80`, `X=2.83` useful opportunities against
 `K=1.50` affordable upgrades.
 
-### 4.7 Phase 4R — the ceiling gate (E0006)
+### 4.7 Phase 4R — the ceiling gate (E0006). **FAILED.**
 
-| split | items | eps | all-cheap | best fixed | greedy | oracle | ceiling | 95% CI (item bootstrap) |
-|---|---|---|---|---|---|---|---|---|
-| in-selection | 40 | 6 | 0.0556 | 0.1667 | 0.1389 | 0.2778 | +0.1389 | +0.1055 [+0.0278, +0.1944] |
-| held-out | 0 | — | — | — | — | — | — | **INCONCLUSIVE — no items yet** |
+| split | items | eps | all-cheap | best fixed | greedy | oracle | ceiling | 95% CI (item bootstrap) | gate |
+|---|---|---|---|---|---|---|---|---|---|
+| in-selection | 40 | 6 | 0.0556 | 0.1667 | 0.1389 | 0.2778 | +0.1389 | +0.1055 [+0.0278, +0.1944] | PASS |
+| **held-out** | 24 | 4 | 0.0417 | 0.1667 | 0.1667 | 0.2083 | +0.0417 | **+0.0860 [+0.0000, +0.1667]** | **FAIL** |
 
-The in-selection CI clears the 0.02 gate, and the oracle roughly **doubles**
-greedy's utility. That is informative and **it is not the gate**: these are the
-items S1 and S2 were computed on. The script refuses to promote it, returns
-non-zero, and reports what is missing.
+The frozen criterion is a 95% bootstrap lower bound above 0.02. Held out it is
+**0.0000**. Phase 4R is rejected and kept as a negative control.
 
-The held-out set needs LOW=300 responses for 49 items that already have
-HIGH=700 — 49 calls, ~21k tokens. Groq's per-day bucket refills at roughly 10k
-tokens/hour, so `scripts/p4r_patient_collect.py` waits it out.
+**Read honestly in both directions.** The held-out point estimate (+0.0417) and
+bootstrap mean (+0.0860) both exceed 0.02, so this is *not* a demonstration that
+the headroom is absent — it is a **failure to establish it**. With 24 items and
+4 episodes the interval is ±0.08 wide, which cannot separate "the effect shrank
+from selection to held-out" from "there is not enough data to tell". Roughly 100
+evaluation items — about one day of Groq quota at this configuration — would
+distinguish them.
+
+The gate was not weakened to accommodate that. A criterion that moves when it
+fails is not a criterion. Confidence intervals are quoted at the item level
+because episodes are groupings of a shared pool.
 
 **The new configuration is also 2.9x cheaper**: 1256 reserved tokens per item
 against 3684, i.e. 159 items/day rather than 54.

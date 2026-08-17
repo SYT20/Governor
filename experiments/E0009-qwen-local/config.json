@@ -15,7 +15,7 @@
     "pool": 1000
   },
   "split": {
-    "selection_items": 8
+    "selection_items": 6
   },
   "metric": "mean exact-integer correctness at each max_tokens budget, on the same calibration items as E0001",
   "params": {
@@ -38,8 +38,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "1ebd4dc67a0c5cd30aa82d4fe15bfabf9a0a0639",
+  "git_commit": "cf94ebf46b625a2309e44e598bdfca38f5dcdf07",
   "git_dirty": [],
-  "nonce": "83dc589fa63745fdaa90a5690393478f",
-  "started_utc": "2026-08-17T12:33:58Z"
+  "nonce": "d457215511dd482f95a499db8f20e637",
+  "started_utc": "2026-08-17T12:45:43Z"
 }
