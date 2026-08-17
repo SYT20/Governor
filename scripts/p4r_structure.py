@@ -28,12 +28,15 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from governor.harness.ledger import ExperimentRun, ExperimentSpec  # noqa: E402
-from governor.harness.traps import secret_scan  # noqa: E402
+from governor.harness.traps import secret_scan, split_leakage  # noqa: E402
 from governor.phase4.collect import ResponseCache, outcome  # noqa: E402
 from governor.phase4.config import CAL_POOL_SEED, ENGINES, PROMPT_CAP  # noqa: E402
 from governor.phase4.env import DEEP, P4Env, make_episodes  # noqa: E402
 from governor.phase4.evaluate import constant, execute  # noqa: E402
 from governor.phase4.policies import all_cheap, clairvoyant, greedy  # noqa: E402
+from governor.phase4.split import (  # noqa: E402
+    SPLIT_FILE, filter_selection, freeze, verify_disjoint,
+)
 from governor.phase4.tasks import make_pool  # noqa: E402
 
 # FROZEN in the preregistration, before this script produced a number.
@@ -44,8 +47,16 @@ MODE_PAIRS = ((300, 700), (300, 1400), (300, 2800), (700, 1400), (700, 2800))
 
 
 def cached_pool(cache, budgets, n=400):
-    return [i for i in make_pool(CAL_POOL_SEED, n)
-            if all(cache.get(i, b) for b in budgets)]
+    """Cached items RESTRICTED TO THE FROZEN SELECTION HALF.
+
+    The first version used every cached item. For the configuration that won
+    that made no difference -- its pool was the 40 curve items either way --
+    but the rejected (700, 2800) alternatives were measured on 89, so evaluation
+    items influenced which alternatives were rejected. Restricting here makes
+    the protocol true by construction instead of true by inspection.
+    """
+    return filter_selection([i for i in make_pool(CAL_POOL_SEED, n)
+                             if all(cache.get(i, b) for b in budgets)])
 
 
 def main() -> int:
@@ -62,6 +73,15 @@ def main() -> int:
     print("=" * 100)
     print(f"  FROZEN: S1 P(X>K)>={S1_P_MIN} and E[X]/K>={S1_RATIO_MIN} | "
           f"S2 actual/cap>={S2_RATIO_MIN} | ceiling gate >{CEILING_GATE}")
+    split = freeze()
+    ok, detail = verify_disjoint()
+    print(f"  SPLIT ({SPLIT_FILE}): {detail}")
+    if not ok:
+        print("  split is not disjoint; refusing to search.")
+        return 2
+    print(f"  search restricted to the {len(split['selection_ids'])} SELECTION "
+          f"items; the {len(split['evaluation_ids'])} evaluation items are not "
+          f"read here")
 
     spec = ExperimentSpec(
         exp_id=a.exp,
@@ -178,7 +198,11 @@ def main() -> int:
     run.finalize(summary={"verdict": verdict, "n_configs": len(rows),
                           "n_satisfying_both": len(both), "chosen": chosen},
                  metrics={"configurations": rows},
-                 traps={"secret_scan": secret_scan()}, verdict=verdict)
+                 traps={"secret_scan": secret_scan(),
+                        "split_leakage": split_leakage(
+                            split["selection_ids"],
+                            [r for r in split["evaluation_ids"]])},
+                 verdict=verdict)
     print(f"\n  recorded: experiments/{a.exp}/")
     return 0 if chosen else 1
 

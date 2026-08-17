@@ -50,3 +50,41 @@ def test_missing_evidence_is_RED_not_silent():
     assert all(not ok for ok, _ in needs_evidence.values())
     assert all("missing evidence" in d for _, d in needs_evidence.values())
     assert r["secret_scan"][0], "clean tree should pass the secret scan"
+
+
+# -- Phase 4R: selection/evaluation split ---------------------------------------
+
+def test_split_leakage_fires_on_any_overlap():
+    """The regression test the reviewer asked for: an experiment that selects a
+    configuration from one item set must fail if an evaluation item appears in
+    that set."""
+    from governor.harness.traps import split_leakage
+    ok, _ = split_leakage(["a", "b", "c"], ["d", "e"])
+    assert ok
+    ok, detail = split_leakage(["a", "b", "c"], ["c", "d"])
+    assert not ok and "overlap=1" in detail
+
+
+def test_frozen_split_is_disjoint_and_stable():
+    from governor.phase4.split import build, evaluation_ids, selection_ids, verify_disjoint
+    ok, detail = verify_disjoint()
+    assert ok, detail
+    assert not (selection_ids() & evaluation_ids())
+    assert build()["sha256"] == build()["sha256"]
+
+
+def test_split_is_independent_of_cache_state():
+    """Freezing by item id, not by list slice: the split must not move as
+    collection proceeds."""
+    from governor.phase4.split import build
+    a = build()
+    assert len(a["selection_ids"]) == 40
+    assert len(set(a["selection_ids"])) == 40
+    assert a["selection_ids"] == build()["selection_ids"]
+
+
+def test_run_trap_checks_reds_missing_split_evidence():
+    from governor.harness.traps import run_trap_checks
+    out = run_trap_checks({})
+    assert out["split_leakage"][0] is False
+    assert "NOT RUN" in out["split_leakage"][1]

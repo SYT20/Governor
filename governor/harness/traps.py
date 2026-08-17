@@ -111,6 +111,23 @@ def frozen_before_heldout(froze_commit: str, heldout_commit: str):
     return ok, f"froze={froze_commit[:8] or 'MISSING'} heldout={heldout_commit[:8]}"
 
 
+def split_leakage(selection_item_ids, evaluation_item_ids):
+    """Phase 4R: an experiment that CHOOSES a configuration from one item set
+    must not then EVALUATE it on items from that same set.
+
+    A reviewer suspected exactly this in the Phase 4R structural search. The
+    record showed the winning configuration had in fact qualified on 40 items
+    while only rejected alternatives saw a larger pool -- but establishing that
+    required reading a metrics file, which is not a protocol. Overlap is now a
+    red check, so no future run can be ambiguous about it.
+    """
+    s, e = set(selection_item_ids), set(evaluation_item_ids)
+    both = s & e
+    return (not both,
+            f"selection={len(s)} evaluation={len(e)} overlap={len(both)}"
+            + (f" e.g. {sorted(both)[:3]}" if both else ""))
+
+
 def secret_scan(root="."):
     pats = [re.compile(p) for p in (r"sk-" + r"or-v1-[A-Za-z0-9]{16,}",
                                     r"sk-" + r"ant-[A-Za-z0-9\-]{16,}",
@@ -144,6 +161,7 @@ def run_trap_checks(ev: dict) -> dict[str, tuple[bool, str]]:
         "progress_as_cognition": ("feature_names",),
         "invariant_as_intelligence": ("decisions", "cell_ids"),
         "frozen_before_heldout": ("froze_commit", "heldout_commit"),
+        "split_leakage": ("selection_item_ids", "evaluation_item_ids"),
         "secret_scan": (),
     }
     fns = globals()
