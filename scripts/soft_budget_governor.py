@@ -49,7 +49,12 @@ def envelope_fixed(C, T, budget):
             best = max(best or -1, u0 + w * (u1 - u0))
     for c, u, _ in pts:
         if c <= budget + 1e-9:
-            best = max(best or -1, u)
+            best = max(best if best is not None else -1.0, u)
+    if best is None:
+        # A bootstrap resample can push every level's mean cost above B. The
+        # cheapest level is then the only thing a fixed policy can do, and it is
+        # the honest comparator rather than a crash or a silent skip.
+        best = pts[0][1]
     return float(best)
 
 

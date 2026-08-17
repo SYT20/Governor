@@ -1,0 +1,72 @@
+{
+  "exp_id": "E0017-soft-governor-gpqa",
+  "title": "Soft-budget learned Governor on external gpqa",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "grid": [
+      1439.4689393939393,
+      1782.1843434343434,
+      2124.8997474747475,
+      2467.6151515151514,
+      2810.3305555555557,
+      3153.04595959596,
+      3495.761363636364
+    ],
+    "reported_at": 1439.4689393939393,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity: even=calibration, odd=evaluation (declared in E0013)",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 99,
+    "evaluation_items": 99,
+    "rule": "doc_id parity: even=calibration, odd=evaluation (declared in E0013)"
+  },
+  "metric": "mean correctness at matched expected tokens; primary = Governor minus the randomised-envelope fixed baseline; secondary = Governor minus myopic; 95% CI from a bootstrap over evaluation items with predictors and knobs frozen",
+  "params": {
+    "features": [
+      "chars",
+      "words_n",
+      "digits",
+      "latex_cmds",
+      "has_frac",
+      "has_sqrt",
+      "has_matrix",
+      "has_sum",
+      "n_equations",
+      "max_number_log10",
+      "question_marks",
+      "lines"
+    ],
+    "levels": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000,
+      32000
+    ],
+    "n_bootstrap": 600
+  },
+  "notes": "Predictors and both knobs fitted/tuned on calibration only.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "40fd685ef65daa3791de03da43e4ce0e5b61a29d",
+  "git_dirty": [
+    "governor/phase4/s1data.py",
+    "scripts/soft_budget_governor.py",
+    "experiments/E0017-soft-governor-math/"
+  ],
+  "nonce": "1ad5bc99899e4b63b47836b8aaa0d73a",
+  "started_utc": "2026-08-17T20:29:56Z"
+}

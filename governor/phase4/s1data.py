@@ -124,6 +124,21 @@ def _tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
+def _records(path: Path):
+    """Yield JSON records, one per LINE FEED.
+
+    `str.splitlines()` also splits on \x0b, \x1c, \u2028 and friends, which
+    occur inside GPQA generations and produced `Unterminated string`. File
+    iteration and `split("\n")` split on line feeds only, which is what JSONL
+    means. The first fix here buffered until a fragment parsed, which silently
+    desynchronised and yielded 4 records out of 198 -- worse than the crash,
+    because it looked like success.
+    """
+    for line in path.read_text().split("\n"):
+        if line.strip():
+            yield json.loads(line)
+
+
 def load(benchmark: str = "math", budgets=None) -> tuple[list[S1Item], dict]:
     """Returns (items, records) with records[budget][item_id] = outcome dict."""
     paths = download(benchmark, budgets)
@@ -131,10 +146,7 @@ def load(benchmark: str = "math", budgets=None) -> tuple[list[S1Item], dict]:
     records: dict[int, dict[str, dict]] = {}
     for b, p in sorted(paths.items()):
         rec = {}
-        for line in p.read_text().splitlines():
-            if not line.strip():
-                continue
-            r = json.loads(line)
+        for r in _records(p):
             doc, did = r.get("doc", {}), str(r["doc_id"])
             iid = f"{benchmark}{int(did):05d}"
             if iid not in items:

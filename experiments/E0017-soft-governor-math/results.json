@@ -1,0 +1,50 @@
+{
+  "exp_id": "E0017-soft-governor-math",
+  "title": "Soft-budget learned Governor on external math",
+  "verdict": "FAIL",
+  "summary": {
+    "benchmark": "math",
+    "reported_budget": 600.2057,
+    "primary_mean": 0.006920104286908016,
+    "primary_lo": -0.014546622619192127,
+    "primary_hi": 0.030171381489139573,
+    "primary_beats": false,
+    "secondary_mean": 0.023913333333333325,
+    "secondary_lo": -0.0040000000000000036,
+    "secondary_hi": 0.051999999999999935,
+    "secondary_beats": false,
+    "verdict": "FAIL",
+    "architecture_justified": false
+  },
+  "git_commit": "40fd685ef65daa3791de03da43e4ce0e5b61a29d",
+  "config_hash": "f77f221fc31a53184a947cb754fcbd487cfa4473aba5c21e7aea376b9995dd36",
+  "nonce": "a9dbee00687f4d68b58e28a4a8380c2b",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "6b15e1b228c5a4bd1e438c64d3b66cf0df9b36b15c9422b91a70772506bcff94",
+  "raw_rows": 7,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-17T20:28:27Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "progress_as_cognition": {
+      "ok": true,
+      "detail": "unjustified_progress_features=[]"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=250 evaluation=250 overlap=0"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
