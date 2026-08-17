@@ -22,6 +22,19 @@ On held-out items with a real LLM at an identical token budget:
 headroom captured, and it wins while spending FEWER tokens** (5643 vs 6138).
 Eleven trap checks green.
 
+**Qualification 0 — it does not replicate on external data under this resource
+model.** E0013 ran the same screen on s1-32B's released MATH-500 generations at
+seven budget-forced levels (third-party; I chose no item, model, prompt or
+budget). The *headroom is there* — five budget pairs clear S1, best +0.1680 at
+(500, 8000). **S2 fails on all 21 pairs**, best `act/cap = 0.68` against a 0.70
+threshold: the model self-terminates before the cap on 98%+ of items, so a
+budget that must reserve the cap reserves 2–11× what it spends. This is **not** a
+Groq artifact — s1 forces `</think>` at the limit, real binding infrastructure,
+and the cap is still loose, because a cap only binds the items that would have
+run past it. **Hard worst-case reservation and a self-terminating model are
+structurally incompatible**, and that is a property of the resource model, not
+of the controller or the task.
+
 **Qualification 1 — it does not separate from budget-limited greedy**
 (+0.1056 [−0.0208, +0.2089]).
 **Qualification 2 — it does not separate from its own myopic ablation**
