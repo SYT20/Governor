@@ -90,7 +90,13 @@ def git_dirty(exclude: Path | None = None) -> list[str]:
         except ValueError:
             rel = None
     for line in _git("status", "--porcelain").splitlines():
-        path = line[3:].strip().strip('"')
+        # Slicing [3:] loses a character: `_git` strips the output, so the
+        # leading space of a " M path" status column is already gone on the
+        # first line. Split on whitespace instead of counting columns.
+        parts = line.strip().split(maxsplit=1)
+        if len(parts) < 2:
+            continue
+        path = parts[1].strip('"').split(" -> ")[-1]
         if rel and (path == rel or path.startswith(rel + "/")):
             continue
         out.append(path)

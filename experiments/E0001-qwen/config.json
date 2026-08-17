@@ -47,8 +47,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "5ac8b7e2fa2164a556fe882d0ecd2a311e51bbe6",
-  "git_dirty": true,
-  "nonce": "b5e91ad94e994e239332af96ae5b9100",
-  "started_utc": "2026-08-17T10:07:55Z"
+  "git_commit": "8c37abc3f00bd8b3bfadefdc63ce54edd038c74a",
+  "git_dirty": [],
+  "nonce": "ca43eb6f6e604c30a8c96e4b59f79ecc",
+  "started_utc": "2026-08-17T10:15:02Z"
 }
