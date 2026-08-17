@@ -131,7 +131,8 @@ def governor_alloc(Q: np.ndarray, T: np.ndarray, lam: float) -> np.ndarray:
 
 def enforced_alloc(order_idx, choose, T_actual: np.ndarray,
                    levels: list[int], total_budget: float,
-                   prompt_tokens: int = 64) -> np.ndarray:
+                   prompt_tokens: int = 64,
+                   reserve: np.ndarray | None = None) -> np.ndarray:
     """Sequential allocation with a HARD runtime budget.
 
     E0019 tuned lambda so the constraint held on the CALIBRATION half, reported
@@ -147,16 +148,22 @@ def enforced_alloc(order_idx, choose, T_actual: np.ndarray,
     the under-spend the way worst-case reservation did in E0013.
     """
     n = len(order_idx)
+    # RESERVE MUST BE MEASURED, NOT ASSUMED. The first version reserved the
+    # level value, assuming a level-b generation costs at most b. That holds on
+    # MATH and is FALSE on GPQA, where level 500 averages 1252 tokens because
+    # the cap does not bind there -- and the budget trap caught a 3.8% overrun
+    # as a result. `reserve[j]` is an upper bound on level j's cost taken from
+    # CALIBRATION data; it uses no evaluation outcome.
+    if reserve is None:
+        reserve = np.array([levels[j] + prompt_tokens for j in range(len(levels))],
+                           float)
+    reserve = np.asarray(reserve, float)
     remaining = float(total_budget) * n
     out = np.zeros(n, dtype=int)
     for pos, i in enumerate(order_idx):
         left = n - pos - 1
-        wanted = int(choose(i))
-        # walk down until this level plus a cheapest-level reserve for every
-        # remaining item fits in what is left
-        j = wanted
-        while j > 0 and (levels[j] + prompt_tokens
-                         + left * (levels[0] + prompt_tokens)) > remaining:
+        j = int(choose(i))
+        while j > 0 and (reserve[j] + left * reserve[0]) > remaining:
             j -= 1
         out[i] = j
         remaining -= float(T_actual[i, j])       # charge what it ACTUALLY cost

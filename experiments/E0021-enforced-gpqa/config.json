@@ -1,0 +1,38 @@
+{
+  "exp_id": "E0021-enforced-gpqa",
+  "title": "Budget-enforced Governor at matched realised cost (gpqa)",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET + hard runtime cap",
+    "B_star": 1276.7463636363636,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 99,
+    "evaluation_items": 99
+  },
+  "metric": "primary = Governor minus the fixed envelope AT THE GOVERNOR'S OWN REALISED COST; secondary = Governor minus myopic; 95% CI from a bootstrap over evaluation items with the controller frozen",
+  "params": {
+    "predictor": "logistic+isotonic",
+    "lambda": 0.0007425556389156724,
+    "tau": 0.2675,
+    "enforcement": "sequential, reserve level, charge actual"
+  },
+  "notes": "E0019 is withdrawn: it spent 15% over budget and was scored against a baseline at the nominal budget.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "f06b68ca9e53a2b95c9c8d55eb497cf6603c6058",
+  "git_dirty": [],
+  "nonce": "517ebfd79ff541618e18751c268059a6",
+  "started_utc": "2026-08-17T21:17:30Z"
+}

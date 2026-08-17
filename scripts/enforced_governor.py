@@ -109,8 +109,13 @@ def main() -> int:
     r = np.arange(n)
     g_raw = governor_alloc(Qe, Te, lam)
     m_raw = myopic_alloc(Qe, tau)
-    g_enf = enforced_alloc(range(n), lambda i: g_raw[i], Tt, levels, b_star)
-    m_enf = enforced_alloc(range(n), lambda i: m_raw[i], Tt, levels, b_star)
+    # Reserve = calibration 99th percentile cost per level. Measured, and it
+    # uses no evaluation outcome.
+    reserve = np.percentile(T[cal], 99, axis=0)
+    g_enf = enforced_alloc(range(n), lambda i: g_raw[i], Tt, levels, b_star,
+                           reserve=reserve)
+    m_enf = enforced_alloc(range(n), lambda i: m_raw[i], Tt, levels, b_star,
+                           reserve=reserve)
 
     res = {}
     for name, idx in (("governor_unenforced", g_raw), ("GOVERNOR", g_enf),
