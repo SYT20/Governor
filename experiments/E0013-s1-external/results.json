@@ -1,0 +1,28 @@
+{
+  "exp_id": "E0013-s1-external",
+  "title": "External replication on s1 released generations (MATH-500)",
+  "verdict": "EXTERNAL-S2-FAILS",
+  "summary": {
+    "verdict": "EXTERNAL-S2-FAILS",
+    "n_pairs": 21,
+    "n_pass_S1": 5,
+    "n_pass_both": 0,
+    "best_ideal": 0.16801911169619121,
+    "best_act_over_cap": 0.6808496240601504
+  },
+  "git_commit": "5e409f274cbd9d63bf792f4b9e2ad85f0c6ccbbe",
+  "config_hash": "47177cf9d39d3b73452c36110e65870c62e97c14ec662ce7939e5f3e54baab39",
+  "nonce": "98fab549a81e4228869c2060e8227166",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "ef8f4e37cb1e610c3e79a4389c5b88d3ab87da3df511ac60aadfb1bfbe30943a",
+  "raw_rows": 28,
+  "wall_s": 1.4,
+  "finished_utc": "2026-08-17T19:31:13Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

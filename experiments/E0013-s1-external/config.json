@@ -1,0 +1,44 @@
+{
+  "exp_id": "E0013-s1-external",
+  "title": "External replication on s1 released generations (MATH-500)",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "levels": [
+      500,
+      1000,
+      2000,
+      4000,
+      8000,
+      16000,
+      32000
+    ],
+    "charged": "generation tokens",
+    "reservation": "hard worst-case cap"
+  },
+  "seeds": {
+    "split": "doc_id parity"
+  },
+  "split": {
+    "selection_items": 250,
+    "evaluation_items": 250,
+    "note": "third-party data; no item, model, prompt or budget chosen by us"
+  },
+  "metric": "S1 = ceiling(12,k,p) from the closed form; S2 = mean actual generation tokens / (prompt + cap)",
+  "params": {
+    "S1_min": 0.12,
+    "S2_min": 0.7
+  },
+  "notes": "No API calls. https://huggingface.co/datasets/simplescaling/results",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "5e409f274cbd9d63bf792f4b9e2ad85f0c6ccbbe",
+  "git_dirty": [],
+  "nonce": "98fab549a81e4228869c2060e8227166",
+  "started_utc": "2026-08-17T19:31:11Z"
+}
