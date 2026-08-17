@@ -1,0 +1,77 @@
+{
+  "exp_id": "E0012-governor-phase5",
+  "title": "Phase 5: Governor vs best fixed policy at equal tokens",
+  "model": "qwen/qwen3.6-27b",
+  "budget": {
+    "episode_total_tokens": 6486.0,
+    "low": 300,
+    "high": 700,
+    "n_items": 12,
+    "charged": "usage.total_tokens"
+  },
+  "seeds": {
+    "pool": 1000,
+    "cal_group": 11,
+    "test_group": 22,
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 40,
+    "evaluation_items": 55,
+    "frozen_by": "configs/phase4r_split.json",
+    "independent_unit": "ITEM (4 episodes only; an episode-level CI would rest on four numbers)"
+  },
+  "metric": "mean fraction correct per episode; paired difference vs the calibration-frozen best fixed policy; 95% CI from a cluster bootstrap over items with the controller held fixed",
+  "params": {
+    "gate": {
+      "exists": true,
+      "verdict": "CEILING-PASS",
+      "verifies": true,
+      "problems": [],
+      "held_out": {
+        "cheap": 0.041666666666666664,
+        "greedy": 0.125,
+        "oracle": 0.35416666666666663,
+        "best_fixed": 0.125,
+        "ceiling": 0.22916666666666663,
+        "ceiling_vs_fixed": 0.22916666666666663,
+        "greedy_deep": 5.0,
+        "n_episodes": 4,
+        "boot_mean": 0.17927083333333335,
+        "ci_lo": 0.08333333333333337,
+        "ci_hi": 0.27083333333333337,
+        "n_items": 55,
+        "passes_gate": true
+      },
+      "ci_lo": 0.08333333333333337,
+      "n_items": 55
+    },
+    "n_bootstrap": 400,
+    "features": [
+      "chars",
+      "words_n",
+      "numerals",
+      "max_numeral_log10",
+      "sum_numeral_log10",
+      "has_intdiv",
+      "has_minus",
+      "has_plus",
+      "is_expr",
+      "opwords",
+      "lines"
+    ]
+  },
+  "notes": "Runs only because E0011 recorded CEILING-PASS on held-out items.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "cb6cd2691735b3942bb159e4ec161dc36e33ba95",
+  "git_dirty": [],
+  "nonce": "f6abcba707fa450e96c5a57fa2ca5945",
+  "started_utc": "2026-08-17T19:14:17Z"
+}

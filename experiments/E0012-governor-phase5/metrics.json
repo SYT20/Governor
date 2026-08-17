@@ -1,0 +1,170 @@
+{
+  "policies": {
+    "H_all_cheap": {
+      "U": 0.0625,
+      "ci_lo": 0.021666666666666667,
+      "ci_hi": 0.10333333333333333,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 4420.0,
+      "total_tokens_all": 17680.0,
+      "reasoning_tokens_per_episode": 3541.5,
+      "answer_tokens_per_episode": 1.75,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 0.0,
+      "latency_s_per_episode": 11.896461844444275,
+      "starvation_rate": 0.9375,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.6814677767499229,
+      "utility_per_ktoken": 0.01414027149321267
+    },
+    "fixed_best": {
+      "U": 0.20833333333333334,
+      "ci_lo": 0.03833061004359917,
+      "ci_hi": 0.3783360566230675,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 6137.5,
+      "total_tokens_all": 24550.0,
+      "reasoning_tokens_per_episode": 5255.0,
+      "answer_tokens_per_episode": 5.75,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 5.75,
+      "latency_s_per_episode": 14.287275075912476,
+      "starvation_rate": 0.7916666666666666,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.9462688868331791,
+      "utility_per_ktoken": 0.03394433129667346
+    },
+    "greedy": {
+      "U": 0.1875,
+      "ci_lo": 0.065,
+      "ci_hi": 0.31,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 6147.0,
+      "total_tokens_all": 24588.0,
+      "reasoning_tokens_per_episode": 5263.75,
+      "answer_tokens_per_episode": 6.5,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 5.25,
+      "latency_s_per_episode": 14.111655592918396,
+      "starvation_rate": 0.8125,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.9477335800185014,
+      "utility_per_ktoken": 0.030502684236212788
+    },
+    "heuristic": {
+      "U": 0.14583333333333331,
+      "ci_lo": 0.043071697964370353,
+      "ci_hi": 0.24859496870229628,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 6145.5,
+      "total_tokens_all": 24582.0,
+      "reasoning_tokens_per_episode": 5263.75,
+      "answer_tokens_per_episode": 5.0,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 5.0,
+      "latency_s_per_episode": 14.030895352363586,
+      "starvation_rate": 0.8541666666666666,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.9475023126734505,
+      "utility_per_ktoken": 0.023730100615626606
+    },
+    "myopic_q>0": {
+      "U": 0.2916666666666667,
+      "ci_lo": 0.21000000000000002,
+      "ci_hi": 0.37333333333333335,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 6171.75,
+      "total_tokens_all": 24687.0,
+      "reasoning_tokens_per_episode": 5285.5,
+      "answer_tokens_per_episode": 9.5,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 6.0,
+      "latency_s_per_episode": 14.28426444530487,
+      "starvation_rate": 0.7083333333333334,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.9515494912118408,
+      "utility_per_ktoken": 0.04725834109720366
+    },
+    "GOVERNOR": {
+      "U": 0.375,
+      "ci_lo": 0.26956878668657586,
+      "ci_hi": 0.48043121331342414,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 5643.25,
+      "total_tokens_all": 22573.0,
+      "reasoning_tokens_per_episode": 4755.25,
+      "answer_tokens_per_episode": 11.25,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 5.5,
+      "latency_s_per_episode": 12.857240855693817,
+      "starvation_rate": 0.625,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.8700662966389145,
+      "utility_per_ktoken": 0.06645106986222478
+    },
+    "oracle": {
+      "U": 0.4375,
+      "ci_lo": 0.39666666666666667,
+      "ci_hi": 0.47833333333333333,
+      "n_episodes": 4,
+      "total_tokens_per_episode": 5392.25,
+      "total_tokens_all": 21569.0,
+      "reasoning_tokens_per_episode": 4502.25,
+      "answer_tokens_per_episode": 13.25,
+      "prompt_tokens_per_episode": 876.75,
+      "deep_calls_per_episode": 4.5,
+      "latency_s_per_episode": 12.580217182636261,
+      "starvation_rate": 0.5625,
+      "answered_rate": 1.0,
+      "budget_utilization": 0.8313675609004009,
+      "utility_per_ktoken": 0.08113496221428902
+    }
+  },
+  "deltas": {
+    "H_all_cheap": {
+      "mean": 0.26244791666666667,
+      "lo": 0.16666666666666666,
+      "hi": 0.3755208333333329,
+      "beats": true,
+      "loses": false
+    },
+    "fixed_best": {
+      "mean": 0.10807291666666669,
+      "lo": 0.020833333333333315,
+      "hi": 0.22916666666666666,
+      "beats": true,
+      "loses": false
+    },
+    "greedy": {
+      "mean": 0.105625,
+      "lo": -0.020833333333333315,
+      "hi": 0.20885416666666626,
+      "beats": false,
+      "loses": false
+    },
+    "heuristic": {
+      "mean": 0.12854166666666667,
+      "lo": 0.020833333333333343,
+      "hi": 0.22916666666666669,
+      "beats": true,
+      "loses": false
+    },
+    "myopic_q>0": {
+      "mean": 0.02822916666666667,
+      "lo": -0.08333333333333334,
+      "hi": 0.14583333333333334,
+      "beats": false,
+      "loses": false
+    }
+  },
+  "predictor": {
+    "kind": "ridge",
+    "cv_r2": 0.20435028008823353,
+    "spread": 0.3329910536744708
+  },
+  "law": {
+    "p": 0.34545454545454546,
+    "k": 5.25,
+    "ideal": 0.17554469107706505
+  }
+}
