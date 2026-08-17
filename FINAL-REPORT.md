@@ -54,7 +54,45 @@ Exact `simplescaling/s1-32B` tokenizer counts. Third-party data throughout.
 **This is the contract the Governor should be built on, and it is the first one
 that has both properties.**
 
-**The learned Governor was then run under it (E0017), and it FAILED on both
+### The Governor PASSES on external MATH once the predictor uses the right loss
+
+**E0019** changed only the correctness predictor's loss and calibration —
+same data, split, budget grid, features, allocator, baseline, contract:
+
+| variant | mean Brier | Governor − fixed @ B* |
+|---|---|---|
+| ridge (what E0017 used) | 0.1031 | +0.0065 |
+| logistic | 0.1026 | **+0.0318** |
+| logistic + Platt | 0.1065 | +0.0118 |
+| logistic + isotonic *(selected by Brier)* | **0.0975** | +0.0278 |
+
+Held-out bootstrap at `B*=846` (chosen on **calibration** by ceiling, never by
+outcome), 250 evaluation items, all traps green:
+
+| | MATH-500 | GPQA |
+|---|---|---|
+| ceiling | +0.1638 | +0.2323 |
+| **Governor − best fixed** | **+0.0282 [+0.0033, +0.0525] BEATS** | +0.0097 [−0.0525, +0.0505] |
+| Governor − myopic | +0.0364 [−0.0021, +0.0840] | +0.0206 [+0.0000, +0.0505] |
+| verdict | **PASS** | FAIL |
+
+**This is the first PASS on third-party data**: s1-32B generations the project
+did not produce, exact tokenizer costs, frozen item split, and a fixed baseline
+allowed to randomise between adjacent budget levels to match the expected budget
+exactly. The Governor captures **17% of the available ceiling**.
+
+**It still does not separate from the myopic rule** (+0.0364, CI includes zero).
+Whether *pricing* the resource beats merely *ranking* difficulty remains
+unanswered after three attempts.
+
+**GPQA fails, and the mechanism is known**: E0018 measured AUC ≈ 0.52 there
+against 0.741 on MATH. The Governor works where the signal exists and fails
+where it does not, which is the behaviour a correct controller should have.
+
+**Superseded:** the E0017 run below, and its diagnosis, are retained for the
+record. Its verdict stood on ridge; its diagnosis was retracted in E0018.
+
+**The learned Governor was first run under it (E0017), and FAILED on both
 benchmarks:**
 
 | benchmark | ceiling | Governor − best fixed | Governor − myopic |

@@ -1,0 +1,55 @@
+{
+  "exp_id": "E0019-predictor-loss-gpqa",
+  "title": "Predictor loss and calibration, no probe (gpqa)",
+  "model": "s1-32B via simplescaling/results",
+  "budget": {
+    "contract": "SOFT_EXPECTED_BUDGET",
+    "reported_at": 1276.7463636363636,
+    "charged": "simplescaling/s1-32B tokenizer (exact)"
+  },
+  "seeds": {
+    "split": "doc_id parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration_items": 99,
+    "evaluation_items": 99
+  },
+  "metric": "mean correctness at matched expected tokens; variants differ ONLY in the correctness predictor's loss and calibration; the variant is chosen by calibration-side Brier, never by outcome",
+  "params": {
+    "variants": [
+      "ridge",
+      "logistic",
+      "logistic+sigmoid",
+      "logistic+isotonic"
+    ],
+    "selected": "logistic+isotonic",
+    "features": [
+      "chars",
+      "words_n",
+      "digits",
+      "latex_cmds",
+      "has_frac",
+      "has_sqrt",
+      "has_matrix",
+      "has_sum",
+      "n_equations",
+      "max_number_log10",
+      "question_marks",
+      "lines"
+    ]
+  },
+  "notes": "No probe. The probe must earn its own token cost and that is a separate question.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "e4ff975852b23ae32b04917e41f4df53a8752f07",
+  "git_dirty": [],
+  "nonce": "83f6fa8332cf4db399be671043eb7a20",
+  "started_utc": "2026-08-17T20:51:19Z"
+}

@@ -1,0 +1,56 @@
+{
+  "exp_id": "E0019-predictor-loss-gpqa",
+  "title": "Predictor loss and calibration, no probe (gpqa)",
+  "verdict": "FAIL",
+  "summary": {
+    "benchmark": "gpqa",
+    "selected_variant": "logistic+isotonic",
+    "brier_by_variant": {
+      "ridge": 0.20859498569480875,
+      "logistic": 0.2050840306249239,
+      "logistic+sigmoid": 0.22729267282112747,
+      "logistic+isotonic": 0.1996193341301144
+    },
+    "ece_by_variant": {
+      "ridge": 0.0854817004498095,
+      "logistic": 0.06951069738124102,
+      "logistic+sigmoid": 0.09361913583823135,
+      "logistic+isotonic": 0.06808336416632758
+    },
+    "primary_mean": 0.00970797932391412,
+    "primary_lo": -0.052510264788629434,
+    "primary_hi": 0.0505050505050505,
+    "secondary_mean": 0.020606060606060607,
+    "secondary_lo": 0.0,
+    "secondary_hi": 0.0505050505050505,
+    "ceiling": 0.23232323232323238,
+    "verdict": "FAIL"
+  },
+  "git_commit": "e4ff975852b23ae32b04917e41f4df53a8752f07",
+  "config_hash": "aa3f64560dce347926bc32e557cdeba6c170e1664f7eee11ac7183dc6d0f3d03",
+  "nonce": "83f6fa8332cf4db399be671043eb7a20",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "3a229b540a753ba9ef3158e9582575f8d3c02a30f6cc74ba485c4842413b4d0a",
+  "raw_rows": 28,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-17T20:51:19Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=99 evaluation=99 overlap=0"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
