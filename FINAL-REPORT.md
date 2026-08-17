@@ -41,11 +41,16 @@ criteria** (E0013, E0014, both on s1-32B / MATH-500, exact tokenizer counts):
 | contract | unit binds? | headroom? | verdict |
 |---|---|---|---|
 | token cap | **no** — `act/cap` 0.68, model self-terminates on 98%+ | yes, ideal +0.168 | S2 fails |
-| forced Wait units | **yes** — injections cannot be declined | **no**, ideal +0.009 | S1 fails |
+| forced Wait units (MATH) | **yes** — injections cannot be declined | **no**, ideal +0.009 | S1 fails |
+| forced Wait units (GPQA) | yes | **no**, ideal +0.017 | S1 fails |
 
-The wait ladder sits entirely *above* the transition: at one Wait the model is
-already at 0.928 against a 0.932 saturation, and extra forced reasoning hurts
-more often than it helps in 22 of 28 pairs. So the fully-consumed unit is a
+On MATH the ladder sits above the transition (0.928 at one Wait against a 0.932
+saturation). **GPQA was run precisely to test whether saturation was the cause,
+and it is not**: GPQA sits at 0.596, nowhere near a ceiling, and its accuracy
+still *declines* 0.596 → 0.591 while tokens grow 1.7×. Forcing a model to
+continue past its own stopping point does not recover accuracy on either
+benchmark. Extra reasoning hurts more often than it helps in 22/28 MATH pairs
+and 19/28 GPQA pairs. So the fully-consumed unit is a
 clean resource that buys nothing, and the token cap is a real lever that cannot
 be reserved against.
 

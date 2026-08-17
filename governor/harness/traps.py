@@ -128,6 +128,21 @@ def split_leakage(selection_item_ids, evaluation_item_ids):
             + (f" e.g. {sorted(both)[:3]}" if both else ""))
 
 
+def exact_token_counts(source: str, tolerance: float = 0.05):
+    """Token costs must come from a TOKENIZER, never an estimate.
+
+    E0013 costed generations at len(text)/4. Against the real
+    `simplescaling/s1-32B` tokenizer that was off by 25-35%, AND the error moved
+    with the budget level (0.651 at one Wait, 0.756 at eight), so it was not even
+    a consistent rescaling -- it distorted the very ratios the allocation
+    analysis depends on. An estimated resource unit measures a simulated
+    resource.
+    """
+    ok = isinstance(source, str) and source.strip().lower() not in (
+        "", "estimate", "approx", "len/4", "heuristic", "chars/4")
+    return ok, f"token_cost_source={source!r}"
+
+
 def secret_scan(root="."):
     pats = [re.compile(p) for p in (r"sk-" + r"or-v1-[A-Za-z0-9]{16,}",
                                     r"sk-" + r"ant-[A-Za-z0-9\-]{16,}",
@@ -162,6 +177,7 @@ def run_trap_checks(ev: dict) -> dict[str, tuple[bool, str]]:
         "invariant_as_intelligence": ("decisions", "cell_ids"),
         "frozen_before_heldout": ("froze_commit", "heldout_commit"),
         "split_leakage": ("selection_item_ids", "evaluation_item_ids"),
+        "exact_token_counts": ("token_cost_source",),
         "secret_scan": (),
     }
     fns = globals()

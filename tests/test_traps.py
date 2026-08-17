@@ -88,3 +88,13 @@ def test_run_trap_checks_reds_missing_split_evidence():
     out = run_trap_checks({})
     assert out["split_leakage"][0] is False
     assert "NOT RUN" in out["split_leakage"][1]
+
+
+def test_exact_token_counts_rejects_estimates():
+    """E0013 costed generations at len/4; the error was 25-35% and MOVED with
+    the budget level, distorting the ratios the analysis depends on."""
+    from governor.harness.traps import exact_token_counts, run_trap_checks
+    assert exact_token_counts("simplescaling/s1-32B tokenizer")[0]
+    for bad in ("len/4", "estimate", "approx", "chars/4", ""):
+        assert not exact_token_counts(bad)[0], bad
+    assert run_trap_checks({})["exact_token_counts"][0] is False
