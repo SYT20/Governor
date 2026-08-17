@@ -52,7 +52,31 @@ oracle is the exact multiple-choice-knapsack optimum via a Lagrangian sweep.
 Exact `simplescaling/s1-32B` tokenizer counts. Third-party data throughout.
 
 **This is the contract the Governor should be built on, and it is the first one
-that has both properties.** The learned controller has not yet been run under it.
+that has both properties.**
+
+**The learned Governor was then run under it (E0017), and it FAILED on both
+benchmarks:**
+
+| benchmark | ceiling | Governor − best fixed | Governor − myopic |
+|---|---|---|---|
+| MATH-500 | +0.170 | +0.0069 [−0.0145, +0.0302] | +0.0239 [−0.0040, +0.0520] |
+| GPQA | +0.268 | +0.0150 [−0.0815, +0.0923] | +0.0388 [−0.0205, +0.0909] |
+
+Neither comparison separates from zero. The Governor captures roughly **4–6% of
+a ceiling that is demonstrably there.**
+
+**The bottleneck is the predictor, not the allocation rule.** Calibration CV R²
+for per-level correctness runs −0.058 to +0.186 and for per-level token cost
+−0.087 to +0.238. Surface text features — length, LaTeX commands, digit counts,
+equation counts — do not predict *which MATH or GPQA problem will need more
+tokens*. With a near-zero-signal `q̂`, the Lagrangian has nothing to price and
+the myopic threshold has nothing to threshold.
+
+This is consistent with the literature rather than surprising: Damani et al.
+(2410.04707) report their online variant falling *below* best-of-k on code
+because ~50% of items are unsolvable at any budget, and arXiv 2606.15841 shows
+allocation headroom scales with dispersion in *signal quality*, not in
+difficulty. A real ceiling and a reachable ceiling are different things.
 
 **The two earlier contracts fail on OPPOSITE criteria** (E0013, E0014, both on s1-32B / MATH-500, exact tokenizer counts):
 

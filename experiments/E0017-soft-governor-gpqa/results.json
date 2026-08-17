@@ -1,0 +1,50 @@
+{
+  "exp_id": "E0017-soft-governor-gpqa",
+  "title": "Soft-budget learned Governor on external gpqa",
+  "verdict": "FAIL",
+  "summary": {
+    "benchmark": "gpqa",
+    "reported_budget": 1439.4689393939393,
+    "primary_mean": 0.01496166941012253,
+    "primary_lo": -0.08147481073602297,
+    "primary_hi": 0.09225951383392207,
+    "primary_beats": false,
+    "secondary_mean": 0.03878787878787879,
+    "secondary_lo": -0.020454545454545458,
+    "secondary_hi": 0.09090909090909094,
+    "secondary_beats": false,
+    "verdict": "FAIL",
+    "architecture_justified": false
+  },
+  "git_commit": "10e7a4630752732ff953561706fdc769980795a5",
+  "config_hash": "af9644767ebedce2ce367b56bfff358a212659ecccf6a1b63f1bb870df163e4e",
+  "nonce": "9f4b92a95653439e96e1e2d8b579c42c",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "2cb6efd87f5a672d97e33684cd915815dc8b4d0b28949fc1a23c9f705ca24633",
+  "raw_rows": 7,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-17T20:31:11Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "progress_as_cognition": {
+      "ok": true,
+      "detail": "unjustified_progress_features=[]"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=99 evaluation=99 overlap=0"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='simplescaling/s1-32B tokenizer (exact)'"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
