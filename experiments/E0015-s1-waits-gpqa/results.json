@@ -1,0 +1,30 @@
+{
+  "exp_id": "E0015-s1-waits-gpqa",
+  "title": "Fully-consumed reasoning units on external GPQA-Diamond",
+  "verdict": "UNIT-BINDS-NO-HEADROOM",
+  "summary": {
+    "verdict": "UNIT-BINDS-NO-HEADROOM",
+    "n_pass_S1": 0,
+    "best_ideal": 0.016696956385891085,
+    "best_p_help": 0.020202020202020204,
+    "accuracy_1_wait": 0.5959595959595959,
+    "accuracy_8_waits": 0.5909090909090909,
+    "hurt_exceeds_help_pairs": 19,
+    "n_pairs": 28
+  },
+  "git_commit": "4121a4b301cba1a8210de34a2931445c411468cd",
+  "config_hash": "2db3a27d6e1819c999c243e4a79d10782a05dae5b8b7c2097476e5b016374cce",
+  "nonce": "b0427de465404a659fb628b3e43d8c8a",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "1e44762e64a2720a4c550815bee77ffdc1212e1b921b997b3bd05e3d5359beb5",
+  "raw_rows": 36,
+  "wall_s": 1.2,
+  "finished_utc": "2026-08-17T20:07:24Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}

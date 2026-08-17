@@ -1,0 +1,43 @@
+{
+  "exp_id": "E0015-s1-waits-gpqa",
+  "title": "Fully-consumed reasoning units on external GPQA-Diamond",
+  "model": "s1-32B via simplescaling/results (forcingignore{N}wait)",
+  "budget": {
+    "unit": "forced Wait continuation",
+    "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "charged": "exact tokens, simplescaling/s1-32B tokenizer"
+  },
+  "seeds": {
+    "split": "n/a - screen only"
+  },
+  "split": {
+    "items": 198,
+    "benchmark": "GPQA-Diamond"
+  },
+  "metric": "p(help) and the closed-form ideal ceiling at n=12",
+  "params": {
+    "S1_min": 0.12
+  },
+  "notes": "Run because MATH-500 might have been saturated. It was not the cause.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "4121a4b301cba1a8210de34a2931445c411468cd",
+  "git_dirty": [],
+  "nonce": "b0427de465404a659fb628b3e43d8c8a",
+  "started_utc": "2026-08-17T20:07:23Z"
+}
