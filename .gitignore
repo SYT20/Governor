@@ -14,3 +14,4 @@ results/s1_math.sqlite
 results/*.pkl
 results/*.pkl
 results/s1_text.pkl
+results/lcb_samples.pkl
