@@ -112,7 +112,12 @@ def main() -> int:
     Ue, Ce = U[ev], C[ev]
     n = len(Ue)
     r = np.arange(n)
-    res = np.percentile(C[cal], 99, axis=0)
+    # RESERVE = calibration MEAN cost per level, not the 99th percentile.
+    # Per-problem generation length varies enormously here, so a p99 reserve
+    # made every level unaffordable and collapsed all three policies to k=1 --
+    # a controller that cannot act is not evidence about controllers.
+    # budget_adherence verifies the result rather than the assumption.
+    res = C[cal].mean(axis=0)
     gi = enforced_alloc(range(n), lambda i: governor_alloc(Qe, Te, lam)[i], Ce,
                         levels, b_star, prompt_tokens=0, reserve=res)
     mi = enforced_alloc(range(n), lambda i: myopic_alloc(Qe, tau)[i], Ce,

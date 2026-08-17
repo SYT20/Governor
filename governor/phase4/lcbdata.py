@@ -17,7 +17,12 @@ import re
 
 import numpy as np
 
-FEATURE_NAMES = ("chars", "lines", "words_n", "has_starter", "difficulty_ord",
+# `difficulty_ord` was dropped: it is a human contest label, and
+# `oracle_leakage` flagged it. Defensible to include -- it is available before
+# any sample is drawn -- but every other family in this project uses text-only
+# features, and a difficulty ANNOTATION in a study about predicting difficulty
+# is exactly the objection not worth inviting.
+FEATURE_NAMES = ("chars", "lines", "words_n", "has_starter",
                  "is_codeforces", "is_leetcode", "is_atcoder", "n_constraints",
                  "max_bound_log10", "n_examples", "n_digits")
 

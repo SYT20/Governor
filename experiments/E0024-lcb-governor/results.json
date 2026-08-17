@@ -1,0 +1,56 @@
+{
+  "exp_id": "E0024-lcb-governor",
+  "title": "Governor on LiveCodeBench sample allocation (architecture reused)",
+  "verdict": "BLOCKED",
+  "summary": {
+    "governor_U": 0.3736842105263158,
+    "myopic_U": 0.3736842105263158,
+    "fixed_matched": 0.37373385687666427,
+    "oracle": 0.37894736842105264,
+    "governor_tokens": 128.8421052631579,
+    "B_star": 153.48846666666665,
+    "primary_mean": -4.973870632859506e-05,
+    "primary_lo": -0.00024407986546674533,
+    "primary_hi": 0.0,
+    "secondary_mean": 0.0,
+    "secondary_lo": 0.0,
+    "secondary_hi": 0.0,
+    "mcnemar_p": 1.0,
+    "n_disagree": 1,
+    "n_required_gov_vs_myopic": Infinity,
+    "verdict": "INCONCLUSIVE"
+  },
+  "git_commit": "cca15fabe3ae2de4489b6e5d6e217e8d9f1e5391",
+  "config_hash": "85b525e30cfd6500f8e69cbd08e7057babc099e502742db9fcde8a180fd6bf38",
+  "nonce": "90c2105fecb54841bbc9f06e36dae849",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "6591a9274ba43e211f7cc29d2eec3a75947a35dbc826552aeff243bcdaf9541e",
+  "raw_rows": 190,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-17T22:01:38Z",
+  "trap_checks": {
+    "oracle_leakage": {
+      "ok": false,
+      "detail": "forbidden_features=['difficulty_ord']"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='exact tokenizer count over published LiveCodeBench generations'"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=210 evaluation=190 overlap=0"
+    },
+    "budget_adherence": {
+      "ok": true,
+      "detail": "realised=129 budget=153 over=-16.1% baseline=129 baseline_short_by=+0.0%"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": [
+    "oracle_leakage"
+  ]
+}

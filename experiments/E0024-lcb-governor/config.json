@@ -1,0 +1,52 @@
+{
+  "exp_id": "E0024-lcb-governor",
+  "title": "Governor on LiveCodeBench sample allocation (architecture reused)",
+  "model": "Gemini-Pro-1.5 (May) generations, published by LiveCodeBench",
+  "budget": {
+    "axis": "samples k in 1..10",
+    "B_star": 153.48846666666665,
+    "contract": "SOFT_EXPECTED_BUDGET + hard runtime cap",
+    "charged": "exact tokenizer count over published LiveCodeBench generations"
+  },
+  "seeds": {
+    "split": "sha256(question_id) parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration": 210,
+    "evaluation": 190
+  },
+  "metric": "pass@k-style utility at matched realised cost; primary = Governor minus the randomised fixed envelope at the Governor's own cost; secondary = Governor minus myopic",
+  "params": {
+    "features": [
+      "chars",
+      "lines",
+      "words_n",
+      "has_starter",
+      "difficulty_ord",
+      "is_codeforces",
+      "is_leetcode",
+      "is_atcoder",
+      "n_constraints",
+      "max_bound_log10",
+      "n_examples",
+      "n_digits"
+    ],
+    "lambda": 0.0009045400432760668,
+    "tau": 0.0,
+    "predictor": "logistic+isotonic"
+  },
+  "notes": "softbudget.py reused unchanged; only the family adapter is new.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "cca15fabe3ae2de4489b6e5d6e217e8d9f1e5391",
+  "git_dirty": [],
+  "nonce": "90c2105fecb54841bbc9f06e36dae849",
+  "started_utc": "2026-08-17T22:01:38Z"
+}
