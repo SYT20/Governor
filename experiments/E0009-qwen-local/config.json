@@ -25,7 +25,9 @@
       700,
       1400,
       2800
-    ]
+    ],
+    "thinking": false,
+    "system_prompt": "Solve the problem. Reply with only the final integer, no words, no units, no commas."
   },
   "notes": "Backend experiment. The Governor is unchanged.",
   "runtime": {
@@ -36,8 +38,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "da0e1a869e1690c6b8e78bf1ae56f8880506e514",
+  "git_commit": "1ebd4dc67a0c5cd30aa82d4fe15bfabf9a0a0639",
   "git_dirty": [],
-  "nonce": "727e67957dc3465cb399d31911fce86c",
-  "started_utc": "2026-08-17T12:32:14Z"
+  "nonce": "83dc589fa63745fdaa90a5690393478f",
+  "started_utc": "2026-08-17T12:33:58Z"
 }
