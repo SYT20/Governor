@@ -5,12 +5,12 @@
 | field | value |
 |---|---|
 | model | `s1-32B via simplescaling/results` |
-| commit | `b3ce7df3714daa82bd26be5110e30abd4cfd549b` |
+| commit | `fa710d7d102d734787f8104866134a58c2b5254c` |
 | budget | `{"contract": "SOFT_EXPECTED_BUDGET + hard runtime cap", "B_star": 845.7475505084745, "charged": "simplescaling/s1-32B tokenizer (exact)"}` |
 | seeds | `{"split": "doc_id parity", "bootstrap": 0}` |
 | split | `{"calibration_items": 250, "evaluation_items": 250}` |
-| raw rows | 250 (`raw.jsonl`, sha256 `97cf04975f2ea66a`) |
-| wall | 0.2 s |
+| raw rows | 250 (`raw.jsonl`, sha256 `d64efaad5e4a0b23`) |
+| wall | 0.3 s |
 
 ## Metric
 
@@ -22,18 +22,18 @@ primary = Governor minus the fixed envelope AT THE GOVERNOR'S OWN REALISED COST;
 {
   "benchmark": "math",
   "B_star": 845.7475505084745,
-  "governor_U": 0.788,
-  "governor_tokens": 845.0,
+  "governor_U": 0.796,
+  "governor_tokens": 845.208,
   "unenforced_tokens": 973.484,
-  "fixed_at_matched_cost": 0.7839630154876651,
-  "primary_mean": 0.004299469140605342,
-  "primary_lo": -0.04877645931250004,
-  "primary_hi": 0.04337600430865811,
-  "secondary_mean": 0.012410000000000003,
-  "secondary_lo": -0.028000000000000025,
-  "secondary_hi": 0.05599999999999994,
-  "mcnemar_p": 0.7011080384254456,
-  "n_disagree": 102,
+  "fixed_at_matched_cost": 0.7840296773469861,
+  "primary_mean": 0.012147261036831973,
+  "primary_lo": -0.039637056181682354,
+  "primary_hi": 0.050996757923367525,
+  "secondary_mean": 0.020217999999999996,
+  "secondary_lo": -0.020000000000000018,
+  "secondary_hi": 0.06000000000000005,
+  "mcnemar_p": 0.42435622215270996,
+  "n_disagree": 101,
   "verdict": "INCONCLUSIVE"
 }
 ```
