@@ -16,7 +16,12 @@ from __future__ import annotations
 
 from governor.harness.ledger import EXPERIMENTS, load_experiment, verify_experiment
 
-GATE_EXP = "E0006-ceiling-gate"
+# Each family has its OWN gate experiment. Phase 4R's (E0006) recorded
+# CEILING-FAIL and must keep blocking Phase 4R forever; Phase 5 has its own.
+# Pointing an old gate at a new family, or vice versa, is the loophole this
+# module exists to close, so the id is explicit at every call site.
+GATE_EXP = "E0006-ceiling-gate"          # Phase 4R -- FAILED, stays blocked
+PHASE5_GATE = "E0011-phase5-gate"
 PASS_VERDICT = "CEILING-PASS"
 
 

@@ -1,0 +1,49 @@
+{
+  "exp_id": "E0011-phase5-gate",
+  "title": "Phase 4R ceiling gate on the S1+S2-selected configuration",
+  "verdict": "CEILING-PASS",
+  "summary": {
+    "verdict": "CEILING-PASS",
+    "config": {
+      "n_items": 12,
+      "low": 300,
+      "high": 700,
+      "budget": 6486
+    },
+    "in_selection": null,
+    "held_out": {
+      "cheap": 0.041666666666666664,
+      "greedy": 0.125,
+      "oracle": 0.35416666666666663,
+      "best_fixed": 0.125,
+      "ceiling": 0.22916666666666663,
+      "ceiling_vs_fixed": 0.22916666666666663,
+      "greedy_deep": 5.0,
+      "n_episodes": 4,
+      "boot_mean": 0.17927083333333335,
+      "ci_lo": 0.08333333333333337,
+      "ci_hi": 0.27083333333333337,
+      "n_items": 55,
+      "passes_gate": true
+    }
+  },
+  "git_commit": "4a717c5dc18dc5a4ea874d46fffce97168fb95ed",
+  "config_hash": "438a62bc36217578dc4ad3dc0a21a9eb5436bfd55410bc476a8d1a8e49280127",
+  "nonce": "0d72b0024cd741adb645777bf8bc39da",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "96eb398d10c1fea9524b97041cb4a32a6fdf343df8ba5991d226d982e120901c",
+  "raw_rows": 2,
+  "wall_s": 1.1,
+  "finished_utc": "2026-08-17T19:11:50Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=40 evaluation=55 overlap=0"
+    }
+  },
+  "red_traps": []
+}

@@ -1,0 +1,20 @@
+{
+  "results": {
+    "IN-SELECTION": null,
+    "HELD-OUT": {
+      "cheap": 0.041666666666666664,
+      "greedy": 0.125,
+      "oracle": 0.35416666666666663,
+      "best_fixed": 0.125,
+      "ceiling": 0.22916666666666663,
+      "ceiling_vs_fixed": 0.22916666666666663,
+      "greedy_deep": 5.0,
+      "n_episodes": 4,
+      "boot_mean": 0.17927083333333335,
+      "ci_lo": 0.08333333333333337,
+      "ci_hi": 0.27083333333333337,
+      "n_items": 55,
+      "passes_gate": true
+    }
+  }
+}
