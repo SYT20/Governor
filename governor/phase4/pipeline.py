@@ -52,13 +52,13 @@ class Calibration:
 
 def _feature_values(env: P4Env, eps: Sequence[int], name: str) -> np.ndarray:
     """Feature values over every item in every episode, not just position 0."""
-    return np.array([features(it.prompt)[name]
+    return np.array([env.family.features(it.prompt)[name]
                      for e in eps for it in env.episodes[e]], float)
 
 
 def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
               predictor_kind: str = "auto",
-              feature_names: Sequence[str] = FEATURE_NAMES) -> Calibration:
+              feature_names: Sequence[str] | None = None) -> Calibration:
     scheds = [s for k in range(env.n_decisions + 1)
               for s in itertools.combinations(range(env.n_decisions), k)]
     sched_u = {s: execute(env, "s", constant(fixed_schedule(env, set(s))), eps).mean
@@ -87,12 +87,12 @@ def calibrate(env: P4Env, pool: list[Item], eps: Sequence[int],
         # no test data; the ablation reports every class regardless.
         cands = {}
         for k in ("gbt", "ridge", "mean"):
-            p = ValuePredictor(kind=k)
+            p = ValuePredictor(kind=k, family=env.family)
             cands[k] = (p, p.fit(pool, gains, feature_names=feature_names))
         predictor_kind = max(cands, key=lambda k: cands[k][1].cv_r2)
         vp, rep = cands[predictor_kind]
     else:
-        vp = ValuePredictor(kind=predictor_kind)
+        vp = ValuePredictor(kind=predictor_kind, family=env.family)
         rep = vp.fit(pool, gains, feature_names=feature_names)
     dp = OpportunityCostDP(vp.q_samples, n_items=env.n_decisions,
                            max_k=env.n_decisions)
@@ -146,7 +146,7 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
         "gov_calls": [sum(m == DEEP for m in ms) for ms in R["GOVERNOR"].modes],
         "greedy_calls": [sum(m == DEEP for m in ms) for ms in R["greedy"].modes],
         "decisions_by_state": R["GOVERNOR"].modes,
-        "feature_names": list(FEATURE_NAMES),
+        "feature_names": list(env.family.feature_names),
         "answered_rate": M["GOVERNOR"]["answered_rate"],
         "utility": M["GOVERNOR"]["U"],
         "scored_via_executor": True,

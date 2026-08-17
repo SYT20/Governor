@@ -29,7 +29,7 @@ from typing import Sequence
 import numpy as np
 
 from governor.phase4.collect import ResponseCache, outcome
-from governor.phase4.tasks import Item, features
+from governor.phase4.tasks import Item
 
 CHEAP, DEEP = "H", "M2"
 
@@ -53,9 +53,14 @@ class P4Env:
 
     def __init__(self, cache: ResponseCache, episodes: Sequence[Sequence[Item]],
                  low: int, high: int, budget: float, prompt_cap: int = 128,
-                 grade=None):
+                 grade=None, family=None):
+        from governor.phase4.family import ARITHMETIC
+        # The FAMILY carries the feature extractor and the reward. Importing
+        # one family's `features` directly is what made the stack silently
+        # arithmetic-only until the second-family test hit KeyError.
+        self.family = family or ARITHMETIC
         self.cache = cache
-        self.grade = grade          # task-family reward; None = binary correct
+        self.grade = grade if grade is not None else self.family.grade
         self.episodes = [tuple(e) for e in episodes]
         self.n_decisions = len(self.episodes[0]) if self.episodes else 0
         self.tokens = {CHEAP: int(low), DEEP: int(high)}
@@ -104,7 +109,8 @@ class P4Env:
             return {"t": s.t, "prompt": "", "features": {}, "items_left": 0,
                     "history": hist}
         it = s.items[s.t]
-        return {"t": s.t, "prompt": it.prompt, "features": features(it.prompt),
+        return {"t": s.t, "prompt": it.prompt,
+                "features": self.family.features(it.prompt),
                 "items_left": self.n_decisions - s.t, "history": hist}
 
     def step(self, s: P4State, mode: str):

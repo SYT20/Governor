@@ -50,12 +50,14 @@ class FitReport:
 class ValuePredictor:
     """q(text) -> expected gain. Trained on calibration items only."""
 
-    def __init__(self, kind: str = "gbt", seed: int = 0):
+    def __init__(self, kind: str = "gbt", seed: int = 0, family=None):
+        from governor.phase4.family import ARITHMETIC
+        self.family = family or ARITHMETIC
         self.kind, self.seed = kind, seed
         self.model = None
         self.q_samples: np.ndarray = np.zeros(0)
         self.report: FitReport | None = None
-        self.feature_names: tuple[str, ...] = FEATURE_NAMES
+        self.feature_names: tuple[str, ...] = self.family.feature_names
 
     def _new(self):
         if self.kind == "ridge":
@@ -70,10 +72,10 @@ class ValuePredictor:
                                              random_state=self.seed)
 
     def fit(self, items: list[Item], gains: np.ndarray,
-            feature_names=FEATURE_NAMES) -> FitReport:
+            feature_names=None) -> FitReport:
         from sklearn.model_selection import KFold, cross_val_predict
-        self.feature_names = tuple(feature_names)
-        X = np.array([feature_vector(i.prompt, self.feature_names)
+        self.feature_names = tuple(feature_names or self.family.feature_names)
+        X = np.array([self.family.vector(i.prompt, self.feature_names)
                       for i in items], float)
         y = np.asarray(gains, float)
         cv = KFold(5, shuffle=True, random_state=self.seed)
@@ -98,7 +100,7 @@ class ValuePredictor:
         return float(self.model.predict(x)[0])
 
     def predict_items(self, items: list[Item]) -> np.ndarray:
-        X = np.array([feature_vector(i.prompt, self.feature_names)
+        X = np.array([self.family.vector(i.prompt, self.feature_names)
                       for i in items], float)
         return self.model.predict(X)
 
