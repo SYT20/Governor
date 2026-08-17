@@ -79,7 +79,7 @@ def build_training(env, eps):
     return np.array(X, float), np.array(y, float)
 
 
-def make_governor(model):
+def make_governor(model, p_cue_hard):
     """Allocate by predicted gain RELATIVE TO REMAINING OPPORTUNITIES.
 
     The first version tested `pred > 0` per decision. That collapsed into
@@ -94,11 +94,16 @@ def make_governor(model):
     slots -- a one-step lookahead over the controller's own predictions, using
     only observable features.
     """
-    from governor.gate.env6 import CUE_NOISE, P_HARD
+    # p_cue_hard is ESTIMATED FROM CALIBRATION DATA, not imported from the
+    # environment. An earlier version did `from env6 import CUE_NOISE, P_HARD`,
+    # which injects generative constants into the controller -- recorded
+    # failure mode #2, configuration information leaking into the policy. I
+    # described that version as "observable features only" while the
+    # future-value term was reading the environment's own parameters. Estimating
+    # it is also what lets the controller survive a change in CUE_NOISE, since
+    # nothing is hard-coded to one distribution.
     def q(t, c):
         return float(model.predict(np.array([[t, c]], float))[0])
-    # expected gain of a FUTURE decision, marginalising the unseen cue
-    p_cue_hard = P_HARD * (1 - CUE_NOISE) + (1 - P_HARD) * CUE_NOISE
     def pol(o, b):
         if b < 1.0:
             return "H"
@@ -129,7 +134,9 @@ def main() -> int:
     X, y = build_training(tr_env, cal)
     model = HistGradientBoostingRegressor(max_depth=3, max_iter=150,
                                           random_state=0).fit(X, y)
-    gov = make_governor(model)
+    p_cue_hard = float(X[:, 1].mean())   # observed cue rate on calibration
+    gov = make_governor(model, p_cue_hard)
+    print(f'        p_cue_hard estimated from calibration: {p_cue_hard:.4f}')
     print(f"GATE 5  Governor trained on {len(X)} observable decisions "
           f"(features: t, cue)")
 
