@@ -1,0 +1,50 @@
+[
+  {
+    "tag": "easy",
+    "budget": 0,
+    "utility": 0.8,
+    "thoughts": 0.0
+  },
+  {
+    "tag": "hard",
+    "budget": 0,
+    "utility": 0.4,
+    "thoughts": 0.0
+  },
+  {
+    "tag": "easy",
+    "budget": 128,
+    "utility": 0.6,
+    "thoughts": 66.6
+  },
+  {
+    "tag": "hard",
+    "budget": 128,
+    "utility": 0.2,
+    "thoughts": 19.2
+  },
+  {
+    "tag": "easy",
+    "budget": 512,
+    "utility": 1.0,
+    "thoughts": 201.0
+  },
+  {
+    "tag": "hard",
+    "budget": 512,
+    "utility": 0.2,
+    "thoughts": 64.0
+  },
+  {
+    "tag": "easy",
+    "budget": 1536,
+    "utility": 0.8,
+    "thoughts": 170.0
+  },
+  {
+    "tag": "hard",
+    "budget": 1536,
+    "utility": 0.6,
+    "thoughts": 358.2
+  }
+]
