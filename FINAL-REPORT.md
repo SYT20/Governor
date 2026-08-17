@@ -3,8 +3,10 @@
 Final report. Every number here is traceable to an experiment directory, a
 commit, and a raw file. Numbers that are not are marked as such.
 
-**Status: Phase 4 held-out test PENDING** — data collection in progress at the
-time of writing (see §8). Everything else below is measured and recorded.
+**Status: Phase 4 PREMISE FAILS on this task family.** The preregistered
+held-out test was not run, and running it would have been pointless: the ceiling
+available to *any* allocator is at most **+0.046** at every budget (E0004). The
+Env 6 result stands. See §4.4 and §8.
 
 ---
 
@@ -59,9 +61,11 @@ the Governor has never been changed to accommodate one.
 | `env6-reference` (tag) | Env 6 mathematical Governor | PASS, frozen at 1e-12 |
 | `E0001-qwen` | Phase 4 reasoning curve, engine + mode selection | PASS — qwen qualifies |
 | E0001-nemotron | same, nemotron | NOT RUN — throttled to zero |
-| `E0002` | **primary: Governor + LLM vs best fixed policy** | pending collection |
-| `E0010` | ablations: rule / predictor class / cognitive state | pending E0002 |
-| `E0020-*` | robustness: grouping, budget, mixture | pending E0002 |
+| `E0003-pilot` | underpowered pilot, 44 items, item-level bootstrap | PILOT — Governor −0.062 [−0.136, +0.000] vs greedy |
+| `E0004-ceiling` | **what could ANY allocator gain, swept over every budget** | **PREMISE-FAILS**, max ceiling +0.046 |
+| `E0002` | preregistered primary test | NOT RUN — see §4.4 |
+| `E0010` | ablations | NOT RUN — nothing to ablate against |
+| `E0020-*` | robustness | NOT RUN |
 | (deferred) | second task family with an LLM; local Qwen | quota-blocked |
 
 ## 4. Metrics
@@ -104,6 +108,57 @@ Frozen rule → LOW=700, HIGH=2800, gap 0.475, budget 5412 (after two amendments
 
 Mean gain by hidden `n_ops`: 1 → +0.10, 2 → +0.36, 3 → +0.69, 4 → +0.89.
 On 88 items the predictor reaches cv_R² = **+0.566** (spread 0.414).
+
+### 4.4 Phase 4 — the ceiling, and why the primary test was not run (E0004)
+
+`ceiling(B) = U(clairvoyant optimum) − U(budget-limited greedy)`, both executed
+through the canonical executor, swept over every budget (88 items, 22 episodes):
+
+| budget | all-cheap | greedy | oracle | **ceiling** | greedy deep | oracle deep |
+|---|---|---|---|---|---|---|
+| 4512 | 0.4318 | 0.4318 | 0.4318 | +0.0000 | 0.00 | 0.00 |
+| 5312 | 0.4318 | 0.5114 | 0.5114 | +0.0000 | 0.68 | 0.32 |
+| 5712 | 0.4318 | 0.7955 | 0.8409 | **+0.0455** | 2.32 | 1.41 |
+| 6112 | 0.4318 | 0.8977 | 0.9205 | +0.0227 | 3.14 | 1.91 |
+| 6912 | 0.4318 | 0.9773 | 0.9886 | +0.0114 | 3.86 | 2.23 |
+| ≥7712 | 0.4318 | 0.9886 | 0.9886 | +0.0000 | 4.00 | 2.23 |
+
+**Maximum over every budget: +0.046.** A perfectly-informed allocator gains
+under five accuracy points, and only in a narrow band. A held-out Governor
+result would have been noise around zero however good the controller was.
+
+**Diagnosis — three compounding causes, all measured:**
+
+1. **Supply matches demand.** The deep budget helps 47.5% of items, so about
+   1.9 of 4 items per episode benefit, and the budget affords about 2 upgrades.
+   Allocation only has value when you must *refuse* items that would benefit.
+   Here you rarely have to.
+2. **Reservation dominates choice.** The engine stops after ~817 tokens of a
+   2928-token reservation (28%). Because a hard budget requires reserving the
+   worst case, *feasibility* rather than *preference* decides most calls — the
+   oracle can only realise 2.23 deep calls where greedy realises 4.00.
+3. **The transition is narrow.** Utility goes from 0.43 to 0.99 between B=5300
+   and B=6600. Outside that band every policy is pinned to the floor or the
+   ceiling.
+
+**What this does and does not say.** It does not say the architecture is wrong —
+Env 6 remains a valid demonstration on a problem that *has* headroom. It says
+this task family, with these two modes and a worst-case-reserved hard budget,
+poses no allocation problem. The environment was eliminated for a diagnosable
+reason, which is the tenth time in this project.
+
+**What a future family would need** (a hypothesis, not something tuned into
+existence here): items per episode well above the number of affordable upgrades,
+so refusals are forced; and a cap-to-actual ratio near 1, so reservation does
+not swamp preference. Neither is a change to the Governor.
+
+### 4.5 Pilot (E0003), reported because it was run
+
+44 test items, item-level cluster bootstrap, 300 resamples. Governor 0.7273 vs
+greedy 0.7727: **−0.062 [−0.136, +0.000]** — not separable from zero, point
+estimate negative. All ten trap checks green. Consistent with §4.4: there was
+nothing to win. Recorded with verdict `PILOT` and must not be quoted as a
+Phase 4 result.
 
 ## 5. Budgets, models, runtime
 
@@ -162,10 +217,15 @@ weak-model result.
 
 ## 8. Known limitations
 
-1. **The Phase 4 held-out test has not been run.** Collection was in progress.
-   No claim is made about `U(Governor + LLM) > U(best fixed policy)`.
-2. **Nemotron was never measured on Phase 4.** OpenRouter's free tier is 50
-   requests/day against a requirement of ~1400. The directive named nemotron as
+1. **The Phase 4 held-out test was not run, and should not be.** The ceiling
+   measurement (E0004) shows no allocator could gain more than +0.046 at any
+   budget on this task family. No claim is made about
+   `U(Governor + LLM) > U(best fixed policy)` on real LLM items.
+2. **Quota, measured the hard way.** Three limits exist and the binding one was
+   named only in a 429 body: Groq TPM 8000, RPD 1000, and **TPD 200000 charged
+   on RESERVED max_completion_tokens** — about 54 items/day, so the 420-item run
+   needs eight days. OpenRouter's free tier is 50 requests/day against a
+   requirement of ~1400. The directive named nemotron as
    the Phase 4 engine; the frozen selection rule fell through to qwen because a
    throttled engine cannot qualify. $10 of credits would raise the cap to
    1000/day and make the comparison possible.

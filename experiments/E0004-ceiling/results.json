@@ -1,0 +1,27 @@
+{
+  "exp_id": "E0004-ceiling",
+  "title": "Phase 4 observable ceiling: what could ANY allocator gain?",
+  "verdict": "PREMISE-FAILS",
+  "summary": {
+    "max_ceiling": 0.045454545454545525,
+    "at_budget": 5712,
+    "verdict": "PREMISE-FAILS",
+    "frac_benefiting": 0.5568181818181818,
+    "cap_to_actual_high": 0.33486633755588674
+  },
+  "git_commit": "b6df47d91949129938b47f680e75e56ef61d11e5",
+  "config_hash": "1cc76efffa33a34f0e1dc4cec802decbde2fc0a799cd9064f049a9b57f40c2aa",
+  "nonce": "8b3ac898cd264663b79492911e222d0a",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "88b40741153348e8f99d087d80f5e19f2ff88d7d0b619ae32ad70d8e02c18dc0",
+  "raw_rows": 22,
+  "wall_s": 1.2,
+  "finished_utc": "2026-08-17T11:00:47Z",
+  "trap_checks": {
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
