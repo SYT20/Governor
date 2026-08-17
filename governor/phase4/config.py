@@ -52,16 +52,48 @@ def episode_budget(low: int, high: int) -> int:
     return int(4 * cap_lo + 2 * (cap_hi - cap_lo))
 
 
+def position_neutral_floor(low: int, high: int, n_items: int = 4) -> int:
+    """Smallest budget at which the FIRST item can still be upgraded.
+
+    AMENDMENT 2. Below this, `feasible(DEEP, ...)` is false at t=0 for every
+    policy, so no allocation can ever put the deep budget on item 1. Position
+    stops being uninformative and the optimal rule becomes partly temporal --
+    which is precisely the disease that killed Environment 5 and that
+    Environment 6 was designed to eliminate. Measured at the Amendment-1 budget
+    of 5312: position 0 upgraded in 0% of episodes, position 3 in 100%.
+    """
+    return int((PROMPT_CAP + high) + (n_items - 1) * (PROMPT_CAP + low))
+
+
+def position_feasibility(env_factory, eps, n_items: int = 4) -> list[float]:
+    """Fraction of episodes in which a schedule upgrading ONLY position p
+    actually gets its deep call. All ones means the budget is position-neutral.
+    """
+    import numpy as np
+
+    from governor.phase4.env import DEEP
+    from governor.phase4.evaluate import constant, execute
+    from governor.phase4.policies import fixed_schedule
+
+    env = env_factory()
+    out = []
+    for p in range(n_items):
+        r = execute(env, "s", constant(fixed_schedule(env, {p})), eps)
+        out.append(float(np.mean([sum(m == DEEP for m in ms) for ms in r.modes])))
+    return out
+
+
 def budget_for_target_scarcity(env_factory, eps, low: int, high: int,
                                target: float = TARGET_DEEP_CALLS,
                                step: int = 50) -> tuple[int, list[dict]]:
-    """Amendment 1: the smallest budget at which greedy realises `target` deep
-    calls per episode ON CALIBRATION.
+    """Amendments 1 and 2: the smallest POSITION-NEUTRAL budget at which greedy
+    realises `target` deep calls per episode ON CALIBRATION.
 
     Sets the SCARCITY of the resource, which is the experiment's independent
-    variable. Computed on the calibration split before the test pool is touched;
-    nothing about which policy wins enters it. The sweep is returned so the
-    whole curve is recorded, not just the chosen point.
+    variable, and enforces the environment's design invariant that position
+    carries no information. Computed on the calibration split before the test
+    pool is touched; nothing about which policy wins enters it. The whole sweep
+    is returned so the curve is recorded, not just the chosen point.
     """
     import numpy as np
 
@@ -70,16 +102,20 @@ def budget_for_target_scarcity(env_factory, eps, low: int, high: int,
     from governor.phase4.policies import greedy
 
     cap_lo, cap_hi = PROMPT_CAP + low, PROMPT_CAP + high
+    floor = position_neutral_floor(low, high)
     grid = list(range(4 * cap_lo, 4 * cap_lo + 4 * (cap_hi - cap_lo) + step, step))
     sweep, chosen = [], None
     for b in grid:
         env = env_factory(float(b))
         res = execute(env, "greedy", constant(greedy(env)), eps)
         deep = float(np.mean([sum(m == DEEP for m in ms) for ms in res.modes]))
-        sweep.append({"budget": b, "greedy_deep_calls": deep, "U": res.mean})
-        if chosen is None and deep >= target:
+        sweep.append({"budget": b, "greedy_deep_calls": deep, "U": res.mean,
+                      "position_neutral": b >= floor})
+        if chosen is None and deep >= target and b >= floor:
             chosen = b
-    return (chosen if chosen is not None else grid[-1]), sweep
+    if chosen is None:                       # target unreachable: take the floor
+        chosen = max(floor, grid[-1])
+    return chosen, sweep
 
 
 def select_modes(acc: dict[int, float]) -> dict:

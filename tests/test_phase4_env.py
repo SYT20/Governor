@@ -209,3 +209,33 @@ def test_episodes_are_disjoint_and_pool_limited():
     assert len(seen) == len(set(seen)) == 40
     with pytest.raises(ValueError):
         make_episodes(pool, n_episodes=11, seed=3)
+
+
+# -- the budget must not reintroduce a temporal confound ------------------------
+
+def test_position_neutral_floor_is_where_item_one_becomes_upgradable():
+    """AMENDMENT 2. Below this budget no policy can ever upgrade the first item,
+    so position stops being uninformative and the optimal rule becomes partly
+    temporal -- the Env 5 disease that Env 6 was built to remove."""
+    from governor.phase4.config import PROMPT_CAP as PC, position_neutral_floor
+    floor = position_neutral_floor(700, 2800)
+    assert floor == (PC + 2800) + 3 * (PC + 700) == 5412
+
+
+def test_chosen_budget_is_position_neutral(env):
+    """Executable guard: at the selected budget a schedule that upgrades ONLY
+    position p must actually get its deep call, for every p."""
+    from governor.phase4.config import position_feasibility
+    floor = (PROMPT_CAP + HIGH) + 3 * (PROMPT_CAP + LOW)
+    eps = list(range(len(env.episodes)))
+
+    def factory(b=float(floor)):
+        return P4Env(env.cache, env.episodes, LOW, HIGH, b, PROMPT_CAP)
+
+    assert position_feasibility(factory, eps) == [1.0, 1.0, 1.0, 1.0]
+
+    def below(b=float(floor - 200)):
+        return P4Env(env.cache, env.episodes, LOW, HIGH, b, PROMPT_CAP)
+
+    assert position_feasibility(below, eps)[0] < 1.0, (
+        "budget below the floor should block position 0")

@@ -139,6 +139,46 @@ amendment is needed for this; the rule already excludes throttled engines.
 
 ---
 
+## AMENDMENT 2 — 2026-08-17, same session, still before any held-out number
+
+**A design invariant, not a preference.** Environment 6 exists because
+Environment 5 died of a temporal confound: difficulty was a property of the
+configuration, so the optimal allocation collapsed to "never spend early" and a
+constant schedule beat every controller. Env 6 fixed that by making position
+uninformative, and `test_difficulty_position_is_uninformative` guards it.
+
+The Amendment-1 budget silently broke the same invariant in Phase 4. Measured on
+88 calibration items, with a schedule that upgrades only position `p`:
+
+| budget | greedy deep calls | p0 | p1 | p2 | p3 | |
+|---|---|---|---|---|---|---|
+| 5312 | 1.73 | **0.00** | 0.36 | 0.82 | 1.00 | position 0 unreachable |
+| 5412 | 2.27 | 1.00 | 1.00 | 1.00 | 1.00 | position-neutral |
+| 5800 | 3.00 | 1.00 | 1.00 | 1.00 | 1.00 | position-neutral |
+
+At 5312 — the budget Amendment 1 selects — **no policy can ever put the deep
+budget on the first item**, because `cap(HIGH) + 3*cap(CHEAP) = 5412 > 5312`.
+The optimal rule becomes partly temporal and the experiment measures the same
+artefact Env 5 died of.
+
+### The amendment
+
+Add a floor to the budget rule:
+
+> **position_neutral_floor** := `cap(HIGH) + (n_items - 1) * cap(CHEAP)`
+> **TOTAL_BUDGET** := the smallest `B >= position_neutral_floor` on the grid
+> with greedy's mean realised deep calls on CALIBRATION `>= 2.0`.
+
+For LOW=700, HIGH=2800 this gives **B = 5412**, where greedy realises 2.27 deep
+calls of 4 — scarce, and position-neutral.
+
+This is enforcing a property the environment was designed to have, not selecting
+on an outcome. `position_feasibility()` computes the table above and
+`tests/test_phase4_env.py` asserts both that the floor is where item 1 becomes
+upgradable and that a budget below it blocks position 0.
+
+---
+
 ## Splits (frozen)
 
 | split | pool seed | purpose |

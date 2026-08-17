@@ -22,11 +22,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "ec46d7732d2357f34e03675db313e726e054eddc",
-  "git_dirty": [
-    "governor/phase4/collect.py",
-    "tests/test_cache_key_stable.py"
-  ],
-  "nonce": "dbc02db654bb4926871bd92e6c1e70a9",
-  "started_utc": "2026-08-17T10:42:24Z"
+  "git_commit": "e40345b1cce28a0b0451f7effac146337eda56e5",
+  "git_dirty": [],
+  "nonce": "ebe5a655799f4d14acdfb7854e463791",
+  "started_utc": "2026-08-17T10:43:49Z"
 }
