@@ -54,7 +54,36 @@ Exact `simplescaling/s1-32B` tokenizer counts. Third-party data throughout.
 **This is the contract the Governor should be built on, and it is the first one
 that has both properties.**
 
-### The Governor PASSES on external MATH once the predictor uses the right loss
+### ⚠️ WITHDRAWN: the external MATH "PASS" was a budget violation
+
+`E0019` reported `Governor − best fixed = +0.0282 [+0.0033, +0.0525]` **"at
+identical expected budget"**. It was not.
+
+| | utility | tokens |
+|---|---|---|
+| Governor | 0.8120 | **973** (budget was 846, **+15%**) |
+| fixed baseline at the *nominal budget* 846 | 0.7843 | 846 |
+| fixed baseline at the Governor's *realised* 973 | **0.8251** | 973 |
+
+`G − fixed` at matched realised cost is **−0.0131**, and the matched-cost
+bootstrap is **−0.0055 [−0.0540, +0.0434] — not separable**. Every E0019 variant
+overspent by 109–128 tokens.
+
+**Cause:** the Lagrangian is tuned to hit the budget on the *calibration* half;
+the evaluation half costs more, so the tuned λ overspends there. Tuning on
+calibration is correct. Reporting the baseline at the **nominal** budget rather
+than at the Governor's **realised** cost is not.
+
+`budget_adherence` is now trap 14: a policy may under-spend, but may not exceed
+its budget, and the baseline may not be given fewer tokens than the policy used.
+
+**So the project has NO verified claim that the Governor beats a strong fixed
+baseline on external data.** The Env 6 synthetic result stands; nothing on real
+LLM data does.
+
+<details><summary>Superseded E0019 write-up (retained for the record)</summary>
+
+### The Governor appeared to PASS on external MATH once the predictor used the right loss
 
 **E0019** changed only the correctness predictor's loss and calibration —
 same data, split, budget grid, features, allocator, baseline, contract:
@@ -86,8 +115,9 @@ Whether *pricing* the resource beats merely *ranking* difficulty remains
 unanswered after three attempts.
 
 **GPQA fails, and the mechanism is known**: E0018 measured AUC ≈ 0.52 there
-against 0.741 on MATH. The Governor works where the signal exists and fails
-where it does not, which is the behaviour a correct controller should have.
+against 0.741 on MATH.
+
+</details>
 
 **Superseded:** the E0017 run below, and its diagnosis, are retained for the
 record. Its verdict stood on ridge; its diagnosis was retracted in E0018.

@@ -106,6 +106,8 @@ def test_budget_adherence_catches_the_E0019_defect():
     from governor.harness.traps import budget_adherence, run_trap_checks
     assert not budget_adherence(973, 846)[0]           # the actual defect
     assert budget_adherence(850, 846)[0]               # within tolerance
-    assert not budget_adherence(973, 973, baseline_cost=846)[0]  # baseline cheaper
-    assert budget_adherence(973, 973, baseline_cost=975)[0]
+    assert budget_adherence(5643, 6486)[0], "under-spending is allowed"
+    assert not budget_adherence(973, 973, baseline_cost=846)[0]  # baseline short
+    assert budget_adherence(5643, 6486, baseline_cost=6138)[0], (
+        "a baseline that spent MORE handicaps the policy and is fair")
     assert run_trap_checks({})["budget_adherence"][0] is False

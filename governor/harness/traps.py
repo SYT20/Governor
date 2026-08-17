@@ -142,12 +142,15 @@ def budget_adherence(realised_cost, budget, baseline_cost=None, tol=0.02):
     REALISED cost.
     """
     over = float(realised_cost) / float(budget) - 1.0 if budget else float("inf")
-    ok = abs(over) <= tol
+    ok = over <= tol                       # UNDER-spending is allowed
     detail = f"realised={realised_cost:.0f} budget={budget:.0f} over={over:+.1%}"
     if baseline_cost is not None:
-        gap = float(baseline_cost) / float(realised_cost) - 1.0
-        ok = ok and abs(gap) <= tol
-        detail += f" baseline={baseline_cost:.0f} mismatch={gap:+.1%}"
+        # The baseline must not have been given LESS resource than the policy.
+        # A baseline that spent MORE is fine -- that handicaps the policy.
+        short = 1.0 - float(baseline_cost) / float(realised_cost)
+        ok = ok and short <= tol
+        detail += (f" baseline={baseline_cost:.0f} "
+                   f"baseline_short_by={short:+.1%}")
     return ok, detail
 
 
