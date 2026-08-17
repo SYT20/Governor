@@ -14,6 +14,7 @@ from typing import Callable
 
 import numpy as np
 
+from governor.phase4 import s1data as _s1
 from governor.phase4 import puzzles as _puz
 from governor.phase4 import tasks as _arith
 
@@ -55,4 +56,13 @@ PUZZLES = Family(
                         "clues_per_person"),
     difficulty_feature="n_clues")
 
-FAMILIES = {f.name: f for f in (ARITHMETIC, PUZZLES)}
+S1MATH = Family(
+    name="s1math",
+    features=_s1.features,
+    feature_names=_s1.FEATURE_NAMES,
+    system_prompt="(external: s1 released generations)",
+    grade=_s1.grade_passthrough,
+    heuristic_features=("chars", "words_n", "latex_cmds", "n_equations"),
+    difficulty_feature="chars")
+
+FAMILIES = {f.name: f for f in (ARITHMETIC, PUZZLES, S1MATH)}
