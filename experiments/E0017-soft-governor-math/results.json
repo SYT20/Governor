@@ -16,14 +16,14 @@
     "verdict": "FAIL",
     "architecture_justified": false
   },
-  "git_commit": "40fd685ef65daa3791de03da43e4ce0e5b61a29d",
-  "config_hash": "f77f221fc31a53184a947cb754fcbd487cfa4473aba5c21e7aea376b9995dd36",
-  "nonce": "a9dbee00687f4d68b58e28a4a8380c2b",
+  "git_commit": "149358f0e7386735d87178af3057735ccc5ecc22",
+  "config_hash": "51f1a3de0463a75feb9c9ea4a901f4d811aa05c9ccff80156ac18bcc57aa4737",
+  "nonce": "277b4c52782e42c6a5fa4ee8a931f157",
   "raw_file": "raw.jsonl",
-  "raw_sha256": "6b15e1b228c5a4bd1e438c64d3b66cf0df9b36b15c9422b91a70772506bcff94",
+  "raw_sha256": "69c3833d01fe47303495cb8aec22750727db7a093a499ecba364bdabd980d0ee",
   "raw_rows": 7,
   "wall_s": 0.1,
-  "finished_utc": "2026-08-17T20:28:27Z",
+  "finished_utc": "2026-08-17T20:30:54Z",
   "trap_checks": {
     "oracle_leakage": {
       "ok": true,

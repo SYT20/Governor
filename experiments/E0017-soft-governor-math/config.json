@@ -61,11 +61,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "40fd685ef65daa3791de03da43e4ce0e5b61a29d",
-  "git_dirty": [
-    "governor/phase4/s1data.py",
-    "scripts/soft_budget_governor.py"
-  ],
-  "nonce": "ad241bb896ce470782ad7b769d6452a5",
-  "started_utc": "2026-08-17T20:29:52Z"
+  "git_commit": "149358f0e7386735d87178af3057735ccc5ecc22",
+  "git_dirty": [],
+  "nonce": "277b4c52782e42c6a5fa4ee8a931f157",
+  "started_utc": "2026-08-17T20:30:54Z"
 }

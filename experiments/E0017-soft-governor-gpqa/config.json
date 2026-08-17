@@ -61,12 +61,13 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "40fd685ef65daa3791de03da43e4ce0e5b61a29d",
+  "git_commit": "149358f0e7386735d87178af3057735ccc5ecc22",
   "git_dirty": [
-    "governor/phase4/s1data.py",
-    "scripts/soft_budget_governor.py",
-    "experiments/E0017-soft-governor-math/"
+    "experiments/E0017-soft-governor-math/README.md",
+    "experiments/E0017-soft-governor-math/config.json",
+    "experiments/E0017-soft-governor-math/git_commit.txt",
+    "experiments/E0017-soft-governor-math/results.json"
   ],
-  "nonce": "1ad5bc99899e4b63b47836b8aaa0d73a",
-  "started_utc": "2026-08-17T20:29:56Z"
+  "nonce": "9eb5988ebf444ebaa76cffe74daf24a6",
+  "started_utc": "2026-08-17T20:30:58Z"
 }

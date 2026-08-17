@@ -5,11 +5,11 @@
 | field | value |
 |---|---|
 | model | `s1-32B via simplescaling/results` |
-| commit | `40fd685ef65daa3791de03da43e4ce0e5b61a29d` |
+| commit | `149358f0e7386735d87178af3057735ccc5ecc22` |
 | budget | `{"contract": "SOFT_EXPECTED_BUDGET", "grid": [600.2057, 1002.1209166666667, 1404.0361333333335, 1805.95135, 2207.8665666666666, 2609.781783333334, 3011.697], "reported_at": 600.2057, "charged": "simplescaling/s1-32B tokenizer (exact)"}` |
 | seeds | `{"split": "doc_id parity: even=calibration, odd=evaluation (declared in E0013)", "bootstrap": 0}` |
 | split | `{"calibration_items": 250, "evaluation_items": 250, "rule": "doc_id parity: even=calibration, odd=evaluation (declared in E0013)"}` |
-| raw rows | 7 (`raw.jsonl`, sha256 `6b15e1b228c5a4bd`) |
+| raw rows | 7 (`raw.jsonl`, sha256 `69c3833d01fe4730`) |
 | wall | 0.1 s |
 
 ## Metric
