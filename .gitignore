@@ -18,3 +18,4 @@ results/lcb_samples.pkl
 
 # Claude Code local settings
 .claude/
+!.env.example

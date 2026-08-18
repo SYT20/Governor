@@ -292,6 +292,22 @@ python scripts/resolve_commit.py 4f5e1ca8                   # any hash
 
 ---
 
+## Acknowledgements
+
+Built by **Suyash Tiwari** ([@SYT20](https://github.com/SYT20)).
+
+Developed with AI assistance: **Claude** (Anthropic) and **ChatGPT** (OpenAI).
+Claude appears in the contributor list through `Co-Authored-By` trailers on the
+commits it worked on. ChatGPT is credited here rather than as a co-author,
+because GitHub resolves co-author trailers to real accounts and there is no
+official ChatGPT account to attribute to — a trailer would either dangle or
+credit an unrelated user.
+
+The architecture, the experimental protocol, and every recorded result and
+retraction are the author's own.
+
+---
+
 ## Licence
 
 [MIT](LICENSE).
