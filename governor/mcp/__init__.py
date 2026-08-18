@@ -1,1 +1,1 @@
-"""MCP harness. Exposes the SAME Governor, Ares and executor the tests use."""
+"""MCP harness. Exposes the SAME Governor, ActionExecutor and executor the tests use."""

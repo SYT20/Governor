@@ -40,7 +40,7 @@ from governor.phase4.config import (  # noqa: E402
 )
 from governor.phase4.env import P4Env, make_episodes  # noqa: E402
 from governor.phase4.evaluate import constant, execute, paired_ci  # noqa: E402
-from governor.phase4.graft import (  # noqa: E402
+from governor.phase4.statemgr import (  # noqa: E402
     COMPONENTS, EnsemblePredictor, JUSTIFIED_PROGRESS, StatePredictor,
     collect_state_training, component_names,
 )

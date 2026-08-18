@@ -1,7 +1,7 @@
 """Second task family, end to end through the UNCHANGED interfaces.
 
 The generalization claim under test is architectural, not numerical: the same
-Governor, executor, Ares and budget accounting must run a family with a
+Governor, executor, ActionExecutor and budget accounting must run a family with a
 different difficulty cue, a different surface form, and a CONTINUOUS
 partial-credit reward -- without a line of the controller changing.
 
@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from governor.ares.executor import AresLoop
+from governor.execution.executor import ExecutorLoop
 from governor.gate.executor import run_episode
 from governor.phase4.collect import CallRecord, ResponseCache
 from governor.phase4.config import PROMPT_CAP
@@ -122,7 +122,7 @@ def test_ares_is_trace_identical_on_the_second_family(world):
     """The executor equivalence must not be a property of family one."""
     cache, pool = world
     env, E = _env(cache, pool)
-    loop = AresLoop(env)
+    loop = ExecutorLoop(env)
     for pol in (all_cheap(env), greedy(env)):
         for e in E[:6]:
             a = loop.run(pol, e, env.budget)

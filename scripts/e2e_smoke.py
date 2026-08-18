@@ -3,7 +3,7 @@
 
 Exercises the whole stack in one pass:
 
-    task family -> environment -> calibration -> Governor -> Ares -> executor
+    task family -> environment -> calibration -> Governor -> ActionExecutor -> executor
     -> budget accounting -> trap checks -> ledger -> MCP tools
 
 and asserts the pieces agree with each other, which is the property that keeps
@@ -23,7 +23,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from governor.ares.executor import AresLoop  # noqa: E402
+from governor.execution.executor import ExecutorLoop  # noqa: E402
 from governor.gate.executor import run_episode  # noqa: E402
 from governor.gate.m2_interface import MathM2  # noqa: E402
 from governor.harness.ledger import git_commit, index  # noqa: E402
@@ -124,13 +124,13 @@ def main() -> int:
               np.allclose(te["actual_used"], te["charged"])
               and all(a <= q for a, q in zip(te["actual_used"], te["requested"])))
 
-        loop = AresLoop(test)
+        loop = ExecutorLoop(test)
         same = all(loop.run(all_cheap(test), e, test.budget).actions
                    == run_episode(test, all_cheap(test), e, test.budget).modes
                    and loop.run(greedy(test), e, test.budget).costs
                    == run_episode(test, greedy(test), e, test.budget).costs
                    for e in T)
-        check("Ares is trace-identical to the frozen executor", same)
+        check("ActionExecutor is trace-identical to the frozen executor", same)
 
         s = summarise(R, c, test, trace, commit="smoke", froze_commit="prereg",
                       selection_item_ids=[i.item_id for i in cal_items],
@@ -169,7 +169,7 @@ def main() -> int:
     check("MCP episode completes", st["done"] and steps == st["n_decisions"])
     check("MCP respects the budget", st["spent"] <= st["budget"] + 1e-9)
     g = call_tool("graft_get_state", {"session_id": sid}, rec)
-    check("graft state hides correctness", "correct" not in str(g["outcomes_observable"]))
+    check("statemgr state hides correctness", "correct" not in str(g["outcomes_observable"]))
     check("every tool call recorded", rec.path.exists()
           and len(rec.path.read_text().splitlines()) >= steps * 2)
     gate = call_tool("gate_status", {}, rec)

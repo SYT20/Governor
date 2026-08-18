@@ -182,7 +182,7 @@ bootstraps over ITEMS with the controller frozen.
 
 **Verified.** The Governor architecture on Environment 6 (U=0.8247, +0.0359
 [+0.0262, +0.0457] over the best constant schedule, 72% of oracle headroom,
-frozen at 1e-12). The whole engineering stack: canonical executor, Ares
+frozen at 1e-12). The whole engineering stack: canonical executor, ActionExecutor
 per-action layer proven trace-identical on two environments and two task
 families, frozen M2 contract with four engines behind it, experiment ledger that
 refuses unreproducible results, 12 executable trap checks, a 12-tool MCP harness
@@ -219,7 +219,7 @@ budget-aware allocation helps a real LLM — **is not established here.**
                    |  mode = H | M2
                    v
     +--------------------------------+
-    |  ARES  execute(action, state,  |   budget checked BEFORE the call
+    |  ACTION EXECUTOR  execute(action, state,  |   budget checked BEFORE the call
     |        budget) -> ExecResult   |   charge = measured, never nominal
     +--------------------------------+
                    |
@@ -243,7 +243,7 @@ the Governor has never been changed to accommodate one.
 | component | file | contract |
 |---|---|---|
 | Executor (frozen) | `governor/gate/executor.py` | `run_episode(env, policy, ep, budget) -> Trace`. The only authoritative source of policy value. |
-| Ares | `governor/ares/executor.py` | `execute(action, state, budget) -> ExecResult(observation, utility, consumed, state)`. Proven trace-identical to the above on two environments. |
+| ActionExecutor | `governor/execution/executor.py` | `execute(action, state, budget) -> ExecResult(observation, utility, consumed, state)`. Proven trace-identical to the above on two environments. |
 | M2 engine | `governor/gate/m2_interface.py` | `M2(state, reasoning_budget) -> M2Result(result, reasoning_tokens, total_tokens, latency_s, cost_units, ok, error)`. |
 | Environment | `governor/phase4/env.py` | `reset / observe / step / utility / modes / cap / feasible`. |
 | Value predictor | `governor/phase4/predictor.py` | `q(text) -> E[gain]`; `OpportunityCostDP.threshold(items_left, k)`. |
@@ -450,13 +450,13 @@ identical configuration** — same `n=6, LOW=300, HIGH=700, B=2868`, same
 
 These do not depend on any task family passing a gate, and all are tested.
 
-**Ares** (`execute(action, state, budget) -> observation, utility, consumed,
+**ActionExecutor** (`execute(action, state, budget) -> observation, utility, consumed,
 state`). Budget checked *before* the call; a refused action does not advance
 state; a loop asking for something unaffordable fails loudly rather than
 silently substituting the cheap mode. Proven **trace-identical** to the frozen
 `run_episode` on Env 6 and both Phase 4 families — identical actions, costs,
 spend and utility — and Env 6's frozen reference utilities (0.6896875,
-0.813125) are reproducible through the Ares path at 1e-12. Independence from the
+0.813125) are reproducible through the ActionExecutor path at 1e-12. Independence from the
 controller is checked against the **import graph**, not the source text.
 
 **MCP harness** — 12 tools over dependency-free JSON-RPC stdio:
@@ -487,7 +487,7 @@ worked perfectly and all three were silently arithmetic-only. `Family` is now a
 first-class object and the generalization test passes by changing **one
 argument**.
 
-**Graft** — the cognitive-state ablation harness exists and is unit-tested
+**State Manager** — the cognitive-state ablation harness exists and is unit-tested
 (components: text / progress / budget / history / uncertainty, with a bootstrap
 ensemble for the last). Its *prediction is recorded in the module docstring
 before any run*: only text should matter to the predictor, because an item's
@@ -624,7 +624,7 @@ weak-model result.
 | axis | result |
 |---|---|
 | second task family (continuous reward) | interfaces unchanged; **found 3 hardcoding defects** |
-| second environment (Env 6) for Ares | trace-identical, frozen values at 1e-12 |
+| second environment (Env 6) for ActionExecutor | trace-identical, frozen values at 1e-12 |
 | fourth engine behind M2 | local MLX backend, Governor unmodified |
 | MCP harness vs test harness | proven identical execution |
 
@@ -645,7 +645,7 @@ See `REPRODUCE.md`. Everything below runs with **no API key**:
 
 ```bash
 make test      # full regression suite
-make smoke     # end-to-end: both families, Ares, MCP, traps, ledger
+make smoke     # end-to-end: both families, ActionExecutor, MCP, traps, ledger
 make verify    # re-verify every recorded experiment from disk
 make mcp       # MCP server over real stdio JSON-RPC
 ```
@@ -709,7 +709,7 @@ and final claims.** Memory records what was true when it was written.
 
 | axis | state |
 |---|---|
-| **SOFTWARE VERIFIED** | canonical executor, Governor, Graft, M2 contract with four backends, Ares, MCP harness, ledger, 15 traps, exact-token accounting, two task families, reproducibility tooling |
+| **SOFTWARE VERIFIED** | canonical executor, Governor, State Manager, M2 contract with four backends, ActionExecutor, MCP harness, ledger, 15 traps, exact-token accounting, two task families, reproducibility tooling |
 | **SCIENCE VERIFIED** | Env 6 synthetic result; the closed-form headroom law; soft expected budget as the only viable resource contract of three; observable signal on MATH (AUC 0.741); predictor loss materially changes allocation |
 | **SCIENCE UNRESOLVED** | the Governor beating a strong fixed policy on real LLM data — four experiments, three axes, every CI crossing zero |
 | **WITHDRAWN** | `E0019-predictor-loss-math` (budget overrun, superseded by `E0021`); E0017's diagnosis (superseded by `E0018`); the Gemini curve (VOID). Registered in `experiments/WITHDRAWN.json` and enforced by a trap. |

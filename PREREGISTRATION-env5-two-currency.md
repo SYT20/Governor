@@ -265,7 +265,7 @@ closure cheap rather than a sunk cost.
 ## 7. Explicitly out of scope
 
 No further 4a variants. No probe-cost tuning of any kind. No shadow prices. No
-LLM, Graft, or Ares integration yet — though the token dimension is chosen so
+LLM, State Manager, or ActionExecutor integration yet — though the token dimension is chosen so
 that `tokens` later corresponds to real LLM inference cost rather than a
 synthetic number, and `tool_calls` to real tool invocations.
 

@@ -12,7 +12,7 @@ Every row is backed by a recorded experiment that re-verifies from disk
 | The soft expected-budget contract has material adaptive headroom on external data | MATH +0.170, GPQA +0.268 against a randomised-envelope fixed baseline and a multiple-choice-knapsack oracle | E0016 | Ceiling only — says nothing about reachability |
 | Observable features carry allocation signal on external MATH | AUC 0.671 question-only, 0.741 with a 500-token probe | E0018 | GPQA ≈ 0.52, no usable signal |
 | The predictor's loss materially changes allocation | ridge +0.0065 → logistic +0.0318 on identical inputs | E0019 | Both measured before budget enforcement |
-| Ares is trace-identical to the frozen executor | identical actions, costs, spend, utility on two environments and two task families; Env 6 reference reproduced at 1e-12 | `tests/test_ares.py` | — |
+| ActionExecutor is trace-identical to the frozen executor | identical actions, costs, spend, utility on two environments and two task families; Env 6 reference reproduced at 1e-12 | `tests/test_ares.py` | — |
 | The MCP harness reuses the same control loop | test asserts it reproduces `run_episode` exactly | `tests/test_mcp.py` | — |
 | The architecture is task-family independent | second family (constraint puzzles, continuous reward) runs through unchanged interfaces by passing one argument | `tests/test_second_family_e2e.py` | Synthetic responses |
 | A local MLX backend fits the frozen M2 contract | Qwen3-1.7B-4bit, curve qualifies under the frozen rule | E0009 | n=6; feasibility, not competence |
@@ -172,7 +172,7 @@ and final claims.** Memory records what was true when it was written.
 
 | axis | state |
 |---|---|
-| **SOFTWARE VERIFIED** | canonical executor, Governor, Graft, M2 contract with four backends, Ares, MCP harness, ledger, 15 traps, exact-token accounting, two task families, reproducibility tooling |
+| **SOFTWARE VERIFIED** | canonical executor, Governor, State Manager, M2 contract with four backends, ActionExecutor, MCP harness, ledger, 15 traps, exact-token accounting, two task families, reproducibility tooling |
 | **SCIENCE VERIFIED** | Env 6 synthetic result; the closed-form headroom law; soft expected budget as the only viable resource contract of three; observable signal on MATH (AUC 0.741); predictor loss materially changes allocation |
 | **SCIENCE UNRESOLVED** | the Governor beating a strong fixed policy on real LLM data — four experiments, three axes, every CI crossing zero |
 | **WITHDRAWN** | `E0019-predictor-loss-math` (budget overrun, superseded by `E0021`); E0017's diagnosis (superseded by `E0018`); the Gemini curve (VOID). Registered in `experiments/WITHDRAWN.json` and enforced by a trap. |

@@ -18,7 +18,7 @@ Source: https://huggingface.co/datasets/simplescaling/results
 Paper:  https://arxiv.org/abs/2501.19393
 
 The loader writes a normal `ResponseCache`, so the environment, the executor,
-Ares, the policies and the trap checks all run unmodified. That is the point:
+ActionExecutor, the policies and the trap checks all run unmodified. That is the point:
 if the architecture needed changing to accept external data, it was overfitted
 to my own generators.
 """

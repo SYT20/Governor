@@ -11,7 +11,7 @@ help:
 test:            ## full regression suite (222 tests, no network)
 	$(PY) -m pytest tests/ -q
 
-smoke:           ## end-to-end smoke: both families, MCP, Ares, traps, ledger
+smoke:           ## end-to-end smoke: both families, MCP, ActionExecutor, traps, ledger
 	$(PY) scripts/e2e_smoke.py
 
 verify:          ## re-verify every recorded experiment from disk

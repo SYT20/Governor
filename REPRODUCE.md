@@ -6,7 +6,7 @@ local backend.
 
 ```bash
 make test      # 222 tests: unit, integration, executor traces, ledger, traps, MCP
-make smoke     # end-to-end: both task families, Ares, MCP, traps, ledger
+make smoke     # end-to-end: both task families, ActionExecutor, MCP, traps, ledger
 make verify    # re-verify every recorded experiment from disk, months later
 make mcp       # MCP server over real stdio JSON-RPC
 ```
@@ -42,7 +42,7 @@ which looks exactly like an auth failure and is not one.
 ```
 governor/gate/        frozen executor, M2 contract, engines (Math, LLM, Gemini, Qwen-local)
 governor/phase4/      task families, environment, predictor + DP, policies, pipeline
-governor/ares/        per-action execution layer, trace-identical to the executor
+governor/execution/        per-action execution layer, trace-identical to the executor
 governor/harness/     experiment ledger, 12 trap checks
 governor/mcp/         12-tool JSON-RPC harness over the same Governor
 experiments/E000N/    config, results, metrics, raw.jsonl, git_commit, README

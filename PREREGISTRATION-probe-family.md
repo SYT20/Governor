@@ -251,7 +251,7 @@ make a failure uninterpretable.
 
 Per the standing scope agreement: no return to SynthBug or AgentCE, no further
 tuning of CUBE-NM or the gated family, no POMDP solver, no RL, no LLM, no
-Graft/Ares integration. Environment 4 is one attempt against the gates above.
+State Manager/ActionExecutor integration. Environment 4 is one attempt against the gates above.
 
 If it fails, the project's contribution is the four negative results and the
 methodology that produced them:

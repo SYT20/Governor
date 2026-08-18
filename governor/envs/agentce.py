@@ -187,7 +187,7 @@ class AgentCEEpisode:
     def call(self, tool: str, **args: Any) -> Any:
         """Execute a tool, charging the envelope. Refuses once exhausted.
 
-        This is the Ares-like execution boundary: the policy names an action, the
+        This is the ActionExecutor-like execution boundary: the policy names an action, the
         executor runs it and reports what it actually cost, and the accountant
         enforces the envelope. Nothing here estimates.
         """

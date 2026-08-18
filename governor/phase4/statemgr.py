@@ -1,4 +1,4 @@
-"""Step 9 — the cognitive/Graft layer, as an ablation rather than an assertion.
+"""Step 9 — the cognitive/State Manager layer, as an ablation rather than an assertion.
 
 The directive lists a minimal state: current observations, uncertainty, reasoning
 history, remaining budget, previous actions, previous outcomes. This module makes

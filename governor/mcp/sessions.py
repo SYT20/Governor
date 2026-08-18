@@ -2,7 +2,7 @@
 
 ONE IMPLEMENTATION, NOT TWO. Every decision here comes from the same
 `governor.phase4.policies.governor` the experiments use, and every action goes
-through `governor.ares.executor.Ares`, which is itself asserted trace-identical
+through `governor.execution.executor.ActionExecutor`, which is itself asserted trace-identical
 to the frozen `run_episode`. A plugin with its own copy of the control loop
 would drift from the thing that was validated, and the drift would be invisible
 because both would keep working.
@@ -21,7 +21,7 @@ from typing import Any
 
 import numpy as np
 
-from governor.ares.executor import Ares
+from governor.execution.executor import ActionExecutor
 from governor.harness.ledger import git_commit
 from governor.phase4.collect import ResponseCache
 from governor.phase4.config import CAL_POOL_SEED, ENGINES, PROMPT_CAP
@@ -44,7 +44,7 @@ class Session:
     session_id: str
     family: str
     env: Any
-    ares: Ares
+    execution: ActionExecutor
     state: Any
     budget: float
     spent: float = 0.0
@@ -53,7 +53,7 @@ class Session:
     utility: float = 0.0
     calibration: Any = None
     policy: Any = None
-    graft: dict = field(default_factory=dict)
+    statemgr: dict = field(default_factory=dict)
     log: list = field(default_factory=list)
     started: float = field(default_factory=time.time)
 
@@ -124,7 +124,7 @@ def governor_start(family: str = "synthetic", episode: int = 0,
                                 f"available: {sorted(FAMILIES)}")
     env, cal = FAMILIES[family](**kw)
     sid = uuid.uuid4().hex[:12]
-    s = Session(session_id=sid, family=family, env=env, ares=Ares(env),
+    s = Session(session_id=sid, family=family, env=env, execution=ActionExecutor(env),
                 state=env.reset(episode), budget=env.budget, calibration=cal,
                 policy=governor(env, cal.predictor, cal.dp))
     _SESSIONS[sid] = s
@@ -175,12 +175,12 @@ def governor_next(session_id: str) -> dict:
 
 
 def ares_execute(session_id: str, action: str) -> dict:
-    """Execute one action through Ares. The ONLY way a session advances."""
+    """Execute one action through ActionExecutor. The ONLY way a session advances."""
     s = _require(session_id)
     if s.done:
         raise RuntimeError("episode already finished")
     left = s.budget - s.spent
-    r = s.ares.execute(action, s.state, left)
+    r = s.execution.execute(action, s.state, left)
     if not r.ok:
         return {"session_id": session_id, "ok": False, "error": r.error,
                 "budget_left": round(left, 1)}
@@ -255,7 +255,7 @@ def graft_get_state(session_id: str) -> dict:
             "outcomes_observable": o.get("history", []),
             "uncertainty": _uncertainty(s, o),
             "remaining_budget": round(s.budget - s.spent, 1),
-            "user_slots": s.graft,
+            "user_slots": s.statemgr,
             "note": "correctness is not here; nothing reveals it at run time"}
 
 
@@ -278,8 +278,8 @@ def graft_update_state(session_id: str, key: str, value: Any) -> dict:
     reads.
     """
     s = _require(session_id)
-    s.graft[str(key)] = value
-    return {"session_id": session_id, "user_slots": s.graft,
+    s.statemgr[str(key)] = value
+    return {"session_id": session_id, "user_slots": s.statemgr,
             "note": "scratch only; the allocator does not read this"}
 
 

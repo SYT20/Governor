@@ -158,7 +158,7 @@ def governor_state(env: P4Env, sp, dp: OpportunityCostDP, components,
     rule fixed is what makes the ablation about the STATE rather than about two
     different controllers.
     """
-    from governor.phase4.graft import state_features
+    from governor.phase4.statemgr import state_features
 
     def pol(o, b):
         m = o["items_left"]

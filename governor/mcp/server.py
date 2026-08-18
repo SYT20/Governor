@@ -7,7 +7,7 @@ experiments use. A tool call that leaves no trace is the one that will later be
 quoted from memory.
 
 The tools delegate to `governor.mcp.sessions`, which delegates to the same
-Governor, Ares and executor the tests exercise. There is no second
+Governor, ActionExecutor and executor the tests exercise. There is no second
 implementation anywhere in this file.
 """
 from __future__ import annotations
@@ -69,7 +69,7 @@ TOOLS: dict[str, tuple[Callable, str, dict]] = {
         "execute.",
         {"session_id": {"type": "string"}}),
     "ares_execute": (S.ares_execute,
-        "Execute one action through Ares. The only way a session advances; "
+        "Execute one action through ActionExecutor. The only way a session advances; "
         "budget is checked before the call and charged at measured cost.",
         {"session_id": {"type": "string"}, "action": {"type": "string"}}),
     "governor_status": (S.governor_status, "Episode progress and decision log.",
