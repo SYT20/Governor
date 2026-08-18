@@ -421,15 +421,11 @@ def api_key(provider: Provider = OPENROUTER) -> str:
 
     `.env` is gitignored and `tests/test_no_secrets.py` scans the tree; a key
     was committed once in this project and the fix has to be structural.
+
+    Resolution lives in `governor.config` so every entry point agrees on the
+    variable names, finds `.env` from the repository root rather than the
+    current directory, and fails with instructions instead of a diagnosis.
     """
-    k = os.environ.get(provider.key_env, "")
-    if not k:
-        env = Path(".env")
-        if env.exists():
-            for line in env.read_text().splitlines():
-                if line.strip().startswith(f"{provider.key_env}="):
-                    k = line.split("=", 1)[1].strip().strip("'\"")
-    if not k:
-        raise RuntimeError(
-            f"{provider.key_env} is not set (checked environment and ./.env).")
-    return k
+    from governor.config import resolve_key
+
+    return resolve_key(provider.name)

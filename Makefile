@@ -3,12 +3,12 @@
 
 PY ?= python
 
-.PHONY: help test smoke verify gate governor report clean-sessions all
+.PHONY: help test smoke verify gate governor report clean-sessions all keys
 
 help:
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
 
-test:            ## full regression suite (222 tests, no network)
+test:            ## full regression suite (no network, no API key)
 	$(PY) -m pytest tests/ -q
 
 smoke:           ## end-to-end smoke: both families, MCP, ActionExecutor, traps, ledger
@@ -38,3 +38,6 @@ curve:           ## local Qwen backend curve (MLX, no network after download)
 	$(PY) scripts/qwen_local_curve.py --n 8
 
 all: test smoke verify   ## everything that needs no API key
+
+keys:  ## show which provider API keys the harness can see
+	@python -m governor.config

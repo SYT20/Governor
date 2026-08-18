@@ -72,6 +72,77 @@ Reproduction instructions for individual experiments are in
 
 ---
 
+## Using your own API key
+
+**You do not need one to evaluate this repository.** `make test`, `make verify`
+and `make smoke` all run offline against a deterministic engine. A key is only
+needed to collect *new* data from a live model.
+
+Check what the harness can currently see:
+
+```bash
+make keys
+```
+
+```
+API keys visible to the harness
+
+  [  set  ]  openrouter   OPENROUTER_API_KEY from .env
+  [not set]  groq         set GROQ_API_KEY  --  https://console.groq.com/keys
+  [not set]  gemini       set GEMINI_API_KEY  --  https://aistudio.google.com/apikey
+```
+
+### Setting one
+
+Any of these work; the environment always beats `.env`, so a shell variable
+overrides a file without editing it.
+
+**A file** — easiest, and `.env` is gitignored:
+
+```bash
+cp .env.example .env      # then fill in the providers you plan to use
+```
+
+**A shell variable** — for one session:
+
+```bash
+export OPENROUTER_API_KEY=sk-or-...
+```
+
+**Your MCP client** — the right answer when driving Governor from Claude Code or
+any other MCP host. The server inherits the environment you declare, so there is
+nothing to set up inside the harness itself and no key ever touches the repo:
+
+```jsonc
+// .mcp.json  (or your client's server config)
+{
+  "mcpServers": {
+    "governor": {
+      "command": "python",
+      "args": ["-m", "governor.mcp.server"],
+      "env": { "OPENROUTER_API_KEY": "sk-or-..." }
+    }
+  }
+}
+```
+
+### Supported providers
+
+| Provider | Variable | Get a key |
+|---|---|---|
+| OpenRouter | `OPENROUTER_API_KEY` | https://openrouter.ai/keys |
+| Groq | `GROQ_API_KEY` | https://console.groq.com/keys |
+| Google AI Studio | `GEMINI_API_KEY` | https://aistudio.google.com/apikey |
+
+The older names — `OR_KEY`, `Groq`, `GEMINI_KEY` — still work, so existing setups
+keep running; `make keys` will tell you which ones are using a deprecated name.
+
+Keys are read only from the environment or an untracked `.env`, never from
+source. A test scans the tree on every run, and `make keys` prints where each key
+came from without ever printing the key.
+
+---
+
 ## What makes this different
 
 **Provenance is refusal, not documentation.** `ExperimentRun.finalize()` raises
