@@ -14,6 +14,15 @@ from typing import Sequence
 import numpy as np
 
 from governor.harness.ledger import file_commit
+
+
+def _withdrawn_ids():
+    """Ids whose recorded verdict may no longer be cited as evidence."""
+    try:
+        from governor.harness.ledger import withdrawn
+        return list(withdrawn())
+    except Exception:                                    # noqa: BLE001
+        return []
 from governor.harness.traps import run_trap_checks, secret_scan
 from governor.phase4.config import HEURISTIC_FEATURES, HEURISTIC_QUANTILES
 from governor.phase4.env import DEEP, P4Env
@@ -133,7 +142,8 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
               trace: list, commit: str = "", froze_commit: str | None = None,
               selection_item_ids: Sequence[str] | None = None,
               evaluation_item_ids: Sequence[str] | None = None,
-              token_cost_source: str = "provider usage.total_tokens") -> dict:
+              token_cost_source: str = "provider usage.total_tokens",
+              cited_experiment_ids: Sequence[str] | None = None) -> dict:
     """Callers MUST name the items the model was fitted on and the items it is
     scored on. Leaving them out makes `split_leakage` red, which is the point:
     silence about a split is not evidence of a clean one."""
@@ -156,6 +166,11 @@ def summarise(R: dict[str, PolicyResult], cal: Calibration, env: P4Env,
         # A policy compared at a budget it did not respect is not a comparison.
         "realised_cost": float(np.mean(R["GOVERNOR"].spent)),
         "budget": float(env.budget),
+        # This run produces a result; it cites no prior experiment. A run that
+        # DOES cite one must pass the ids so a withdrawn result cannot be
+        # promoted back into evidence.
+        "cited_experiment_ids": list(cited_experiment_ids or []),
+        "withdrawn_ids": list(_withdrawn_ids()),
         "decisions": [r["mode"] for r in trace],
         "cell_ids": [f"m{env.n_decisions - r['t']}_k{r['k']}" for r in trace],
         # The real evidence: the commit that froze the selection rules must
