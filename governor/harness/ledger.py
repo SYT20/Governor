@@ -404,6 +404,21 @@ def verify_experiment(exp_id: str, root: Path | None = None) -> tuple[bool, list
     return (not bad), bad
 
 
+WITHDRAWN_FILE = "WITHDRAWN.json"
+
+
+def withdrawn(root: Path | None = None) -> dict[str, dict]:
+    """Experiments whose recorded verdict may no longer be cited as evidence.
+
+    The ledger never rewrites a verdict -- an append-only record that can be
+    edited is not a record. Withdrawal lives beside it instead.
+    """
+    p = (root or EXPERIMENTS) / WITHDRAWN_FILE
+    if not p.exists():
+        return {}
+    return json.loads(p.read_text()).get("withdrawn", {})
+
+
 def index(root: Path | None = None) -> list[dict[str, Any]]:
     """Every finalized experiment, with its verdict and whether it still verifies."""
     r = root or EXPERIMENTS
@@ -415,7 +430,10 @@ def index(root: Path | None = None) -> list[dict[str, Any]]:
             continue
         res = json.loads((d / "results.json").read_text())
         ok, _ = verify_experiment(d.name, r)
+        w = withdrawn(r).get(d.name)
         out.append({"exp_id": d.name, "title": res.get("title", ""),
                     "verdict": res["verdict"], "commit": res["git_commit"][:8],
-                    "rows": res["raw_rows"], "verifies": ok})
+                    "rows": res["raw_rows"], "verifies": ok,
+                    "withdrawn": bool(w),
+                    "superseded_by": (w or {}).get("superseded_by")})
     return out

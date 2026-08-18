@@ -139,3 +139,31 @@ make smoke         # end-to-end, both families, MCP, traps, ledger
 make verify        # re-verify every experiment from disk
 python scripts/enforced_governor.py --bench math
 ```
+
+## How to resume this project
+
+```bash
+python scripts/resume_project.py   # orientation in under a minute; starts nothing
+python scripts/project_health.py   # ENGINEERING_HEALTH + SCIENTIFIC_STATUS
+make test && make verify && make smoke
+```
+
+| | |
+|---|---|
+| checkpoint tag | `v2.2-final` (engineering), `v2.2-robustness` (hardening) |
+| commit | see `scripts/resume_project.py` — do not trust a remembered hash |
+| memory | `governor-v2.2-checkpoint.md`, indexed first |
+
+**Do not resume by memory alone. Re-verify the repository, tag, tests, ledger
+and final claims.** Memory records what was true when it was written.
+
+### Read these as different axes
+
+| axis | state |
+|---|---|
+| **SOFTWARE VERIFIED** | canonical executor, Governor, Graft, M2 contract with four backends, Ares, MCP harness, ledger, 15 traps, exact-token accounting, two task families, reproducibility tooling |
+| **SCIENCE VERIFIED** | Env 6 synthetic result; the closed-form headroom law; soft expected budget as the only viable resource contract of three; observable signal on MATH (AUC 0.741); predictor loss materially changes allocation |
+| **SCIENCE UNRESOLVED** | the Governor beating a strong fixed policy on real LLM data — four experiments, three axes, every CI crossing zero |
+| **WITHDRAWN** | `E0019-predictor-loss-math` (budget overrun, superseded by `E0021`); E0017's diagnosis (superseded by `E0018`); the Gemini curve (VOID). Registered in `experiments/WITHDRAWN.json` and enforced by a trap. |
+| **CLOSED** | hard worst-case reservation; forced Wait units; MATH-500 as the settling benchmark (needs ~26,031 items, has 500) |
+| **FUTURE HYPOTHESES** | only a genuinely new observable signal — verifier/test-execution feedback, richer uncertainty structure, intermediate tool results. Preregister, then **ceiling → predictor → controller**, never reversed. |

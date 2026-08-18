@@ -128,6 +128,20 @@ def split_leakage(selection_item_ids, evaluation_item_ids):
             + (f" e.g. {sorted(both)[:3]}" if both else ""))
 
 
+def withdrawn_result_promotion(cited_experiment_ids, withdrawn_ids):
+    """A withdrawn result must never reappear as current evidence.
+
+    The ledger is append-only, so `E0019-predictor-loss-math` still reads PASS
+    on disk even though its Governor overspent by 15% and the corrected E0021
+    superseded it. Preserving the row is right; citing it is not. This check
+    separates the two.
+    """
+    cited, gone = set(cited_experiment_ids), set(withdrawn_ids)
+    bad = sorted(cited & gone)
+    return (not bad,
+            f"cited={len(cited)} withdrawn={len(gone)} promoted={bad}")
+
+
 def budget_adherence(realised_cost, budget, baseline_cost=None, tol=0.02):
     """A policy compared at a budget it did not respect is not a comparison.
 
@@ -205,6 +219,8 @@ def run_trap_checks(ev: dict) -> dict[str, tuple[bool, str]]:
         "split_leakage": ("selection_item_ids", "evaluation_item_ids"),
         "exact_token_counts": ("token_cost_source",),
         "budget_adherence": ("realised_cost", "budget"),
+        "withdrawn_result_promotion": ("cited_experiment_ids",
+                                       "withdrawn_ids"),
         "secret_scan": (),
     }
     fns = globals()

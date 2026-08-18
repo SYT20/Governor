@@ -1,0 +1,19 @@
+{
+  "_note": "Append-only register of withdrawn results. The original ledger record is NEVER rewritten -- that would destroy the audit trail -- so this file is the authority on which recorded verdicts may still be cited as evidence.",
+  "withdrawn": {
+    "E0019-predictor-loss-math": {
+      "recorded_verdict": "PASS",
+      "reason": "The Governor spent 973 tokens against a budget of 846 (+15%) and the fixed baseline was scored at the NOMINAL budget rather than at the Governor's realised cost. At matched realised cost the sign flipped to -0.0131.",
+      "superseded_by": "E0021-enforced-math",
+      "withdrawn_utc": "2026-08-18",
+      "detected_by": "E0020 paired analysis printing mean tokens beside the budget"
+    },
+    "E0017-soft-governor-math": {
+      "recorded_verdict": "FAIL",
+      "reason": "The RESULT stands. Its DIAGNOSIS -- 'observable features carry no signal' -- was wrong: it fitted ridge to a binary target and read R2 near zero as absence of signal. Logistic AUC on the same features and split is 0.613-0.741.",
+      "superseded_by": "E0018-probe-signal",
+      "withdrawn_utc": "2026-08-18",
+      "scope": "diagnosis only, not the result"
+    }
+  }
+}
