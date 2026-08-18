@@ -258,6 +258,26 @@ of the engineering. Neither tag will move.
 **Do not resume from memory alone. Re-verify the repository, tests, ledger and
 claims.** `scripts/resume_project.py` exists for exactly this.
 
+### A note on commit hashes
+
+This repository's history was rewritten once, on 2026-08-18, to purge an API key
+committed during Phase 3. Removing a secret from a commit changes that commit's
+hash and every descendant's, so 99 of 175 commits received new ids.
+
+Experiment records were **not** edited to match. Each `experiments/*/git_commit.txt`
+still holds the hash that was true when that experiment ran, because rewriting a
+recorded result so it agrees with a later convenience is exactly what this
+project's provenance rules exist to prevent.
+
+`experiments/COMMIT-MAP.tsv` is the bridge, and it is checked by tests:
+
+```bash
+python scripts/resolve_commit.py --audit                    # all 28 records
+python scripts/resolve_commit.py --experiment E0021-enforced-math
+python scripts/resolve_commit.py 4f5e1ca8                   # any hash
+```
+
+
 ---
 
 ## Further reading
