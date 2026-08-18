@@ -142,6 +142,17 @@ python scripts/enforced_governor.py --bench math
 
 ## How to resume this project
 
+### Which checkpoint to use
+
+| tag | meaning | use it when |
+|---|---|---|
+| `v2.2-final` | **research-complete.** The last state in which a scientific conclusion was reached. E0025 hard stop. | citing results, reproducing an experiment, auditing a claim |
+| `v2.2-robustness` | **operational.** Same science, hardened machinery: withdrawal enforcement, recovery tests, health/resume tooling. | resuming work, running the system, building on it |
+
+The science is identical between them. `v2.2-robustness` is strictly a superset
+of the engineering. Neither tag will move.
+
+
 ```bash
 python scripts/resume_project.py   # orientation in under a minute; starts nothing
 python scripts/project_health.py   # ENGINEERING_HEALTH + SCIENTIFIC_STATUS
