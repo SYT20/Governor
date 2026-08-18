@@ -12,9 +12,10 @@ If this loses, rule extraction is not the breakthrough and the Ruflo-inspired
 architecture should not be built.
 """
 import sys, json
+from pathlib import Path
 from dataclasses import dataclass, field
 import numpy as np
-sys.path.insert(0,"/Users/keshavgautam/Desktop/Suyash/Atlan Proj")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from governor.accounting.meter import Envelope
 from governor.arms.adaptive import AdaptiveArm
 from governor.arms.baselines import FixedArm, HeuristicArm, _terminal

@@ -12,8 +12,9 @@
    anti-conservative. Bonferroni reported alongside as the conservative bound.
 """
 import sys, math, json
+from pathlib import Path
 import numpy as np
-sys.path.insert(0,"/Users/keshavgautam/Desktop/Suyash/Atlan Proj")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.fit_value_model import load
 
 def wilson(k, n, z=1.96):

@@ -90,8 +90,10 @@ def main() -> int:
         add("GREEN" if (ROOT / f).exists() else "RED", f"artifact {f}",
             "present" if (ROOT / f).exists() else "MISSING")
 
-    mem = Path.home() / (".claude/projects/-Users-keshavgautam-Desktop-Suyash-"
-                         "Atlan-Proj/memory/governor-v2.2-checkpoint.md")
+    # Claude Code encodes the project directory into its own path, so derive
+    # it from where this repository actually is rather than hardcoding a home.
+    slug = "-" + str(ROOT).lstrip("/").replace("/", "-").replace(" ", "-")
+    mem = Path.home() / ".claude/projects" / slug / "memory/governor-v2.2-checkpoint.md"
     add("GREEN" if mem.exists() else "YELLOW", "memory checkpoint",
         "present" if mem.exists() else "missing")
 

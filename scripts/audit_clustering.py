@@ -1,7 +1,8 @@
 import sys, json, random
+from pathlib import Path
 from collections import defaultdict
 import numpy as np
-sys.path.insert(0,"/Users/keshavgautam/Desktop/Suyash/Atlan Proj")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.fit_value_model import load
 ck=load("results/corpus_af.db")
 tr=[c for c in ck if c.split=="train" and c.was_random and not c.mode.startswith("STOP")]
