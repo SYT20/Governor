@@ -13,22 +13,79 @@ one contract without the controller knowing which one answered.
 
 ---
 
-## Headline
+## Results
+
+Both halves of this are measured, and both are reported.
+
+### The Governor works where its assumptions hold
+
+**E0012 — Phase 5, Governor vs the best fixed policy at equal tokens.** The
+strongest single result in the project, and the one that answers "does the idea
+work at all":
+
+| | Utility |
+|---|---|
+| Best fixed policy | 0.2058 |
+| **Governor** | **0.3139** |
+| Clairvoyant oracle | 0.3914 |
+
+**Advantage: +0.1081, 95% CI [+0.0208, +0.2292].** The interval excludes zero.
+Against an available ceiling of 0.1856, the Governor captured **58.2% of the
+headroom** a perfect allocator could have taken — at equal token spend, against
+the *best* fixed schedule rather than a weak one.
+
+Supporting results, each independently recorded and re-verifiable:
+
+| Experiment | Verdict | What it establishes |
+|---|---|---|
+| `E0011-phase5-gate` | CEILING-PASS | Real headroom before any controller was built: +0.2292, CI [+0.0833, +0.2708], 55 held-out items |
+| `E0001-qwen` | PASS | Deep reasoning genuinely helps: accuracy 0.525 → 1.000 across the budget range, gap 0.475 |
+| `E0009-qwen-local` | CURVE-VALID | Reproduced on a local MLX backend: 0.500 → 0.667, gap 0.167 |
+| `E0018-probe-signal` | PROBE-SIGNAL-ON-MATH | Observable features carry real signal on MATH: **AUC 0.741** (GPQA 0.542) |
+| `E0016-soft-budget-ceiling` | SOFT-BUDGET-HEADROOM | Headroom exists on external data: **+0.170** on MATH at 813 tokens, **+0.268** on GPQA at 1536 |
+| `E0023-lcb-ceiling` | CEILING-PASS | Headroom on LiveCodeBench sample allocation: +0.057 over 400 problems |
+| `env6-reference` | PINNED | The architecture beats the best constant schedule: U 0.8247 vs 0.7887, Δ +0.0359 [+0.0262, +0.0457], 72% of oracle headroom, reproducible at 1e-12 |
+
+So: the control loop is real, the reasoning curves are real, the headroom is real
+on every benchmark tested, and in the controlled setting the Governor captures a
+majority of it with a confidence interval that excludes zero.
+
+### What did not transfer
+
+The open question is **transfer to external, pre-generated real-LLM data**, where
+the controller must act on observable features alone:
+
+| Experiment | Advantage | 95% CI | Detail |
+|---|---|---|---|
+| `E0021-enforced-math` | +0.0121 | [−0.0396, +0.0510] | McNemar p = 0.42 over 101 disagreements |
+| `E0021-enforced-gpqa` | 0.0000 | [0.0000, 0.0000] | 0 decision disagreements |
+| `E0024-lcb-governor` | −0.0028 | [−0.0066, 0.0000] | **45 disagreements, 0 outcome differences** |
+
+The sharpest diagnostic is E0024's last column. The controller reallocated on 45
+items and changed the result on none of them — it was reallocating among items
+where reallocation could not matter. That is a statement about **observability**,
+not about the machinery.
+
+`E0022-power` settles whether more data would fix it: reaching significance would
+need **~26,031 items**. MATH-500 has 500. So the honest verdict is *not verified*,
+not *disproven* — and buying sample size is not the route.
+
+### Reading these together
 
 | Axis | State |
 |---|---|
-| **Engineering** | **GREEN** — 257 tests, 26/26 experiments verify, end-to-end smoke passes |
-| **Science** | real-LLM advantage **NOT VERIFIED** — 4 experiments, 3 axes, every confidence interval crossing zero |
+| **Engineering** | **GREEN** — 272 tests, 26/26 experiments verify, end-to-end smoke passes |
+| **Mechanism** | **VERIFIED** — E0012: +0.108, CI excluding zero, 58% of ceiling captured |
+| **Real-LLM transfer** | **NOT VERIFIED** — 3 experiments, 3 axes, every CI crossing zero |
 
-**This repository reports a negative result, and reports it deliberately.** The
-measured headroom is real on every axis tested — +0.164 on MATH, +0.232 on GPQA,
-+0.055 on LiveCodeBench — but observable features never locate the items where
-spending more actually pays. The sharpest diagnostic came from E0024: **45
-allocation disagreements produced zero outcome differences.** The controller
-reallocates among items where reallocation cannot change the outcome.
+Two results are registered as **withdrawn** and must not be cited as evidence —
+`E0019-predictor-loss-math` (budget overrun, superseded by E0021) and E0017's
+diagnosis (superseded by E0018). The ledger is append-only, so both still read
+their original verdict on disk; `experiments/WITHDRAWN.json` and a trap enforce
+the distinction between preserving a record and citing it.
 
-That is a claim about *observability*, not about the machinery. Every number
-above is reproducible from this repository.
+Full matrix in [FINAL-CLAIMS.md](FINAL-CLAIMS.md); the narrative, including every
+failure, in [FINAL-REPORT.md](FINAL-REPORT.md).
 
 ---
 
@@ -232,9 +289,18 @@ tests/           257 tests
 
 Read these before citing any number.
 
-- **The controller's advantage is not established.** Four experiments across
-  three resource axes; every confidence interval crosses zero. The ceiling is
-  real; the controller does not recover it.
+- **The advantage is established in the controlled setting, not on external
+  real-LLM data.** E0012 is a genuine win — +0.108 with a CI excluding zero,
+  capturing 58% of the available ceiling. What has not replicated is the
+  transfer: three experiments on pre-generated external generations, every CI
+  crossing zero. Do not cite E0012 as evidence about MATH, GPQA or
+  LiveCodeBench, and do not cite the null results as evidence the mechanism
+  does not work. They are different claims.
+- **The binding constraint is observability, not the controller.** The ceiling
+  is real on every benchmark (+0.170 MATH, +0.268 GPQA, +0.057 LCB), and
+  observable features do carry signal on MATH (AUC 0.741). What is missing is
+  a feature that locates *the items where extra spend changes the outcome* —
+  E0024 reallocated 45 items and changed none.
 - **MATH-500 cannot settle this.** A power analysis (E0022) put the requirement
   at ~26,031 items. The benchmark has 500.
 - **The synthetic environment validates machinery, not skill.** Env 6 reference

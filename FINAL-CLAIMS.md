@@ -7,6 +7,7 @@ Every row is backed by a recorded experiment that re-verifies from disk
 
 | claim | evidence | experiment | limitation |
 |---|---|---|---|
+| **The Governor beats the best fixed policy at equal tokens on a headroom-screened family** | U 0.3139 vs 0.2058, Δ **+0.1081 [+0.0208, +0.2292]**, 58.2% of the 0.1856 available ceiling captured; oracle 0.3914 | `E0012-governor-phase5` | Synthetic family, screened by S1–S3 and gated by E0011; does not transfer to external generations |
 | The allocation architecture beats the best constant schedule in a synthetic environment with real headroom | U 0.8247 vs 0.7887, Δ +0.0359 [+0.0262, +0.0457], 72% of oracle headroom, pinned at 1e-12 | `env6-reference` | Synthetic; difficulty is an injected latent bit |
 | A closed-form law predicts the adaptive ceiling before any controller is built | `ceiling(n,k,p) = (E[min(k,X)] − k·p)/n`; matches simulation to 4e-3; explains both prior family rejections with different causes (39.5% vs 91.2% realisation) | `headroom.py`, E0004–E0007 | Binary gains; continuous case by simulation |
 | The soft expected-budget contract has material adaptive headroom on external data | MATH +0.170, GPQA +0.268 against a randomised-envelope fixed baseline and a multiple-choice-knapsack oracle | E0016 | Ceiling only — says nothing about reachability |
