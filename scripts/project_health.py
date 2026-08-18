@@ -67,7 +67,7 @@ def main() -> int:
                  and n not in ("render", "run_trap_checks", "Path", "np", "re")]
         reg = T.run_trap_checks({})
         add("GREEN" if len(reg) >= 14 else "YELLOW", "trap catalogue",
-            f"{len(reg)} registered, all red on empty evidence: "
+            f"{len(reg)} registered + 1 conditional, all red on empty evidence: "
             f"{all(not v[0] for k, v in reg.items() if k != 'secret_scan')}")
         ok_secret, det = T.secret_scan()
         add("GREEN" if ok_secret else "RED", "secret scan", det[:50])
