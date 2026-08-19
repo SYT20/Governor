@@ -11,6 +11,20 @@ It does not reason and it does not execute. Those are separate layers behind
 frozen interfaces, which is what lets four different reasoning engines sit behind
 one contract without the controller knowing which one answered.
 
+<p align="center">
+  <video src="https://github.com/SYT20/Governor/raw/main/docs/intro_governor.mp4"
+         controls muted playsinline width="320"
+         title="Governor — 15-second introduction"></video>
+</p>
+
+<p align="center">
+  <sub>
+    15-second introduction &middot;
+    <a href="https://github.com/SYT20/Governor/raw/main/docs/intro_governor.mp4">open the video directly</a>
+    if the player does not load
+  </sub>
+</p>
+
 ---
 
 ## Results
