@@ -12,18 +12,13 @@ frozen interfaces, which is what lets four different reasoning engines sit behin
 one contract without the controller knowing which one answered.
 
 <p align="center">
-  <video src="https://github.com/SYT20/Governor/raw/main/docs/intro_governor.mp4"
-         controls muted playsinline width="320"
-         title="Governor — 15-second introduction"></video>
+  <a href="https://github.com/SYT20/Governor/blob/main/docs/intro_governor.mp4">
+    <img src="docs/intro_poster.jpg" width="300"
+         alt="Play the 15-second introduction to Governor">
+  </a>
 </p>
 
-<p align="center">
-  <sub>
-    15-second introduction &middot;
-    <a href="https://github.com/SYT20/Governor/raw/main/docs/intro_governor.mp4">open the video directly</a>
-    if the player does not load
-  </sub>
-</p>
+<p align="center"><sub><b>A 15-second introduction</b> &middot; click to play</sub></p>
 
 ---
 
