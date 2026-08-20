@@ -110,5 +110,9 @@
   "E0027-marginal-value": {
     "driver": "scripts/e0027_marginal_value.py",
     "status": "DRIVER"
+  },
+  "E0028-marginal-ranker": {
+    "driver": "scripts/e0028_marginal_ranker.py",
+    "status": "DRIVER"
   }
 }

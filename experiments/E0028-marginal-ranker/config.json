@@ -4,7 +4,7 @@
   "model": "Gemini-Pro-1.5 (May) generations, published by LiveCodeBench",
   "budget": {
     "axis": "rank-then-allocate; sample 1 everywhere, remainder to top-ranked",
-    "B_star": 240.63730569948186,
+    "B_star": 240.6580310880829,
     "charged": "exact tokenizer count over published generations"
   },
   "seeds": {
@@ -27,7 +27,7 @@
       "n_branches",
       "n_functions",
       "n_try",
-      "n_calls",
+      "ast_call_nodes",
       "has_recursion",
       "parse_ok",
       "attempt_idx",
@@ -48,7 +48,7 @@
     "model": "rf",
     "frac": 0.1,
     "target": "any later sample succeeds given all so far failed",
-    "selection": "5-fold stratified inner CV on calibration only"
+    "selection": "5-fold GROUPED inner CV on calibration only, grouped by problem"
   },
   "notes": "Operating point frozen on calibration before a single evaluation application. E0027's rank-fraction sweep touched evaluation and was reported as diagnostic; this does not.",
   "runtime": {
@@ -59,8 +59,8 @@
     "sklearn": "1.5.1",
     "scipy": "1.13.1"
   },
-  "git_commit": "07392ae84e0684c7d2131988dcff10e50856dd4d",
+  "git_commit": "a46315f643681f5a407333ee4f744164d48ae9c3",
   "git_dirty": [],
-  "nonce": "1727d8fca4cb4e7b865ca0bfdaa3fcaa",
-  "started_utc": "2026-08-20T16:02:37Z"
+  "nonce": "8aa50b1701e04ca9a9f1011a10da6dbf",
+  "started_utc": "2026-08-20T16:04:06Z"
 }

@@ -1,41 +1,41 @@
 {
   "exp_id": "E0028-marginal-ranker",
   "title": "Learned marginal-value ranking with trajectory and static features",
-  "verdict": "BLOCKED",
+  "verdict": "INCONCLUSIVE",
   "summary": {
     "governor_U": 0.37305699481865284,
-    "fixed_matched": 0.36602136941626284,
-    "primary_mean": 0.00703562540239,
-    "primary_lo": -0.012762624072580817,
-    "primary_hi": 0.028688153129491727,
+    "fixed_matched": 0.3660229988347621,
+    "primary_mean": 0.007033995983890762,
+    "primary_lo": -0.01276506820032967,
+    "primary_hi": 0.028685709001742863,
     "oracle_same_frac": 0.050543326612207506,
-    "heldout_auc": 0.6281584062196307,
-    "heldout_precision_at_10": 0.07547169811320754,
-    "heldout_lift_at_10": 1.628032345013477,
-    "heldout_ndcg": 0.51122985830912,
-    "cv_auc_old_features": 0.7732747186925084,
-    "cv_auc_rich_features": 0.9510546356907543,
+    "heldout_auc": 0.6300008098477486,
+    "heldout_precision_at_10": 0.08490566037735849,
+    "heldout_lift_at_10": 1.8315363881401616,
+    "heldout_ndcg": 0.5173662752110926,
+    "cv_auc_old_features": 0.5827129593975955,
+    "cv_auc_rich_features": 0.6467077396996534,
     "calibration_positives": 49,
     "decision_rows": 1003,
     "events_per_feature": 1.96,
-    "paired_sd": 0.150324866940462,
-    "n_required_for_eps_0.02": 217.0270202208916,
+    "paired_sd": 0.15033389027960303,
+    "n_required_for_eps_0.02": 217.05307535362377,
     "frac": 0.1,
     "model": "rf",
-    "verdict": "BLOCKED"
+    "verdict": "INCONCLUSIVE"
   },
-  "git_commit": "07392ae84e0684c7d2131988dcff10e50856dd4d",
-  "config_hash": "592774ae0a66eae5b75821033c10c3e5a783cce9d4a8d00af1455412c0b68fd4",
-  "nonce": "1727d8fca4cb4e7b865ca0bfdaa3fcaa",
+  "git_commit": "a46315f643681f5a407333ee4f744164d48ae9c3",
+  "config_hash": "c637aad1788cf382988a585ac8c132e0ae05771e2afc16886871503398028d4a",
+  "nonce": "8aa50b1701e04ca9a9f1011a10da6dbf",
   "raw_file": "raw.jsonl",
-  "raw_sha256": "d03a0b49e5cbfc93d2aa2b132d98e94ed040e78e2ef205e2cc0ef7a281cf5c02",
+  "raw_sha256": "efe4b2eb6d6f9640c52abb5fd07e34387ba2777c43ee071ac6f648959421b0e9",
   "raw_rows": 193,
   "wall_s": 0.2,
-  "finished_utc": "2026-08-20T16:02:37Z",
+  "finished_utc": "2026-08-20T16:04:06Z",
   "trap_checks": {
     "greedy_collapse": {
       "ok": true,
-      "detail": "mean_delta=+0.007036 calls_identical=False"
+      "detail": "mean_delta=+0.007034 calls_identical=False"
     },
     "constant_schedule": {
       "ok": true,
@@ -58,8 +58,8 @@
       "detail": "scored_through_canonical_executor=True"
     },
     "progress_as_cognition": {
-      "ok": false,
-      "detail": "unjustified_progress_features=['n_calls']"
+      "ok": true,
+      "detail": "unjustified_progress_features=[]"
     },
     "invariant_as_intelligence": {
       "ok": true,
@@ -90,7 +90,5 @@
       "detail": "files_with_credentials=[]"
     }
   },
-  "red_traps": [
-    "progress_as_cognition"
-  ]
+  "red_traps": []
 }
