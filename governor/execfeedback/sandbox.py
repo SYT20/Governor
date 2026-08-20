@@ -7,8 +7,11 @@ which was hit while building this:
   1. `timeout=` kills the direct child. A program that forks leaves orphans
      holding CPU, and the next measurement inherits a loaded machine. Every run
      therefore starts a new session and the whole PROCESS GROUP is signalled.
-  2. Without an address-space limit, one allocation can drive the host into swap
-     and stall every other measurement -- so latency stops meaning anything.
+  2. Without a memory limit, one allocation can drive the host into swap and
+     stall every other measurement -- so latency stops meaning anything. The
+     limit is RLIMIT_DATA everywhere and RLIMIT_AS only on macOS: on Linux the
+     address-space cap counts virtual reservations CPython never makes resident,
+     so a useful value there can stop `print("hi")` from running.
   3. Unbounded stdout from a looping print fills the pipe buffer, the child
      blocks on write, and the timeout fires. A capped writer records this as
      OUTPUT_OVERFLOW instead of mislabelling it a timeout.
@@ -67,11 +70,25 @@ def _limits(mem_mb: int, cpu_s: int, fsize_bytes: int = 64 * 1024 * 1024):
     def apply():
         os.setsid()                                     # own process group
         soft = mem_mb * 1024 * 1024
-        for res in (resource.RLIMIT_AS, resource.RLIMIT_DATA):
+        # RLIMIT_AS caps VIRTUAL address space, and on Linux glibc and the CPython
+        # runtime reserve large virtual regions that are never resident -- a cap
+        # tight enough to be useful there can make even `print("hi")` fail, while
+        # macOS frequently does not enforce it at all. So limit the HEAP
+        # (RLIMIT_DATA) everywhere, and only add the address-space cap on
+        # platforms where it behaves. Which limits actually took effect is
+        # recorded rather than assumed.
+        applied = []
+        try:
+            resource.setrlimit(resource.RLIMIT_DATA, (soft, soft))
+            applied.append("DATA")
+        except (ValueError, OSError):
+            pass
+        if sys.platform == "darwin":
             try:
-                resource.setrlimit(res, (soft, soft))
+                resource.setrlimit(resource.RLIMIT_AS, (soft, soft))
+                applied.append("AS")
             except (ValueError, OSError):
-                pass                                    # not enforceable here
+                pass
         try:
             resource.setrlimit(resource.RLIMIT_CPU, (cpu_s, cpu_s))
         except (ValueError, OSError):

@@ -182,10 +182,16 @@ def gate_contracts() -> Gate:
 
 def gate_tests() -> Gate:
     """The project's own suite, not a Colab-only substitute."""
-    p = subprocess.run([sys.executable, "-m", "pytest", "-q", "--no-header",
-                        "-x", "--timeout=300", "tests/"],
-                       cwd=str(ROOT), capture_output=True, text=True)
-    tail = (p.stdout or p.stderr).strip().splitlines()[-1:] or [""]
+    # No --timeout flag: that needs the pytest-timeout plugin, which is one more
+    # pin to get wrong. A subprocess timeout does the same job with no dependency.
+    try:
+        p = subprocess.run([sys.executable, "-m", "pytest", "-q", "--no-header",
+                            "-x", "tests/"],
+                           cwd=str(ROOT), capture_output=True, text=True, timeout=1200)
+    except subprocess.TimeoutExpired:
+        return Gate("project test suite", False, "suite exceeded 20 minutes")
+    out = (p.stdout or "") + (p.stderr or "")
+    tail = [l for l in out.strip().splitlines() if l.strip()][-1:] or [""]
     return Gate("project test suite", p.returncode == 0, tail[0][:80])
 
 
