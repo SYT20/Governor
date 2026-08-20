@@ -1,0 +1,22 @@
+{
+ "backend": "mlx",
+ "device": "apple-silicon",
+ "model": "mlx-community/Qwen3-1.7B-4bit",
+ "n": 6,
+ "cap": 768,
+ "load_s": 1.6802915829999847,
+ "sequential_s": 93.32896420899999,
+ "batched_s": 102.56639237500008,
+ "sequential_tokens": 1875,
+ "batched_tokens": 2306,
+ "speedup": 0.9099370860951559,
+ "padding_waste": 1.2298666666666667,
+ "distinct_sequential": 1.0,
+ "distinct_batched": 1.0,
+ "peak_gpu_gb": null,
+ "verdict": "SEQUENTIAL",
+ "reasons": [
+  "speedup 0.91x below the 1.15x threshold"
+ ],
+ "projected_hours_4750": 20.523730555219906
+}
