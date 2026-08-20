@@ -68,24 +68,35 @@ def git(*args: str) -> str:
         return ""
 
 
-def mount_drive() -> tuple[bool, str]:
-    """Mount only if asked, and verify it rather than trusting the call."""
-    try:
-        from google.colab import drive
-    except ImportError:
-        return False, "not running in Colab"
-    try:
-        drive.mount("/content/drive", force_remount=False)
-    except Exception as e:                                # noqa: BLE001
-        return False, f"mount raised {type(e).__name__}: {e}"
-    if not pathlib.Path("/content/drive/MyDrive").is_dir():
-        return False, "mount reported success but /content/drive/MyDrive is absent"
-    probe = pathlib.Path("/content/drive/MyDrive/.governor_write_probe")
+def check_drive() -> tuple[bool, str]:
+    """Verify an EXISTING mount. This script must never mount Drive itself.
+
+    `google.colab.drive` is injected into the notebook KERNEL, and its mount
+    needs the kernel's interactive channel to render the OAuth prompt. This
+    script runs as a subprocess of that kernel, where the import fails and the
+    prompt has nowhere to appear -- so a mount attempted from here can only ever
+    fail, and would do so while reporting a misleading reason ("not running in
+    Colab") on a machine that plainly is.
+
+    The mount therefore happens in the notebook cell, in-process, and this
+    function only confirms the result. Verification is by writing a probe file,
+    not by checking that a directory exists: a stale or half-detached mount
+    still presents the directory.
+    """
+    mnt = pathlib.Path("/content/drive/MyDrive")
+    if not mnt.is_dir():
+        return False, ("Drive is not mounted. Mount it from the NOTEBOOK cell "
+                       "(not here): from google.colab import drive; "
+                       "drive.mount('/content/drive')")
+    probe = mnt / ".governor_write_probe"
     try:
         probe.write_text("ok")
+        got = probe.read_text()
         probe.unlink()
     except Exception as e:                                # noqa: BLE001
-        return False, f"mounted but not writable: {type(e).__name__}"
+        return False, f"mounted but not writable: {type(e).__name__}: {e}"
+    if got != "ok":
+        return False, "probe file read back wrong -- mount is unhealthy"
     return True, "mounted and writable"
 
 
@@ -313,7 +324,7 @@ SHA256 for every file is in `checksums.json`.
 
 
 def copy_to_drive() -> dict:
-    ok, why = mount_drive()
+    ok, why = check_drive()
     if not ok:
         print(f"  DRIVE_ARCHIVE = UNAVAILABLE  ({why})")
         return {"status": "UNAVAILABLE", "reason": why}
