@@ -220,6 +220,32 @@ def main() -> int:
                                                   "transformers", "psutil"):
             problems.append(f"required package missing: {k}")
 
+    # torch is deliberately NOT pinned in the manifest -- Colab ships torch,
+    # torchvision and torchaudio built against each other, and replacing one
+    # breaks the others' ABI. So assert the version here instead of installing
+    # over it, and check the vision stack still loads, because that is how the
+    # breakage actually presents: "Could not import module 'Qwen3ForCausalLM'",
+    # a message that names the model and not the cause.
+    tv = pkgs.get("torch", "")
+    if not str(tv).startswith("MISSING"):
+        try:
+            major, minor = (int(x) for x in str(tv).split("+")[0].split(".")[:2])
+            if (major, minor) < (2, 2):
+                problems.append(f"torch {tv} is below the required 2.2")
+        except (ValueError, TypeError):
+            pass
+    r = subprocess.run(
+        [sys.executable, "-c",
+         "import torch, torchvision; torch.ops.torchvision.nms; print('ABI_OK')"],
+        capture_output=True, text=True)
+    if "ABI_OK" in r.stdout:
+        print(f"       {'torch/torchvision':<18} ABI consistent")
+    else:
+        problems.append(
+            "torch and torchvision are ABI-mismatched (torchvision::nms missing). "
+            "Something installed a different torch over the runtime's. Do not pin "
+            "torch; use the runtime's.")
+
     print("\n[05] import smoke (subprocess, not this session)")
     smoke = import_smoke(root)
     print(f"       {smoke['stdout'] or smoke.get('stderr_tail','')[:200]}")

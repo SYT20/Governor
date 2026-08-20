@@ -55,6 +55,20 @@ PREFLIGHT_OUT = ROOT / "results" / "E0029-QWEN-preflight.json"
 _THINK = re.compile(r"<think>.*?</think>", re.S)
 
 
+def _dtype_kwarg(dtype):
+    """transformers 4.56 renamed `torch_dtype` to `dtype`. Pick whichever this
+    installation accepts, rather than pinning transformers to dodge it."""
+    import inspect
+    from transformers import AutoModelForCausalLM
+    try:
+        params = inspect.signature(AutoModelForCausalLM.from_pretrained).parameters
+        if "dtype" in params:
+            return {"dtype": dtype}
+    except (ValueError, TypeError):
+        pass
+    return {"torch_dtype": dtype}
+
+
 def cfg() -> dict:
     return json.loads((ROOT / "configs" / "colab_model.json").read_text())
 
@@ -112,7 +126,7 @@ class BatchedQwen:
         if self.tok.pad_token is None:
             self.tok.pad_token = self.tok.eos_token
         self.model = AutoModelForCausalLM.from_pretrained(
-            c["model_name"], revision=c["revision"], torch_dtype=dtype).to(self.device)
+            c["model_name"], revision=c["revision"], **_dtype_kwarg(dtype)).to(self.device)
         self.model.eval()
         self.load_s = time.perf_counter() - t0
         print(f"  loaded in {self.load_s:.1f}s", flush=True)

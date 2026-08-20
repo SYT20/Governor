@@ -72,7 +72,11 @@ def run_torch(n: int, cap: int, model_id: str) -> dict:
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     t0 = time.perf_counter()
-    model = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=dtype).to(dev)
+    import inspect
+    _k = ({"dtype": dtype}
+          if "dtype" in inspect.signature(AutoModelForCausalLM.from_pretrained).parameters
+          else {"torch_dtype": dtype})
+    model = AutoModelForCausalLM.from_pretrained(model_id, **_k).to(dev)
     load_s = time.perf_counter() - t0
     model.eval()
 

@@ -16,9 +16,19 @@ scipy>=1.11,<1.15
 scikit-learn>=1.4,<1.6
 pandas>=2.0,<2.3
 
-# Model + tokenisation. torch is usually preinstalled in Colab; the pin exists so
-# a mismatch is a loud failure rather than a silent behaviour change.
-torch>=2.2,<2.8
+# Model + tokenisation.
+#
+# torch is DELIBERATELY NOT PINNED. Colab ships torch, torchvision and
+# torchaudio built against each other, and installing a different torch leaves
+# torchvision compiled against the wrong ABI. Its C++ ops then fail to register
+# and any transformers import that touches the vision path dies with
+#
+#     RuntimeError: operator torchvision::nms does not exist
+#
+# which surfaces as "Could not import module 'Qwen3ForCausalLM'" -- a message
+# that points at the model and not at the real cause. Pinning torch here broke a
+# working L4 runtime exactly that way. The version is asserted at runtime and
+# recorded in provenance instead; the runtime's own torch is the correct one.
 transformers>=4.44,<4.57
 accelerate>=0.33,<1.3
 huggingface_hub>=0.24,<1.0
