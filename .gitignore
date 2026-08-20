@@ -28,3 +28,11 @@ prompt_ideas.txt
 claude_handoff/
 results/e0029_colab_generations.jsonl
 results/e0029_qwen_generations.jsonl
+
+# Colab run outputs — regenerated every run, never source.
+# Evidence copies that must persist live under experiments/<id>/.
+results/colab_environment.json
+results/colab_preflight.json
+results/colab_model_meta.json
+results/batch_bench.json
+results/E0029-QWEN-preflight.json

@@ -112,10 +112,20 @@ def acquire(repo: str, ref: str, dest: Path) -> dict:
         described = sh(["git", "describe", "--tags", "--always"], cwd=dest)
     except RuntimeError:
         described = head[:12]
-    dirty = sh(["git", "status", "--porcelain"], cwd=dest, check=False)
+    # Reproducibility means the TRACKED SOURCE matches the recorded commit.
+    # Untracked files do not: the notebook legitimately writes outputs into the
+    # checkout as it runs, so counting them made bootstrap fail on its own
+    # exhaust the moment the cell was re-run. Modified tracked files are the
+    # real hazard and still fail.
+    modified = sh(["git", "status", "--porcelain", "--untracked-files=no"],
+                  cwd=dest, check=False)
+    untracked = sh(["git", "status", "--porcelain", "--untracked-files=all"],
+                   cwd=dest, check=False)
+    n_untracked = len([l for l in untracked.splitlines() if l.startswith("??")])
     return {"repo": repo, "requested_ref": ref, "commit": head,
-            "describe": described, "dirty": bool(dirty.strip()),
-            "path": str(dest)}
+            "describe": described, "dirty": bool(modified.strip()),
+            "modified_tracked": [l.strip() for l in modified.splitlines()][:10],
+            "untracked_count": n_untracked, "path": str(dest)}
 
 
 def install(root: Path) -> dict:
@@ -177,8 +187,13 @@ def main() -> int:
         print(f"       commit   {repo['commit']}")
         print(f"       describe {repo['describe']}")
         print(f"       path     {repo['path']}")
+        if repo["untracked_count"]:
+            print(f"       {'untracked':<20} {repo['untracked_count']} file(s) — run "
+                  f"outputs, not a reproducibility problem")
         if repo["dirty"]:
-            problems.append("checkout is dirty; the commit does not describe the code")
+            problems.append(
+                f"TRACKED files modified, so the commit does not describe the code: "
+                f"{repo['modified_tracked'][:5]}")
     except Exception as e:                                # noqa: BLE001
         print(f"       FAILED: {type(e).__name__}: {e}")
         print("\nCOLAB_BOOTSTRAP = FAIL   repository acquisition failed")
