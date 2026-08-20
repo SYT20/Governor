@@ -106,5 +106,9 @@
   "E0026-execution-feedback": {
     "driver": "scripts/e0026_collect.py",
     "status": "DRIVER"
+  },
+  "E0027-marginal-value": {
+    "driver": "scripts/e0027_marginal_value.py",
+    "status": "DRIVER"
   }
 }

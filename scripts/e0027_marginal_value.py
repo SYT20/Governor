@@ -119,7 +119,11 @@ def main() -> int:
       "actual_used": np.full(n, res["learned_marginal"]["cost"]),
       "charged": np.full(n, res["learned_marginal"]["cost"]),
       "scored_via_executor": True,
-      "decisions": (pv > 0.5).astype(int).tolist(),
+      # The decision is RANK POSITION, not a probability threshold. At a 9%
+      # base rate nothing exceeds 0.5, so a >0.5 "decision" is constant by
+      # construction and the trap correctly rejected it as evidence.
+      "decisions": np.isin(np.arange(n),
+          np.argsort(-pv)[:int(round(res["learned_marginal"]["frac"]*n))]).astype(int).tolist(),
       "cell_ids": [byq[q][0]["platform"] for q in ev],
       "froze_commit": "b8e2884", "heldout_commit": "HEAD",
       "selection_item_ids": cal, "evaluation_item_ids": ev,
