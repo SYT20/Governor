@@ -1,0 +1,27 @@
+{
+  "_comment": "Backend configuration for E0029-QWEN. Read by the notebook; never hard-coded in a cell.",
+  "model_name": "Qwen/Qwen3-1.7B",
+  "revision": "main",
+  "_revision_note": "Pinned to a commit SHA by the notebook at run time and recorded in environment.json. 'main' here is the request; the resolved SHA is what provenance stores.",
+  "quantization": "none",
+  "dtype": "bfloat16",
+  "device_map": "auto",
+  "context_length": 8192,
+  "generation": {
+    "max_new_tokens": 2048,
+    "_max_new_tokens_note": "Evidence-based, not a guess. Local MLX preflight over 100 samples: median 212, p95 1128, max 2048, truncation 2.0%. The ceiling is re-measured in Colab because a different runtime and precision change the distribution.",
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "enable_thinking": false,
+    "_thinking_note": "Qwen3 emits chain-of-thought in <think> tags by default. On real LiveCodeBench prompts it consumed the entire budget without emitting code: 3/3 sampled problems truncated at 3072 tokens, projecting 191 hours. Disabling it gave median 212 tokens. This flag is the single most consequential setting in the file.",
+    "seed": 1000,
+    "samples_per_problem": 10
+  },
+  "budget_levels": [256, 512, 1024, 2048],
+  "_budget_levels_note": "Used by the value-vs-budget curve. If utility does not rise across these, the reasoning engine cannot repay allocation and Governor testing stops.",
+  "sandbox": {
+    "timeout_s": 6.0,
+    "mem_mb": 1024,
+    "output_cap_bytes": 64000
+  }
+}

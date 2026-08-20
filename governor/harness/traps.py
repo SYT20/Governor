@@ -20,6 +20,13 @@ FORBIDDEN_FEATURES = {
     "hidden_difficulty", "difficulty", "hard", "regime", "sigma_other",
     "config_id", "configuration", "episode_id", "seed", "oracle", "oracle_delta",
     "future", "label", "answer", "ground_truth", "p_hard", "cue_noise",
+    # Execution-feedback vocabulary. The Colab boundary gate probed six forbidden
+    # names and this list rejected two: it was written for the synthetic and
+    # text families and had no term for a hidden test, a judge's verdict, or a
+    # reference solution. A feature called `graded` would have passed silently.
+    "graded", "grade", "private_test", "hidden_test", "hidden_grade",
+    "final_score", "expected_output", "reference_solution", "evaluator",
+    "solution", "verdict",
 }
 PROGRESS_FEATURES = {"t", "step", "n_calls", "n_acquired", "n_blocks_touched",
                      "progress", "position"}

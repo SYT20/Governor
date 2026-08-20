@@ -1,0 +1,33 @@
+# Governor — Colab dependency manifest
+#
+# Colab's preinstalled set changes between runtime releases, so every package the
+# experiment depends on is pinned here rather than inherited. Anything not listed
+# is not required; the notebook installs this file and nothing else.
+#
+#     pip install -r configs/colab-requirements.txt
+#
+# Upper bounds are deliberate. An unpinned minor release has twice silently
+# changed behaviour under this project (a sklearn CV default, a numpy dtype
+# promotion), and an experiment whose numbers move with the runtime is not
+# reproducible whatever its provenance records say.
+
+numpy>=1.26,<2.1
+scipy>=1.11,<1.15
+scikit-learn>=1.4,<1.6
+pandas>=2.0,<2.3
+
+# Model + tokenisation. torch is usually preinstalled in Colab; the pin exists so
+# a mismatch is a loud failure rather than a silent behaviour change.
+torch>=2.2,<2.8
+transformers>=4.44,<4.57
+accelerate>=0.33,<1.3
+huggingface_hub>=0.24,<1.0
+safetensors>=0.4,<0.6
+
+# Dataset acquisition only. No dataset helper is used at analysis time; raw JSONL
+# is read by the project's own text loaders so the schema is explicit.
+datasets>=2.20,<3.3
+
+# Diagnostics and tests
+psutil>=5.9,<7.0
+pytest>=8.0,<9.0

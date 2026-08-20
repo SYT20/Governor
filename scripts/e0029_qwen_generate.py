@@ -46,7 +46,13 @@ PROBLEMS = ROOT / "results" / "e0029_problems.json"
 CACHE = ROOT / "results" / "e0029_qwen_generations.jsonl"
 PREFLIGHT_OUT = ROOT / "results" / "E0029-QWEN-preflight.json"
 MODEL = "mlx-community/Qwen3-1.7B-4bit"
-MAX_TOKENS = 3072                 # set by what the model needs, not a quota
+MAX_TOKENS = 2048
+# Qwen3 emits chain-of-thought in <think> tags by default. On real LiveCodeBench
+# prompts it reasons through the ENTIRE budget and never emits code: 3/3 sampled
+# problems truncated at 3072, 145s each, projecting 191 hours -- and reproducing
+# exactly the truncation confound that stopped the gpt-oss run. With thinking
+# disabled the same model answers in a median 182 tokens at 9.9s.
+ENABLE_THINKING = False
 SAMPLES = 10
 
 _THINK = re.compile(r"<think>.*?</think>", re.S)
@@ -89,8 +95,13 @@ class Qwen:
         from mlx_lm.sample_utils import make_sampler
         mx.random.seed(seed)
         msgs = [{"role": "user", "content": prompt}]
-        text = self.tok.apply_chat_template(msgs, tokenize=False,
-                                            add_generation_prompt=True)
+        try:
+            text = self.tok.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=True,
+                enable_thinking=ENABLE_THINKING)
+        except TypeError:                     # template without the switch
+            text = self.tok.apply_chat_template(msgs, tokenize=False,
+                                                add_generation_prompt=True)
         t0 = time.perf_counter()
         out = generate(self.model, self.tok, prompt=text, max_tokens=MAX_TOKENS,
                        sampler=make_sampler(temp=temperature), verbose=False)
