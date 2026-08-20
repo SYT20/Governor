@@ -97,6 +97,51 @@ def package_versions() -> dict:
     return out
 
 
+def torchvision_abi_ok() -> tuple[bool, str]:
+    """Is the torch/torchvision pair ABI-consistent? Checked in a subprocess."""
+    r = subprocess.run(
+        [sys.executable, "-c",
+         "import torch, torchvision; torch.ops.torchvision.nms; "
+         "print('ABI_OK', torch.__version__, torchvision.__version__)"],
+        capture_output=True, text=True)
+    if "ABI_OK" in r.stdout:
+        return True, r.stdout.strip()
+    return False, (r.stderr or r.stdout).strip()[-300:]
+
+
+def repair_torch_stack() -> bool:
+    """Reinstall torchvision and torchaudio to match the installed torch.
+
+    A previous run of this notebook pinned torch and pip installed it OVER the
+    runtime's, leaving torchvision built against a different ABI. `Runtime ->
+    Restart session` does NOT undo that: Colab keeps installed packages in the
+    VM across restarts, so the poisoned pair survives and the failure repeats.
+
+    Reinstalling the companions against the torch that is actually present is
+    the repair that works without a new VM. It is attempted once; if it does not
+    take, the honest instruction is to delete the runtime, and this says so
+    rather than looping.
+    """
+    try:
+        import torch
+        ver = torch.__version__                       # e.g. 2.7.1+cu126
+    except Exception:                                 # noqa: BLE001
+        return False
+    tag = ver.split("+")[1] if "+" in ver else "cpu"
+    index = f"https://download.pytorch.org/whl/{tag}"
+    print(f"       repairing: reinstalling torchvision/torchaudio for torch {ver}",
+          flush=True)
+    r = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "-q", "--force-reinstall",
+         "--no-deps", "torchvision", "torchaudio", "--index-url", index],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        print(f"       repair failed: {r.stderr[-200:]}", flush=True)
+        return False
+    ok, _ = torchvision_abi_ok()
+    return ok
+
+
 def acquire(repo: str, ref: str, dest: Path) -> dict:
     """Clone at a frozen ref. A moving target is not a reproducible experiment."""
     if dest.exists() and (dest / ".git").is_dir():
@@ -234,17 +279,20 @@ def main() -> int:
                 problems.append(f"torch {tv} is below the required 2.2")
         except (ValueError, TypeError):
             pass
-    r = subprocess.run(
-        [sys.executable, "-c",
-         "import torch, torchvision; torch.ops.torchvision.nms; print('ABI_OK')"],
-        capture_output=True, text=True)
-    if "ABI_OK" in r.stdout:
+    ok, detail = torchvision_abi_ok()
+    if ok:
         print(f"       {'torch/torchvision':<18} ABI consistent")
     else:
-        problems.append(
-            "torch and torchvision are ABI-mismatched (torchvision::nms missing). "
-            "Something installed a different torch over the runtime's. Do not pin "
-            "torch; use the runtime's.")
+        print(f"       {'torch/torchvision':<18} MISMATCHED -- attempting repair")
+        if repair_torch_stack():
+            print(f"       {'torch/torchvision':<18} repaired")
+        else:
+            problems.append(
+                "torch and torchvision are ABI-mismatched and automatic repair "
+                "failed. An earlier run installed a different torch over the "
+                "runtime's, and `Runtime -> Restart session` does NOT undo that "
+                "because Colab keeps installed packages across restarts. Use "
+                "Runtime -> Disconnect and delete runtime for a clean VM.")
 
     print("\n[05] import smoke (subprocess, not this session)")
     smoke = import_smoke(root)
