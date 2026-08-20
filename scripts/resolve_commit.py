@@ -92,6 +92,11 @@ def audit(table: dict[str, str]) -> int:
         old = f.read_text().strip()
         new = table.get(old)
         if new is None:
+            # An experiment recorded AFTER the rewrites has no map entry and
+            # needs none: its hash is already a commit in this history.
+            if exists_in_repo(old):
+                print(f"  ok post-rw {exp:<30} {old[:10]} (recorded after the rewrite)")
+                continue
             print(f"  UNMAPPED   {exp:<30} {old[:10]}")
             bad += 1
         elif not exists_in_repo(new):

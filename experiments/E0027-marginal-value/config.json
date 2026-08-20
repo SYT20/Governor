@@ -1,0 +1,51 @@
+{
+  "exp_id": "E0027-marginal-value",
+  "title": "Where the execution-feedback signal fails to become utility",
+  "model": "Gemini-Pro-1.5 (May) generations, published by LiveCodeBench",
+  "budget": {
+    "axis": "rank-then-allocate; sample 1 everywhere, remainder to top-ranked",
+    "B_star": 1002.4093264248704,
+    "charged": "exact tokenizer count over published generations"
+  },
+  "seeds": {
+    "split": "sha256(question_id) parity",
+    "bootstrap": 0
+  },
+  "split": {
+    "calibration": 207,
+    "evaluation": 193
+  },
+  "metric": "pass-within-k at matched realised cost; primary = ranked policy minus the randomised fixed envelope at its own cost",
+  "params": {
+    "features": [
+      "pub_frac",
+      "pub_passed",
+      "pub_failed",
+      "runtime_error",
+      "timeout",
+      "output_nonempty",
+      "exec_latency_s"
+    ],
+    "target": "sample 1 fails and a later sample succeeds",
+    "economics": {
+      "tokens_per_utility_point": 19426.916666666668,
+      "gain_per_abandon": 0.00032215629949797306,
+      "loss_per_bad_abandon": 0.0051813471502590676,
+      "cost_ratio": 16.083333333333336,
+      "breakeven_solvable_fraction": 0.0621761658031088
+    }
+  },
+  "notes": "Corrects E0026's +0.1880 ceiling, which used an oracle deciding before paying for sample 1. Observable ceiling is +0.0588.",
+  "runtime": {
+    "python": "3.12.7",
+    "platform": "macOS-15.6.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "numpy": "1.26.4",
+    "sklearn": "1.5.1",
+    "scipy": "1.13.1"
+  },
+  "git_commit": "c14df207caad05aa011dfe1582338acbad6cc654",
+  "git_dirty": [],
+  "nonce": "a5c58adda79f4d8ca43ea38a54b78e32",
+  "started_utc": "2026-08-20T14:43:07Z"
+}

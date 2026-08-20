@@ -1,0 +1,7 @@
+{
+  "tokens_per_utility_point": 19426.916666666668,
+  "gain_per_abandon": 0.00032215629949797306,
+  "loss_per_bad_abandon": 0.0051813471502590676,
+  "cost_ratio": 16.083333333333336,
+  "breakeven_solvable_fraction": 0.0621761658031088
+}

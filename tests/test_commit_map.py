@@ -37,20 +37,31 @@ def test_map_exists_and_is_documented():
 
 
 def test_every_recorded_hash_resolves():
+    """Either the map bridges it, or it is already a commit in this history.
+
+    Experiments recorded AFTER the rewrites have no map entry and need none.
+    What must never happen is a recorded hash that resolves to neither.
+    """
     table = _table()
-    unmapped = []
+    unresolvable = []
     for f in sorted(ROOT.glob("experiments/*/git_commit.txt")):
         old = f.read_text().strip()
-        if old not in table:
-            unmapped.append((f.parent.name, old))
-    assert not unmapped, f"experiment hashes absent from the map: {unmapped}"
+        if old in table:
+            continue
+        present = subprocess.run(["git", "cat-file", "-e", f"{old}^{{commit}}"],
+                                 cwd=ROOT, capture_output=True).returncode == 0
+        if not present:
+            unresolvable.append((f.parent.name, old))
+    assert not unresolvable, (
+        f"recorded hashes in neither the map nor this history: {unresolvable}")
 
 
 def test_every_mapped_target_is_a_real_commit():
     """A map pointing at commits that do not exist is worse than no map."""
     table = _table()
-    targets = {table[Path(f).read_text().strip()]
-               for f in ROOT.glob("experiments/*/git_commit.txt")}
+    targets = {table[h] for h in
+               (Path(f).read_text().strip() for f in ROOT.glob("experiments/*/git_commit.txt"))
+               if h in table}
     missing = [t for t in sorted(targets)
                if subprocess.run(["git", "cat-file", "-e", f"{t}^{{commit}}"],
                                  cwd=ROOT, capture_output=True).returncode != 0]

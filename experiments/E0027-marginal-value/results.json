@@ -1,0 +1,91 @@
+{
+  "exp_id": "E0027-marginal-value",
+  "title": "Where the execution-feedback signal fails to become utility",
+  "verdict": "INCONCLUSIVE",
+  "summary": {
+    "observable_ceiling": 0.0588,
+    "oracle_ranking_adv": 0.050543326612207506,
+    "oracle_ranking_lo": 0.020302006970908535,
+    "oracle_ranking_hi": 0.08163140951376187,
+    "primary_mean": 0.005528507431274476,
+    "primary_lo": -0.010362694300518135,
+    "primary_hi": 0.021775548451107987,
+    "random_adv": 0.006236858720598093,
+    "marginal_auc": 0.6316758747697975,
+    "positives_calibration": 19,
+    "positives_evaluation": 12,
+    "events_per_feature": 2.7142857142857144,
+    "breakeven_purity": 0.9378238341968912,
+    "achieved_purity": 0.917,
+    "cost_ratio": 16.083333333333336,
+    "tokens_per_utility_point": 19426.916666666668,
+    "verdict": "INCONCLUSIVE"
+  },
+  "git_commit": "c14df207caad05aa011dfe1582338acbad6cc654",
+  "config_hash": "7ef5d61d17c73fd2fddadf6b0e2670b17c48bb975c9f0c8cf2fbbd6192002a92",
+  "nonce": "a5c58adda79f4d8ca43ea38a54b78e32",
+  "raw_file": "raw.jsonl",
+  "raw_sha256": "1d481a8f5400e66fca67ebd3685c89b46c0a47363c687cdc9655a70819df4e89",
+  "raw_rows": 193,
+  "wall_s": 0.1,
+  "finished_utc": "2026-08-20T14:43:08Z",
+  "trap_checks": {
+    "greedy_collapse": {
+      "ok": true,
+      "detail": "mean_delta=+0.005529 calls_identical=False"
+    },
+    "constant_schedule": {
+      "ok": true,
+      "detail": "distinct_decision_patterns=117"
+    },
+    "oracle_leakage": {
+      "ok": true,
+      "detail": "forbidden_features=[]"
+    },
+    "answered_vs_utility": {
+      "ok": true,
+      "detail": "answered=1.0000 utility=0.4145 -> ok"
+    },
+    "token_accounting": {
+      "ok": true,
+      "detail": "charged==used:True over_budget_calls=0"
+    },
+    "execution_vs_scoring": {
+      "ok": true,
+      "detail": "scored_through_canonical_executor=True"
+    },
+    "progress_as_cognition": {
+      "ok": true,
+      "detail": "unjustified_progress_features=[]"
+    },
+    "invariant_as_intelligence": {
+      "ok": true,
+      "detail": "cells_with_constant_decision=0/3"
+    },
+    "frozen_before_heldout": {
+      "ok": true,
+      "detail": "froze=b8e2884 heldout=HEAD"
+    },
+    "split_leakage": {
+      "ok": true,
+      "detail": "selection=207 evaluation=193 overlap=0"
+    },
+    "exact_token_counts": {
+      "ok": true,
+      "detail": "token_cost_source='exact tokenizer count over published LiveCodeBench generations'"
+    },
+    "budget_adherence": {
+      "ok": true,
+      "detail": "realised=1002 budget=1002 over=+0.0%"
+    },
+    "withdrawn_result_promotion": {
+      "ok": true,
+      "detail": "cited=2 withdrawn=2 promoted=[]"
+    },
+    "secret_scan": {
+      "ok": true,
+      "detail": "files_with_credentials=[]"
+    }
+  },
+  "red_traps": []
+}
