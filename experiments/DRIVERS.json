@@ -1,0 +1,106 @@
+{
+  "E0001-qwen": {
+    "driver": "scripts/p4_curve.py",
+    "status": "DRIVER"
+  },
+  "E0003-pilot": {
+    "reason": "Underpowered pilot run before the driver convention existed; superseded by E0004.",
+    "status": "ARTIFACT_ONLY"
+  },
+  "E0004-ceiling": {
+    "driver": "scripts/p4_ceiling.py",
+    "status": "DRIVER"
+  },
+  "E0005-structure": {
+    "driver": "scripts/p4r_structure.py",
+    "status": "DRIVER"
+  },
+  "E0006-ceiling-gate": {
+    "driver": "scripts/p4r_ceiling.py",
+    "status": "DRIVER"
+  },
+  "E0007-structure-clean": {
+    "driver": "scripts/p4r_structure.py",
+    "status": "DRIVER"
+  },
+  "E0009-qwen-local": {
+    "driver": "scripts/qwen_local_curve.py",
+    "status": "DRIVER"
+  },
+  "E0010-phase5-design": {
+    "reason": "Design screen computed inline from governor/phase4/headroom.py; no standalone driver was written.",
+    "status": "ARTIFACT_ONLY"
+  },
+  "E0011-phase5-gate": {
+    "driver": "scripts/p5_governor.py",
+    "status": "DRIVER"
+  },
+  "E0012-governor-phase5": {
+    "driver": "scripts/p5_governor.py",
+    "status": "DRIVER"
+  },
+  "E0013-s1-external": {
+    "reason": "External s1 replication; collection driver not retained. Raw rows and config verify.",
+    "status": "ARTIFACT_ONLY"
+  },
+  "E0014-s1-waits": {
+    "reason": "Forced-unit variant of E0013; shares its unretained collection path.",
+    "status": "ARTIFACT_ONLY"
+  },
+  "E0015-s1-waits-gpqa": {
+    "reason": "GPQA arm of E0014; shares its unretained collection path.",
+    "status": "ARTIFACT_ONLY"
+  },
+  "E0016-soft-budget-ceiling": {
+    "driver": "scripts/soft_budget_ceiling.py",
+    "status": "DRIVER"
+  },
+  "E0017-soft-governor-gpqa": {
+    "driver": "scripts/soft_budget_governor.py",
+    "status": "DRIVER"
+  },
+  "E0017-soft-governor-math": {
+    "driver": "scripts/soft_budget_governor.py",
+    "status": "DRIVER"
+  },
+  "E0018-probe-signal": {
+    "driver": "scripts/probe_signal.py",
+    "status": "DRIVER"
+  },
+  "E0019-predictor-loss-gpqa": {
+    "driver": "scripts/enforced_governor.py",
+    "status": "DRIVER"
+  },
+  "E0019-predictor-loss-math": {
+    "driver": "scripts/enforced_governor.py",
+    "status": "DRIVER"
+  },
+  "E0020-paired-pricing": {
+    "driver": "scripts/paired_pricing.py",
+    "status": "DRIVER"
+  },
+  "E0021-enforced-gpqa": {
+    "driver": "scripts/enforced_governor.py",
+    "status": "DRIVER"
+  },
+  "E0021-enforced-math": {
+    "driver": "scripts/enforced_governor.py",
+    "status": "DRIVER"
+  },
+  "E0022-power": {
+    "driver": "scripts/power_analysis.py",
+    "status": "DRIVER"
+  },
+  "E0023-lcb-ceiling": {
+    "driver": "scripts/lcb_ceiling.py",
+    "status": "DRIVER"
+  },
+  "E0024-lcb-governor": {
+    "driver": "scripts/lcb_governor.py",
+    "status": "DRIVER"
+  },
+  "E0025-lcb-probe": {
+    "driver": "scripts/lcb_probe.py",
+    "status": "DRIVER"
+  }
+}

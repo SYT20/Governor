@@ -85,6 +85,18 @@ def main() -> int:
         except Exception as e:                               # noqa: BLE001
             add("YELLOW", f"backend {cls}", str(e)[:40])
 
+    # DRIVER_REPRODUCIBILITY: `make verify` re-derives a metric from stored rows
+    # and never asks whether the code that produced them survives. A cleanup
+    # deleted 34 drivers with every check still green; this is that gap.
+    try:
+        from governor.harness.drivers import summary as _driver_summary
+        ds = _driver_summary()
+        add("GREEN" if not ds["broken"] else "RED", "driver reproducibility",
+            f"{ds['with_driver']} with driver, {ds['artifact_only']} artifact-only"
+            + (f", BROKEN: {ds['broken']}" if ds["broken"] else ""))
+    except Exception as e:                                  # noqa: BLE001
+        add("RED", "driver reproducibility", f"check failed: {type(e).__name__}")
+
     for f in ("FINAL-REPORT.md", "FINAL-CLAIMS.md", "REPRODUCE.md",
               "configs/phase4r_split.json", "experiments/WITHDRAWN.json"):
         add("GREEN" if (ROOT / f).exists() else "RED", f"artifact {f}",
