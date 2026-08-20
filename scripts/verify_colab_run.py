@@ -81,16 +81,32 @@ def load_json(path: pathlib.Path):
 
 
 def load_jsonl(path: pathlib.Path) -> list[dict]:
-    rows = []
-    with open(path) as f:
-        for i, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
+    """Read append-only JSONL, distinguishing interruption from corruption.
+
+    A torn FINAL line is what an interrupted run looks like: the process died
+    mid-write. That is expected and survivable, and the archiver already treats
+    it so. A malformed line in the MIDDLE is different -- it means the file was
+    damaged after the fact, and silently skipping it would hide exactly the kind
+    of tampering this script exists to catch.
+    """
+    raw = path.read_text().splitlines()
+    rows, torn_tail = [], 0
+    for i, line in enumerate(raw, 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError as e:
+            if i == len(raw):
+                torn_tail = 1                    # interrupted write: acceptable
                 continue
-            try:
-                rows.append(json.loads(line))
-            except json.JSONDecodeError as e:
-                raise ValueError(f"{path}:{i} is not valid JSON: {e}") from e
+            raise ValueError(
+                f"{path}:{i} is malformed and is NOT the final line -- this is "
+                f"corruption, not an interrupted write: {e}") from e
+    if torn_tail:
+        print(f"  note: {path.name} has a torn final line, consistent with an "
+              f"interrupted run; {len(rows)} complete rows read")
     return rows
 
 
