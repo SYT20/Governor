@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 STATIC_NAMES = (
     "code_chars", "code_lines", "ast_nodes", "ast_depth",
-    "n_loops", "n_branches", "n_functions", "n_try", "n_calls",
+    "n_loops", "n_branches", "n_functions", "n_try", "ast_call_nodes",
     "has_recursion", "parse_ok",
 )
 
@@ -80,7 +80,7 @@ def static_features(code: str) -> dict[str, float]:
         elif isinstance(node, (ast.Try, ast.ExceptHandler)):
             out["n_try"] += 1
         elif isinstance(node, ast.Call):
-            out["n_calls"] += 1
+            out["ast_call_nodes"] += 1
             if isinstance(node.func, ast.Name):
                 called.add(node.func.id)
         for child in ast.iter_child_nodes(node):

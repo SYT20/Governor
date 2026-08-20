@@ -43,7 +43,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import GroupKFold
 
 from governor.execfeedback.richfeatures import FEATURE_NAMES, decision_features
 from governor.harness.ledger import ExperimentRun, ExperimentSpec
@@ -114,8 +114,11 @@ def main() -> int:
     for tag, rich in (("old 7 execution features", False), ("rich trajectory+static", True)):
         X, y, g = decision_rows(byq, cal, rich=rich)
         oof = np.zeros(len(y))
-        skf = StratifiedKFold(5, shuffle=True, random_state=0)
-        for tr, te in skf.split(X, y):
+        # GROUPED by problem. A problem contributes up to nine decision rows and
+        # they all carry the same label, so splitting by ROW puts the same
+        # problem in train and test and the model simply memorises it. That is
+        # what produced a CV AUC of 0.951 against a held-out 0.628.
+        for tr, te in GroupKFold(5).split(X, y, groups=g):
             m = GradientBoostingClassifier(random_state=0, n_estimators=150, max_depth=2)
             m.fit(X[tr], y[tr])
             oof[te] = m.predict_proba(X[te])[:, 1]
@@ -138,7 +141,7 @@ def main() -> int:
     best_name, best_auc, best_oof = None, -1.0, None
     for name, m in cands.items():
         oof = np.zeros(len(y))
-        for tr, te in StratifiedKFold(5, shuffle=True, random_state=0).split(X, y):
+        for tr, te in GroupKFold(5).split(X, y, groups=g):
             mm = m.__class__(**m.get_params()).fit(X[tr], y[tr])
             oof[te] = mm.predict_proba(X[te])[:, 1]
         a = ranking_metrics(y, oof)
@@ -265,7 +268,7 @@ def main() -> int:
                "minus the randomised fixed envelope at its own cost",
         params={"features": list(FEATURE_NAMES), "model": best_name,
                 "frac": frac_star, "target": "any later sample succeeds given all so far failed",
-                "selection": "5-fold stratified inner CV on calibration only"},
+                "selection": "5-fold GROUPED inner CV on calibration only, grouped by problem"},
         notes="Operating point frozen on calibration before a single evaluation "
               "application. E0027's rank-fraction sweep touched evaluation and was "
               "reported as diagnostic; this does not.")
