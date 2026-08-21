@@ -36,3 +36,10 @@ results/colab_preflight.json
 results/colab_model_meta.json
 results/batch_bench.json
 results/E0029-QWEN-preflight.json
+
+# Decoded LiveCodeBench PRIVATE test cases, cached locally by e0029_grade.py.
+# These are the benchmark's hidden answers. Committing them would republish a
+# held-out test set into a public repository and contaminate the benchmark for
+# everyone downstream, including future runs of this project.
+results/e0029_private_tests.json
+results/E0029_frozen_model.pkl
