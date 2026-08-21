@@ -39,6 +39,7 @@ import pathlib
 import re
 import sys
 import time
+import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
@@ -228,7 +229,20 @@ def run(problems: list[dict], n_samples: int, batch_size: int,
           f"-> bucketed into {(len(prepared)+batch_size-1)//batch_size} batches", flush=True)
 
     samples: list[Sample] = []
-    t0, pool = time.perf_counter(), ProcessPoolExecutor(max_workers=4)
+    # SPAWN, not fork. CUDA is already initialised by the time this pool is
+    # created, and forking a process with a live CUDA context is undefined --
+    # in practice it deadlocks, silently, with no output at all. A pilot that
+    # should take five minutes hung for two hours on exactly this.
+    # Spawn costs a one-off interpreter start per worker and is safe.
+    t0 = time.perf_counter()
+    try:
+        pool = ProcessPoolExecutor(
+            max_workers=4, mp_context=multiprocessing.get_context("spawn"))
+        use_pool = True
+    except Exception as e:                                # noqa: BLE001
+        print(f"  process pool unavailable ({type(e).__name__}); "
+              f"running execution inline", flush=True)
+        pool, use_pool = None, False
     try:
         with open(CACHE, "a") as sink:
             for bi in range(0, len(prepared), batch_size):
@@ -237,10 +251,11 @@ def run(problems: list[dict], n_samples: int, batch_size: int,
                                           [1000 + s for _, s, _ in chunk])
                 codes = [extract_code(g["text"]) for g in gen]
                 # Execution is CPU-bound; run it in a pool instead of blocking the GPU.
-                fbs = list(pool.map(_exec_one,
-                                    [(code, p["public"], p["platform"],
-                                      p.get("starter_code", ""), c["sandbox"]["timeout_s"])
-                                     for code, (p, _, _) in zip(codes, chunk)]))
+                jobs = [(code, p["public"], p["platform"],
+                         p.get("starter_code", ""), c["sandbox"]["timeout_s"])
+                        for code, (p, _, _) in zip(codes, chunk)]
+                fbs = list(pool.map(_exec_one, jobs)) if use_pool \
+                    else [_exec_one(j) for j in jobs]
                 for (p, s, _), g, code, fb in zip(chunk, gen, codes, fbs):
                     rec = {"experiment_id": "E0029-QWEN", "problem_id": p["qid"],
                            "sample_id": s, "model": c["model_name"],
@@ -262,10 +277,13 @@ def run(problems: list[dict], n_samples: int, batch_size: int,
                 sink.flush()
                 el = time.perf_counter() - t0
                 done = bi + len(chunk)
-                print(f"    {done}/{len(prepared)}  {el/60:>6.1f}min  "
-                      f"eta {el/done*(len(prepared)-done)/3600:>5.2f}h", flush=True)
+                solved = sum(1 for f in fbs if f.get("pub_all_passed"))
+                print(f"    batch {bi//batch_size + 1}: {done}/{len(prepared)} samples  "
+                      f"{el/60:>5.1f}min  eta {el/done*(len(prepared)-done)/60:>5.1f}min  "
+                      f"solved {solved}/{len(chunk)}", flush=True)
     finally:
-        pool.shutdown(wait=True)
+        if pool is not None:
+            pool.shutdown(wait=True)
     return samples
 
 
