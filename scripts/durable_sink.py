@@ -3,23 +3,31 @@
 
 WHAT WENT WRONG, so it cannot go wrong the same way twice.
 
-E0029 generated 4750 samples over hours of L4 time. The rows were checkpointed
-every batch, resumably, to the VM's local disk. The Drive copy was an ARCHIVE
-STEP AT THE END, and it was designed so that a Drive failure could never fail
-the experiment. The mount raised ValueError under the VS Code extension, the
-cell printed DRIVE_ARCHIVE: SKIPPED, the run "succeeded", the VM was recycled,
-and every row was lost.
+E0029 generated 4750 samples over hours of L4 time, in HOSTED Colab. The rows
+were checkpointed every batch, resumably, to the VM's local disk. The Drive copy
+was an ARCHIVE STEP AT THE END, designed so a Drive failure could never fail the
+experiment. What the log shows:
 
-Two separate mistakes, and the smaller one gets more attention than it deserves:
+    drive mount unavailable (ValueError) - archiving locally
+      status : GENERATION_COMPLETE   rows 4750   problems 475/475
+      DRIVE_ARCHIVE: SKIPPED
+    ARCHIVE_STATUS = PASS   (Drive status is separate and not required)
 
-  1. the mount failed  -- fixable, and largely a VS Code limitation;
-  2. persistence was optional, and it happened LAST.
+Three mistakes, in increasing order of how much damage they did:
 
-The second is the real defect. Archiving at the end loses everything to a
-disconnect mid-run just as surely as to a recycled VM, and "never let the
-archive fail the experiment" is exactly backwards when the artifact IS the
-experiment. Generation is the expensive, unrepeatable part; grading and analysis
-are minutes of CPU and can be redone forever.
+  1. the mount raised ValueError -- and the handler printed only
+     type(e).__name__, discarding str(e), which for drive.mount IS the
+     diagnosis. The cause is unrecoverable from the log because of that.
+  2. persistence was optional and happened LAST. Archiving at the end loses
+     everything to a mid-run disconnect just as surely as to a recycled VM,
+     and "never let the archive fail the experiment" is backwards when the
+     artifact IS the experiment.
+  3. the run reported ARCHIVE_STATUS = PASS while persisting nothing. That is
+     what made killing the VM look safe. A green status over an empty archive
+     is worse than a red one, because it is acted upon.
+
+Generation is the expensive, unrepeatable part; grading and analysis are minutes
+of CPU and can be redone forever.
 
 So this module inverts it:
 
@@ -60,8 +68,23 @@ class NoDurableSink(SystemExit):
 
 def verify_writable(directory: pathlib.Path) -> SinkStatus:
     """Round-trip a probe. A mounted-but-broken Drive still presents a directory,
-    so existence proves nothing; only writing and reading back does."""
+    so existence proves nothing; only writing and reading back does.
+
+    NEVER creates anything under /content/drive unless Drive is already mounted.
+    `mkdir(parents=True)` on an unmounted Drive path silently materialises
+    /content/drive as an ordinary directory, and google.colab's drive.mount()
+    then refuses with `ValueError: Mountpoint must not already contain files`.
+    A helper meant to guarantee persistence would be permanently breaking the
+    only durable sink on the machine -- and this is the likeliest cause of the
+    ValueError that lost the previous run.
+    """
     kind = _classify(directory)
+    if _under_drive(directory) and not _drive_is_mounted():
+        return SinkStatus(
+            False, str(directory), kind,
+            "Drive is not mounted -- refusing to create this path. Creating it "
+            "would make drive.mount() fail with 'Mountpoint must not already "
+            "contain files'. Mount Drive first, then re-check.")
     try:
         directory.mkdir(parents=True, exist_ok=True)
     except Exception as e:                                  # noqa: BLE001
@@ -83,6 +106,43 @@ def verify_writable(directory: pathlib.Path) -> SinkStatus:
         return SinkStatus(False, str(directory), kind,
                           "probe read back wrong -- the mount is unhealthy", ms)
     return SinkStatus(True, str(directory), kind, "verified round-trip", ms)
+
+
+def _under_drive(directory: pathlib.Path) -> bool:
+    try:
+        return pathlib.Path("/content/drive") in directory.resolve().parents \
+            or directory.resolve() == pathlib.Path("/content/drive")
+    except Exception:                                       # noqa: BLE001
+        return str(directory).startswith("/content/drive")
+
+
+def _drive_is_mounted() -> bool:
+    """A real mount, not a directory someone created. MyDrive is produced by the
+    FUSE mount itself, so its presence distinguishes the two."""
+    return pathlib.Path("/content/drive/MyDrive").is_dir()
+
+
+def mount_blocked_by_stray_dir() -> tuple[bool, str]:
+    """Report the trap if it has already been sprung, and say how to clear it.
+
+    Once /content/drive exists as a plain directory, every subsequent mount
+    fails and the message names a mountpoint rather than a cause, so this is
+    worth detecting explicitly rather than leaving someone to guess.
+    """
+    d = pathlib.Path("/content/drive")
+    if not d.exists() or _drive_is_mounted():
+        return False, ""
+    try:
+        contents = list(d.iterdir())
+    except Exception:                                       # noqa: BLE001
+        return False, ""
+    return True, (
+        f"/content/drive exists as an ordinary directory with {len(contents)} "
+        f"entries and is NOT a mount.\n"
+        f"    drive.mount() will fail with 'Mountpoint must not already contain "
+        f"files' until it is removed:\n"
+        f"        import shutil; shutil.rmtree('/content/drive')\n"
+        f"    then mount again.")
 
 
 def _classify(directory: pathlib.Path) -> str:

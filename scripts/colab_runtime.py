@@ -15,9 +15,21 @@ notebook ends up asserting "not running in Colab" on a machine that plainly is.
 Detection here uses several independent signals and reports what it saw, so a
 wrong answer is auditable rather than mysterious.
 
-THE RULE THIS FILE ENFORCES: Drive is an ARCHIVE, never a dependency. The
-experiment must complete with local storage alone, and a Drive that cannot mount
-is recorded as DRIVE_ARCHIVE = UNAVAILABLE -- not as an experiment failure.
+THIS FILE DETECTS; IT DOES NOT DECIDE POLICY. It reports what Drive can do here
+and never mounts, because mounting needs the notebook kernel.
+
+The rule this file used to state -- "Drive is an ARCHIVE, never a dependency,
+and a Drive that cannot mount is recorded as UNAVAILABLE, not an experiment
+failure" -- was WRONG, and it cost a run. E0029 generated 4750 samples in hosted
+Colab, the mount raised ValueError, the status read SKIPPED, the notebook
+printed ARCHIVE_STATUS = PASS because Drive was "not required", and the VM was
+destroyed with the only copy on it.
+
+A durable copy is a PRECONDITION of expensive, unrepeatable work, not an
+optional epilogue. scripts/durable_sink.py enforces that: verify a sink by
+round-trip before the model loads, mirror at every checkpoint, and refuse to
+start without one. What stays true is narrower and still worth saying: this
+module must not turn a detection result into a raised exception.
 """
 from __future__ import annotations
 
