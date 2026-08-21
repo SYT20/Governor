@@ -125,11 +125,34 @@ class BatchedQwen:
         self.tok.padding_side = "left"
         if self.tok.pad_token is None:
             self.tok.pad_token = self.tok.eos_token
+        if self.device == "cuda":
+            free, total = torch.cuda.mem_get_info()
+            print(f"  GPU memory: {free/1e9:.1f} GB free of {total/1e9:.1f} GB",
+                  flush=True)
+            need = 4.0                      # ~3.4 GB of bf16 weights plus overhead
+            if free / 1e9 < need:
+                raise SystemExit(
+                    f"only {free/1e9:.1f} GB free; this needs about {need:.0f} GB for "
+                    f"weights before any KV cache.\n"
+                    f"  The notebook process is probably still holding a model from an "
+                    f"earlier cell. Free it there:\n"
+                    f"      import gc, torch\n"
+                    f"      for n in ('model','_m'):\n"
+                    f"          globals().pop(n, None)\n"
+                    f"      gc.collect(); torch.cuda.empty_cache()")
+
+        # device_map is deliberately NOT used together with .to(): accelerate would
+        # place the shards and the subsequent .to() would copy them again, holding
+        # two copies at once. Load to CPU, then move once.
         self.model = AutoModelForCausalLM.from_pretrained(
             c["model_name"], revision=c["revision"], **_dtype_kwarg(dtype)).to(self.device)
         self.model.eval()
         self.load_s = time.perf_counter() - t0
-        print(f"  loaded in {self.load_s:.1f}s", flush=True)
+        if self.device == "cuda":
+            print(f"  loaded in {self.load_s:.1f}s, "
+                  f"{torch.cuda.memory_allocated()/1e9:.2f} GB resident", flush=True)
+        else:
+            print(f"  loaded in {self.load_s:.1f}s", flush=True)
 
     def chat(self, prompt: str) -> str:
         msgs = [{"role": "user", "content": prompt}]
@@ -250,7 +273,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--pilot", nargs=2, type=int, metavar=("PROBLEMS", "SAMPLES"))
     ap.add_argument("--full", action="store_true")
-    ap.add_argument("--batch-size", type=int, default=32)
+    # 32 x 2048 tokens of KV cache is several GB on top of the weights. The
+    # default is deliberately modest; --batch-size raises it once the pilot has
+    # reported how much headroom the card actually has.
+    ap.add_argument("--batch-size", type=int, default=16)
     args = ap.parse_args()
 
     problems = json.loads(PROBLEMS.read_text())
