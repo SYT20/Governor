@@ -40,10 +40,12 @@ import re
 import sys
 import time
 import multiprocessing
+import os
 from concurrent.futures import ProcessPoolExecutor
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+from scripts.durable_sink import MirroredFile, require_durable_sink
 from governor.execfeedback.preflight import (            # noqa: E402
     PreflightFailed, Sample, assess, require,
 )
@@ -208,7 +210,7 @@ def done_keys() -> set:
 
 
 def run(problems: list[dict], n_samples: int, batch_size: int,
-        pilot: bool) -> list[Sample]:
+        pilot: bool, durable_sink=None) -> list[Sample]:
     c = cfg()
     qwen = BatchedQwen(c)
     have = done_keys()
@@ -243,6 +245,10 @@ def run(problems: list[dict], n_samples: int, batch_size: int,
         print(f"  process pool unavailable ({type(e).__name__}); "
               f"running execution inline", flush=True)
         pool, use_pool = None, False
+    # Every batch boundary already flushes locally. Mirroring HERE, rather than
+    # archiving at the end, is what makes a recycled VM cost nothing: the
+    # previous run flushed 4750 rows perfectly and lost all of them.
+    mirror = MirroredFile(CACHE, durable_sink)
     try:
         with open(CACHE, "a") as sink:
             for bi in range(0, len(prepared), batch_size):
@@ -275,12 +281,17 @@ def run(problems: list[dict], n_samples: int, batch_size: int,
                         code=code, latency_s=g["latency_s"],
                         solved=None if fb.get("empty") else bool(fb.get("pub_all_passed"))))
                 sink.flush()
+                os.fsync(sink.fileno())
+                sent = mirror.sync()
                 el = time.perf_counter() - t0
                 done = bi + len(chunk)
                 solved = sum(1 for f in fbs if f.get("pub_all_passed"))
                 print(f"    batch {bi//batch_size + 1}: {done}/{len(prepared)} samples  "
                       f"{el/60:>5.1f}min  eta {el/done*(len(prepared)-done)/60:>5.1f}min  "
-                      f"solved {solved}/{len(chunk)}", flush=True)
+                      f"solved {solved}/{len(chunk)}"
+                      + (f"  mirrored +{sent/1024:.0f}KB" if sent else
+                         ("  [EPHEMERAL]" if durable_sink is None else "")),
+                      flush=True)
     finally:
         if pool is not None:
             pool.shutdown(wait=True)
@@ -295,14 +306,22 @@ def main() -> int:
     # default is deliberately modest; --batch-size raises it once the pilot has
     # reported how much headroom the card actually has.
     ap.add_argument("--batch-size", type=int, default=16)
+    # Persistence is a PRECONDITION of the expensive run, not a step after it.
+    # The previous run completed, archived nothing, and was lost with the VM.
+    ap.add_argument("--allow-ephemeral", action="store_true",
+                    help="run with no durable copy; the rows die with the VM")
     args = ap.parse_args()
 
     problems = json.loads(PROBLEMS.read_text())
     c = cfg()
 
+    # The pilot is cheap and disposable, so it may run ephemerally. The FULL
+    # run may not: that is the artifact worth hours of GPU time.
     if args.pilot:
         n_p, n_s = args.pilot
-        samples = run(problems[:n_p], n_s, args.batch_size, pilot=True)
+        sink = require_durable_sink(allow_ephemeral=True, quiet=True)
+        samples = run(problems[:n_p], n_s, args.batch_size, pilot=True,
+                      durable_sink=sink)
         report = assess(samples, cap=c["generation"]["max_new_tokens"])
         print()
         print(report.render())
@@ -325,9 +344,21 @@ def main() -> int:
                 PREFLIGHT_OUT.read_text()).get("ok"):
             print("refusing: the pilot has not passed. Run --pilot 20 5 first.")
             return 2
+        # Verified BEFORE the model loads. Refuses unless --allow-ephemeral.
+        sink = require_durable_sink(allow_ephemeral=args.allow_ephemeral)
         run(problems, c["generation"]["samples_per_problem"], args.batch_size,
-            pilot=False)
+            pilot=False, durable_sink=sink)
         print(f"\n  wrote {CACHE.relative_to(ROOT)}")
+
+        ok, msg = MirroredFile(CACHE, sink).verify()
+        print(f"  durable copy: {msg}")
+        if sink is not None and not ok:
+            print("  WARNING: the durable copy does not match. Download "
+                  "results/ before this VM stops.")
+            return 3
+        if sink is None:
+            print("  NO DURABLE COPY EXISTS. Download results/ NOW -- these rows"
+                  "\n  disappear when this VM is recycled.")
         return 0
 
     ap.print_help()
