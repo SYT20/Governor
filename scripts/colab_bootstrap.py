@@ -143,16 +143,41 @@ def repair_torch_stack() -> bool:
 
 
 def acquire(repo: str, ref: str, dest: Path) -> dict:
-    """Clone at a frozen ref. A moving target is not a reproducible experiment."""
+    """Clone at a frozen ref, or track the default branch -- and actually MOVE.
+
+    An earlier version fetched and then moved nothing when `ref` was empty, so an
+    existing checkout stayed pinned at whatever commit it first cloned. Every
+    "pull and re-run" was silently a no-op, and fixes pushed to the remote never
+    reached the runtime. Fetching is not updating.
+
+    With a ref, the checkout is pinned to it -- a moving target is not a
+    reproducible experiment. Without one, it tracks the remote default branch and
+    the before/after commits are reported so the move is visible.
+    """
+    before = ""
     if dest.exists() and (dest / ".git").is_dir():
-        sh(["git", "fetch", "--all", "--tags", "--quiet"], cwd=dest, check=False)
+        before = sh(["git", "rev-parse", "HEAD"], cwd=dest, check=False)
+        sh(["git", "fetch", "--all", "--tags", "--quiet", "--force"],
+           cwd=dest, check=False)
     else:
         if dest.exists():
             shutil.rmtree(dest)
         sh(["git", "clone", "--quiet", repo, str(dest)])
+
     if ref:
-        sh(["git", "checkout", "--quiet", ref], cwd=dest)
+        sh(["git", "checkout", "--quiet", "--force", ref], cwd=dest)
+    else:
+        # Resolve the remote's default branch rather than assuming "main".
+        remote_head = sh(["git", "symbolic-ref", "--quiet", "--short",
+                          "refs/remotes/origin/HEAD"], cwd=dest, check=False)
+        target = remote_head or "origin/main"
+        sh(["git", "reset", "--hard", "--quiet", target], cwd=dest, check=False)
+
     head = sh(["git", "rev-parse", "HEAD"], cwd=dest)
+    if before and before != head:
+        print(f"       {'updated':<20} {before[:8]} -> {head[:8]}")
+    elif before:
+        print(f"       {'already current':<20} {head[:8]}")
     try:
         described = sh(["git", "describe", "--tags", "--always"], cwd=dest)
     except RuntimeError:
