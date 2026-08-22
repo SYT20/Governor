@@ -8,8 +8,11 @@
     "medium": 0.21,
     "hard": 0.21
    },
-   "mean_diff": -0.00024011299435028249,
-   "power": 0.0033333333333333335
+   "mean_diff": -0.0006779661016949153,
+   "power_A_bootstrap_n225": 0.016666666666666666,
+   "power_B_mcnemar_n225": 0.02666666666666667,
+   "power_C_crossfit_n475": 0.056666666666666664,
+   "mean_discordant_pairs": 17.006666666666668
   },
   {
    "spread": 0.25,
@@ -18,8 +21,11 @@
     "medium": 0.21,
     "hard": 0.16275
    },
-   "mean_diff": -0.00033898305084745765,
-   "power": 0.013333333333333334
+   "mean_diff": 0.00518361581920904,
+   "power_A_bootstrap_n225": 0.023333333333333334,
+   "power_B_mcnemar_n225": 0.03,
+   "power_C_crossfit_n475": 0.08,
+   "mean_discordant_pairs": 17.21
   },
   {
    "spread": 0.5,
@@ -28,8 +34,11 @@
     "medium": 0.21,
     "hard": 0.1155
    },
-   "mean_diff": 0.00022598870056497167,
-   "power": 0.013333333333333334
+   "mean_diff": 0.017019774011299435,
+   "power_A_bootstrap_n225": 0.12666666666666668,
+   "power_B_mcnemar_n225": 0.18,
+   "power_C_crossfit_n475": 0.34,
+   "mean_discordant_pairs": 17.45
   },
   {
    "spread": 0.75,
@@ -38,8 +47,11 @@
     "medium": 0.21,
     "hard": 0.06824999999999999
    },
-   "mean_diff": 0.003036723163841808,
-   "power": 0.05
+   "mean_diff": 0.02807909604519774,
+   "power_A_bootstrap_n225": 0.34,
+   "power_B_mcnemar_n225": 0.41,
+   "power_C_crossfit_n475": 0.7266666666666667,
+   "mean_discordant_pairs": 17.18
   },
   {
    "spread": 1.0,
@@ -48,8 +60,11 @@
     "medium": 0.21,
     "hard": 0.020999999999999994
    },
-   "mean_diff": 0.010127118644067797,
-   "power": 0.23
+   "mean_diff": 0.03556497175141243,
+   "power_A_bootstrap_n225": 0.55,
+   "power_B_mcnemar_n225": 0.5966666666666667,
+   "power_C_crossfit_n475": 0.92,
+   "mean_discordant_pairs": 17.233333333333334
   },
   {
    "spread": 1.5,
@@ -58,8 +73,11 @@
     "medium": 0.21,
     "hard": 0.0042
    },
-   "mean_diff": 0.01844632768361582,
-   "power": 0.4666666666666667
+   "mean_diff": 0.04649717514124294,
+   "power_A_bootstrap_n225": 0.7766666666666666,
+   "power_B_mcnemar_n225": 0.83,
+   "power_C_crossfit_n475": 0.9866666666666667,
+   "mean_discordant_pairs": 18.886666666666667
   },
   {
    "spread": 2.0,
@@ -68,8 +86,11 @@
     "medium": 0.21,
     "hard": 0.0042
    },
-   "mean_diff": 0.02156779661016949,
-   "power": 0.5166666666666667
+   "mean_diff": 0.056567796610169495,
+   "power_A_bootstrap_n225": 0.8866666666666667,
+   "power_B_mcnemar_n225": 0.9433333333333334,
+   "power_C_crossfit_n475": 1.0,
+   "mean_discordant_pairs": 21.676666666666666
   }
  ]
 }

@@ -51,6 +51,7 @@ PROBLEMS = ROOT / "results" / "e0029_problems.json"
 OUT = ROOT / "results" / "E0031_power.json"
 
 N_REPLICATES = 300
+FRAC_FIXED = 0.5      # design constant; see the frac-vs-discordance analysis
 N_BOOT = 800
 LEVELS = ("easy", "medium", "hard")
 
@@ -107,25 +108,72 @@ def one_trial(qids_by_diff, rng, spread, frac_grid, k_grid):
         return U
 
     v_hat = rates(cal)
-    # freeze frac/k on calibration
+    # FRAC IS FIXED BY DESIGN, not fitted. Optimising it against the fixed
+    # baseline drives it to 1.0, where both arms take every eligible problem,
+    # the ranking is never consulted, and gov-minus-random is zero by
+    # construction. Only K_EXTRA is chosen on calibration.
+    bf = FRAC_FIXED
     cal_score = np.array([v_hat[d] if not s1 else -np.inf for d, s1, _ in cal])
-    best, bf, bk = -9.0, frac_grid[0], k_grid[0]
+    best, bk = -9.0, k_grid[0]
     base_cal = np.array([1.0 if s1 else 0.0 for _, s1, _ in cal])
-    for f in frac_grid:
-        for k in k_grid:
-            u = sim(cal, cal_score, f, k).mean() - base_cal.mean()
-            if u > best:
-                best, bf, bk = u, f, k
+    for k in k_grid:
+        u = sim(cal, cal_score, bf, k).mean() - base_cal.mean()
+        if u > best:
+            best, bk = u, k
 
     ev_gov = np.array([v_hat[d] if not s1 else -np.inf for d, s1, _ in ev])
     ev_rnd = np.array([rng.random() if not s1 else -np.inf for _, s1, _ in ev])
     Ug = sim(ev, ev_gov, bf, bk)
     Ur = sim(ev, ev_rnd, bf, bk)
     d = Ug - Ur
+
+    # A: the preregistered statistic -- bootstrap the mean over ALL problems.
     bs = np.array([d[rng.integers(0, len(d), len(d))].mean()
                    for _ in range(N_BOOT)])
-    lo = float(np.percentile(bs, 2.5))
-    return float(d.mean()), lo > 0
+    a_ok = float(np.percentile(bs, 2.5)) > 0
+
+    # B: McNemar on DISCORDANT pairs. Most problems get the identical
+    # allocation under both arms and contribute exactly zero; they add
+    # denominator without adding evidence. Conditioning on the pairs where the
+    # arms actually disagree is the standard paired-binary test and is what
+    # E0020 used.
+    b_win = int((d > 0).sum())
+    b_los = int((d < 0).sum())
+    n_disc = b_win + b_los
+    if n_disc:
+        # exact one-sided binomial tail, P(X >= b_win | p=0.5)
+        from math import comb
+        pval = sum(comb(n_disc, i) for i in range(b_win, n_disc + 1)) / 2 ** n_disc
+    else:
+        pval = 1.0
+    b_ok = pval < 0.05
+
+    # C: cross-fitted over ALL problems. Every problem is evaluated once with
+    # v(d) estimated from the OTHER folds, so nothing informs its own
+    # allocation, and the test set is the whole corpus rather than half of it.
+    allrows = cal + ev
+    folds = np.array([i % 5 for i in range(len(allrows))])
+    rng.shuffle(folds)
+    Ug_c = np.empty(len(allrows)); Ur_c = np.empty(len(allrows))
+    for f in range(5):
+        tr = [allrows[i] for i in range(len(allrows)) if folds[i] != f]
+        te_idx = [i for i in range(len(allrows)) if folds[i] == f]
+        te = [allrows[i] for i in te_idx]
+        vh = rates(tr)
+        gsc = np.array([vh[d] if not s1 else -np.inf for d, s1, _ in te])
+        rsc = np.array([rng.random() if not s1 else -np.inf for _, s1, _ in te])
+        Ug_c[te_idx] = sim(te, gsc, bf, bk)
+        Ur_c[te_idx] = sim(te, rsc, bf, bk)
+    dc = Ug_c - Ur_c
+    w, l = int((dc > 0).sum()), int((dc < 0).sum())
+    nd = w + l
+    if nd:
+        from math import comb as _c
+        pc = sum(_c(nd, i) for i in range(w, nd + 1)) / 2 ** nd
+    else:
+        pc = 1.0
+    c_ok = pc < 0.05
+    return float(d.mean()), a_ok, b_ok, c_ok, n_disc
 
 
 def main() -> int:
@@ -138,26 +186,39 @@ def main() -> int:
     frac_grid = list(np.linspace(0.2, 1.0, 5))
     k_grid = [1, 2, 3, 5, 9]
     rows = []
-    print(f"  {'spread':>7} {'v(easy)':>8} {'v(hard)':>8} {'mean gov-rnd':>13} "
-          f"{'detected':>9}")
+    print(f"  {'spread':>7} {'v(easy)':>8} {'v(hard)':>8} {'gov-rnd':>11} "
+          f"{'discord':>8} {'A boot':>8} {'B McNem':>9} {'C xfit':>10}")
+    print(f"  {'':>7} {'':>8} {'':>8} {'':>11} {'pairs':>8} {'n=225':>8} "
+          f"{'n=225':>9} {'n=475':>10}")
     for spread in (0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0):
         rng = np.random.default_rng(1000 + int(spread * 100))
-        eff, hits = [], 0
+        eff, ha, hb, hc, nds = [], 0, 0, 0, []
         for _ in range(N_REPLICATES):
-            e, ok = one_trial(by, rng, spread, frac_grid, k_grid)
-            eff.append(e); hits += ok
+            e, a, b, c, nd = one_trial(by, rng, spread, frac_grid, k_grid)
+            eff.append(e); ha += a; hb += b; hc += c; nds.append(nd)
         v = rescue_by_level(spread)
-        power = hits / N_REPLICATES
+        pa, pb, pc = ha / N_REPLICATES, hb / N_REPLICATES, hc / N_REPLICATES
         rows.append({"spread": spread, "v": v, "mean_diff": float(np.mean(eff)),
-                     "power": power})
+                     "power_A_bootstrap_n225": pa, "power_B_mcnemar_n225": pb,
+                     "power_C_crossfit_n475": pc,
+                     "mean_discordant_pairs": float(np.mean(nds))})
         print(f"  {spread:7.2f} {v['easy']:8.3f} {v['hard']:8.3f} "
-              f"{np.mean(eff):+13.4f} {power:9.1%}")
+              f"{np.mean(eff):+11.4f} {np.mean(nds):8.0f} "
+              f"{pa:8.1%} {pb:9.1%} {pc:10.1%}")
 
-    null = rows[0]["power"]
+    null = rows[0]["power_A_bootstrap_n225"]
     print(f"\n  FALSE POSITIVE RATE at zero effect: {null:.1%}")
     print(f"  (a 95% one-sided criterion should sit near 5%)")
 
-    ok80 = [r for r in rows if r["power"] >= 0.80]
+    print(f"  false positives at zero effect: A={rows[0]['power_A_bootstrap_n225']:.1%}  "
+          f"B={rows[0]['power_B_mcnemar_n225']:.1%}  "
+          f"C={rows[0]['power_C_crossfit_n475']:.1%}")
+    ok80 = [r for r in rows if r["power_A_bootstrap_n225"] >= 0.80]
+    for key, label in (("power_B_mcnemar_n225", "B (McNemar, n=225)"),
+                       ("power_C_crossfit_n475", "C (cross-fit, n=475)")):
+        hit = [r for r in rows if r[key] >= 0.80]
+        print(f"  80% power for {label:24s}: "
+              + (f"spread>={hit[0]['spread']:.2f}" if hit else "NEVER"))
     print()
     if ok80:
         s = ok80[0]

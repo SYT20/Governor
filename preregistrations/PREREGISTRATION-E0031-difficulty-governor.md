@@ -1,5 +1,14 @@
 # E0031 — Preregistration: does benchmark difficulty enable useful allocation?
 
+> **REVISED before execution, on synthetic evidence only.** The first draft
+> optimised `FRAC` on calibration. A power analysis (`scripts/e0031_power.py`,
+> no real data) showed that optimising it against the fixed baseline drives it
+> to 1.0 — where both arms take every eligible problem, the ranking is never
+> consulted, and governor-minus-random is **zero by construction**. Discordant
+> pairs numbered ~5 of 225 and the criterion was unreachable at ANY effect size.
+> `FRAC` is now a **design constant of 0.5**, which maximises the contrast
+> (~81 expected discordant pairs). Only `K_EXTRA` is fitted. See §9.
+
 **Written and committed BEFORE any fitting.** The evaluation set has never been
 scored by any analysis in this project.
 
@@ -57,8 +66,15 @@ unspecified would let the ordering be chosen after seeing results.
 **Allocation.** The top `FRAC` of eligible problems receive `K_EXTRA` further
 samples. All other problems stop at sample 1.
 
-**Free parameters.** `FRAC` and `K_EXTRA`, chosen ONCE on calibration by
-maximising advantage over the cost-matched fixed baseline, then written to
+**Budget, fixed by design.** `FRAC = 0.5`. Half the eligible problems receive
+extra samples. This is NOT fitted. Optimising it against the fixed baseline
+drives it to 1.0, where every arm makes the identical allocation and the
+experiment cannot answer its own question. Fixing it also makes the question the
+right one: *given a fixed extra-compute budget, does difficulty tell you where to
+spend it?* — rather than *how much should you spend?*, which is a different
+question with an obvious answer.
+
+**Free parameter.** `K_EXTRA` only, chosen ONCE on calibration, written to
 `results/E0031_frozen.json` and **committed** before evaluation runs.
 
 ## 4. Comparisons, all at matched realised cost
@@ -99,6 +115,26 @@ spending shape and would not answer the question.
 * `frozen_before_heldout` must be GREEN, meaning the freeze artifact was
   committed at an earlier commit than the evaluation run.
 * Ceiling for reference: **+0.1378** (evaluation, already measured, label-only).
+
+## 9. Power, measured before spending anything
+
+`scripts/e0031_power.py`, 300 replicates, synthetic problems with a known
+difficulty effect. `spread` scales the effect; **spread ≈ 1.0 is roughly what
+E0029's calibration suggested**.
+
+| spread | v(easy) | v(hard) | discordant | boot n=225 | McNemar n=225 | cross-fit n=475 |
+|---|---|---|---|---|---|---|
+| 0.00 | 0.210 | 0.210 | 17 | 1.7% | 2.7% | 5.7% |
+| 0.75 | 0.352 | 0.068 | 17 | 34.0% | 41.0% | 72.7% |
+| 1.00 | 0.399 | 0.021 | 17 | 55.0% | 59.7% | **92.0%** |
+| 1.50 | 0.493 | 0.004 | 19 | 77.7% | **83.0%** | 98.7% |
+| 2.00 | 0.588 | 0.004 | 22 | **88.7%** | 94.3% | 100% |
+
+Row one is the false-positive rate; all three sit at or below nominal.
+
+**The held-out design at n=225 reaches 80% power only at spread ≥ 1.5** — a
+stronger effect than calibration suggests. It is therefore likely to return an
+ambiguous null. This is stated before the result, not after.
 
 ## 7. Predicted outcome, recorded so it can be wrong
 
