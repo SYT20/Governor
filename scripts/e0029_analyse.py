@@ -50,9 +50,12 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+from sklearn.base import clone
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from governor.execfeedback.privatetests import FORBIDDEN_AS_FEATURE
 from governor.execfeedback.richfeatures import FEATURE_NAMES, decision_features
@@ -97,6 +100,15 @@ def _rel(p: pathlib.Path) -> str:
     except ValueError:
         return str(p)
 
+
+# Scaled. code_chars runs to thousands while has_recursion is 0/1 -- a spread of
+# ~30000x. lbfgs on that does not converge, and the run that produced
+# "no model clears the null at the allocation point" emitted a
+# ConvergenceWarning on every fold: those models never fitted at all. A tree is
+# scale-free and unaffected; the pipeline is what makes the comparison honest.
+def _lr(**kw):
+    return make_pipeline(StandardScaler(),
+                         LogisticRegression(max_iter=20000, **kw))
 
 SEPARATION_AUC = 0.98     # above this, a lone feature is the label in disguise
 
@@ -418,7 +430,7 @@ def gate3_predictor(byq: dict, cal: list[str]):
         raise GateFailure(f"only {pos} positive decision points; nothing to learn")
 
     cands = {
-        "logistic": LogisticRegression(max_iter=3000, class_weight="balanced"),
+        "logistic": _lr(class_weight="balanced"),
         "gbt": GradientBoostingClassifier(random_state=0, n_estimators=150,
                                           max_depth=2),
         "rf": RandomForestClassifier(random_state=0, n_estimators=300,
@@ -429,7 +441,7 @@ def gate3_predictor(byq: dict, cal: list[str]):
     for name, m in cands.items():
         oof = np.zeros(len(y))
         for tr, te in GroupKFold(n_splits).split(X, y, groups=g):
-            oof[te] = (m.__class__(**m.get_params()).fit(X[tr], y[tr])
+            oof[te] = (clone(m).fit(X[tr], y[tr])
                        .predict_proba(X[te])[:, 1])
         a = float(auc(y, oof))
         rows[name] = a
@@ -454,7 +466,7 @@ def gate3_predictor(byq: dict, cal: list[str]):
             return 0.5
         oof = np.zeros(len(y))
         for tr, te in GroupKFold(n_splits).split(X, y, groups=g):
-            m = LogisticRegression(max_iter=3000, class_weight="balanced")
+            m = _lr(class_weight="balanced")
             oof[te] = m.fit(X[tr][:, cols], y[tr]).predict_proba(X[te][:, cols])[:, 1]
         a = float(auc(y, oof))
         return max(a, 1.0 - a)
@@ -471,7 +483,7 @@ def gate3_predictor(byq: dict, cal: list[str]):
     if 0 < y0.sum() < len(y0):
         oof0 = np.zeros(len(y))
         for tr, te in GroupKFold(n_splits).split(X, y, groups=g):
-            mm = cands[best].__class__(**cands[best].get_params()).fit(X[tr], y[tr])
+            mm = clone(cands[best]).fit(X[tr], y[tr])
             oof0[te] = mm.predict_proba(X[te])[:, 1]
         a0 = float(auc(y0, oof0[first]))
         print(f"    at the allocation point (sample 1, n={len(first)}, "
@@ -511,7 +523,7 @@ def gate3_predictor(byq: dict, cal: list[str]):
             f"largely reflects\n    how many attempts remain (position-only "
             f"baseline {pos_auc:.3f}).")
 
-    model = cands[best].__class__(**cands[best].get_params()).fit(X, y)
+    model = clone(cands[best]).fit(X, y)
     print(f"    OK: separates at the allocation point {a0:.3f} > null "
           f"{null_hi:.3f}\n")
     return model, {"selected": best, "cv_auc": best_auc,

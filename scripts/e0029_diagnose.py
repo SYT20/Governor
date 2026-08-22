@@ -45,9 +45,12 @@ import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
+from sklearn.base import clone
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import GroupKFold
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from governor.execfeedback.richfeatures import decision_features
 from governor.models.calibration import auc
@@ -55,6 +58,22 @@ from governor.models.calibration import auc
 import scripts.e0029_analyse as A
 
 N_PERM = 4000
+
+# Code-size features are in the thousands, binaries are 0/1 -- roughly 30000x
+# apart. lbfgs does not converge on that, and every logistic fold in the run
+# that reported "no model clears the null" raised ConvergenceWarning: those
+# models never fitted. Trees are scale-free and were fine.
+def _lr(**kw):
+    return make_pipeline(StandardScaler(),
+                         LogisticRegression(max_iter=20000, **kw))
+
+
+# The signal that survived multiplicity was entirely code SIZE, and it is one
+# signal wearing several names -- code_lines, code_chars and ast_nodes measure
+# the same thing and correlate hard. Handing 25 features to a model with 34
+# positives buries it. This family is small enough to be preregistered.
+SIZE_FEATURES = ("code_lines", "code_chars", "ast_nodes", "ast_call_nodes",
+                 "ast_depth", "n_loops", "has_recursion")
 
 
 def allocation_point(byq, qids):
@@ -150,38 +169,44 @@ def main() -> int:
     print("  The preregistered run selected on POOLED AUC, which is positional.")
     print("  This selects on the metric the decision is actually made with.\n")
 
+    size_idx = [j for j, nm in enumerate(names) if nm in SIZE_FEATURES]
     cands = {
-        "logistic": LogisticRegression(max_iter=3000, class_weight="balanced"),
-        "gbt": GradientBoostingClassifier(random_state=0, n_estimators=150,
-                                          max_depth=2),
-        "rf": RandomForestClassifier(random_state=0, n_estimators=300,
-                                     min_samples_leaf=5, class_weight="balanced"),
-        "logistic-l1": LogisticRegression(max_iter=5000, penalty="l1",
-                                          solver="liblinear",
-                                          class_weight="balanced"),
+        "logistic": (_lr(class_weight="balanced"), None),
+        "gbt": (GradientBoostingClassifier(random_state=0, n_estimators=150,
+                                           max_depth=2), None),
+        "rf": (RandomForestClassifier(random_state=0, n_estimators=300,
+                                      min_samples_leaf=5,
+                                      class_weight="balanced"), None),
+        "logistic-l1": (_lr(penalty="l1", solver="liblinear",
+                            class_weight="balanced"), None),
+        "logistic/size-only": (_lr(class_weight="balanced"), size_idx),
+        "code_lines alone": (_lr(class_weight="balanced"),
+                             [j for j, nm in enumerate(names)
+                              if nm == "code_lines"]),
     }
     n_splits = min(5, len(set(g)))
-    print(f"  {'model':14s} {'pooled':>7} {'alloc-pt':>9}")
-    results = {}
-    for nm, m in cands.items():
+    def oof_for(m, cols):
+        sub = (lambda Z: Z[:, cols]) if cols else (lambda Z: Z)
         oof = np.zeros(len(y))
         for tr, te in GroupKFold(n_splits).split(X, y, groups=g):
-            oof[te] = (m.__class__(**m.get_params()).fit(X[tr], y[tr])
-                       .predict_proba(X[te])[:, 1])
+            oof[te] = (clone(m).fit(sub(X[tr]), y[tr])
+                       .predict_proba(sub(X[te]))[:, 1])
+        return oof
+
+    print(f"  {'model':20s} {'feats':>5} {'pooled':>7} {'alloc-pt':>9}")
+    results, oofs = {}, {}
+    for nm, (m, cols) in cands.items():
+        oof = oof_for(m, cols)
+        oofs[nm] = oof
         pooled = float(auc(y, oof))
         alloc = float(auc(y0, oof[first]))
         results[nm] = alloc
-        print(f"  {nm:14s} {pooled:7.3f} {alloc:9.3f}")
+        print(f"  {nm:20s} {len(cols) if cols else X.shape[1]:5d} "
+              f"{pooled:7.3f} {alloc:9.3f}")
 
     # Null for the best of several models is likewise inflated.
     model_null = []
-    sc = {nm: None for nm in cands}
-    for nm, m in cands.items():
-        oof = np.zeros(len(y))
-        for tr, te in GroupKFold(n_splits).split(X, y, groups=g):
-            oof[te] = (m.__class__(**m.get_params()).fit(X[tr], y[tr])
-                       .predict_proba(X[te])[:, 1])
-        sc[nm] = oof[first]
+    sc = {nm: oofs[nm][first] for nm in cands}
     for _ in range(N_PERM):
         yp = rng.permutation(y0)
         model_null.append(max(float(auc(yp, s)) for s in sc.values()))
@@ -190,6 +215,8 @@ def main() -> int:
     best = max(results, key=results.get)
     print(f"\n  best by allocation point: {best} ({results[best]:.3f})")
     print(f"  null for best-of-{len(cands)}-models (95th pct): {model_hi:.3f}")
+    print("  (the parsimonious rows are the point: 34 positives cannot support")
+    print("   25 features, so a smaller family can beat the full vector)")
     if results[best] > model_hi:
         print(f"\n  -> {best} clears the null even after multiplicity.")
         print("     The original gate failure WAS a selection-criterion artifact.")
