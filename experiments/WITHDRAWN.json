@@ -14,6 +14,15 @@
       "superseded_by": "E0018-probe-signal",
       "withdrawn_utc": "2026-08-18",
       "scope": "diagnosis only, not the result"
+    },
+    "E0029-QWEN-original": {
+      "recorded_verdict": "INCONCLUSIVE (stopped at gate 3)",
+      "reason": "decision_features() read the 11 static/AST features as precomputed row columns via last.get(k, 0.0). E0029's generation rows carry `code` and no such columns, so every static feature was 0.0 for all 4750 samples. The run therefore tested 5 distinct observables, not the 25-feature set it was designed around, and its allocation-point AUC of 0.415 was computed on a vector that was 44% dead. With the features restored the same data gives 0.557 for the 25-feature model and 0.651 for code_lines alone.",
+      "superseded_by": "E0029-QWEN-corrected",
+      "withdrawn_utc": "2026-08-22",
+      "detected_by": "scripts/e0029_diagnose.py reporting 17 of 25 features constant at the allocation point",
+      "scope": "conclusion only. The 4750 generation rows, the 4750 private-test grades (65,280 executions, 0 harness failures) and the observable ceiling of +0.1378 are unaffected -- the ceiling comes from the hidden label alone and never touched the broken features. Nothing was regenerated or re-graded.",
+      "missed_warning": "gate 1 printed 'public signal mutated -> 3 feature values moved' out of 25. The number was low because most of the vector was zero. It was not chased."
     }
   }
 }

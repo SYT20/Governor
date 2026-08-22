@@ -40,5 +40,7 @@
   "gate 3 allocation-point AUC 0.415 -- computed on a feature vector that was 44% dead",
   "any claim that observable features cannot separate at the allocation point"
  ],
- "notes": "PRESERVED DELIBERATELY. This record is not rewritten and not deleted. A defect found after a result is published is part of the record, and the project has previously had to withdraw results; hiding the withdrawn version is how that becomes unauditable."
+ "notes": "PRESERVED DELIBERATELY. This record is not rewritten and not deleted. A defect found after a result is published is part of the record, and the project has previously had to withdraw results; hiding the withdrawn version is how that becomes unauditable.",
+ "git_commit": "2aac26f2e5754a6f7a456831d52137c95893e05d",
+ "raw_rows": 4750
 }

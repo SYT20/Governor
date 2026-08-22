@@ -37,5 +37,7 @@
  },
  "evaluation_set_status": "UNTOUCHED. Gate 3 stopped before gate 4 on every run to date, so the 225 evaluation problems have never been scored. They remain available for exactly one confirmatory test.",
  "verdict_rationale": "The corrected analysis does NOT establish that a controller can allocate. code_lines clears its feature-search null by +0.005 at p=0.041, and is substantially explained by problem difficulty. The 25-feature model still fails gate 3. Nothing here is confirmatory and nothing was tested out of sample.",
- "next": "Decide which single feature to preregister -- code_lines (0.651, costs a generation to observe) or difficulty (0.707, free, but on FORBIDDEN_FEATURES and its provenance is unverified) -- then spend the evaluation set once. See preregistrations/PREREGISTRATION-E0030-code-size-rule.md, currently marked NOT EXECUTABLE."
+ "next": "Decide which single feature to preregister -- code_lines (0.651, costs a generation to observe) or difficulty (0.707, free, but on FORBIDDEN_FEATURES and its provenance is unverified) -- then spend the evaluation set once. See preregistrations/PREREGISTRATION-E0030-code-size-rule.md, currently marked NOT EXECUTABLE.",
+ "git_commit": "2aac26f2e5754a6f7a456831d52137c95893e05d",
+ "raw_rows": 4750
 }

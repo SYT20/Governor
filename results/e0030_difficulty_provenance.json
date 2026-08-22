@@ -1,0 +1,99 @@
+{
+ "audit_id": "E0030-difficulty-provenance",
+ "field": "difficulty",
+ "dataset": "livecodebench/code_generation_lite",
+ "snapshot_inspected": "0fe84c3912ea0c4d4a78037083943e8f0c4dd505 (test.jsonl 400, test2.jsonl 111)",
+ "classification": "CONTEST_RATING_DERIVED",
+ "admissible_at_decision_time": true,
+ "questions": {
+  "1_who_assigned": "Competition platforms and their problem setters. LiveCodeBench re-buckets, it does not estimate.",
+  "2_when_assigned": "At or before contest publication; LeetCode's label and AtCoder point values exist when the problem is released, CodeForces ratings shortly after.",
+  "3_inputs": "LeetCode native Easy/Medium/Hard; AtCoder setter point values; CodeForces problem ratings.",
+  "4_depends_on_model_performance": false,
+  "5_depends_on_hidden_test_outcomes": false,
+  "6_depends_on_posthoc_benchmark_eval": false,
+  "7_available_before_first_sample": true,
+  "8_agent_would_reasonably_have_it": "Yes for benchmark evaluation -- it ships in the problem record. NOT guaranteed for a novel problem in deployment; see limitations.",
+  "9_stable_across_releases": "UNVERIFIED. Internally consistent within the cached snapshot (0 question_ids with conflicting difficulty). Stability across releases v1..v6 was not tested.",
+  "10_official_field": "Official LiveCodeBench dataset field, not derived experiment metadata."
+ },
+ "evidence": {
+  "paper": {
+   "url": "https://arxiv.org/html/2403.07974v2",
+   "leetcode": "The platform also provides a difficulty label for each problem which we use to tag the problems as Easy, Medium, and Hard.",
+   "atcoder": "The problems are assigned numeric difficulty ratings, and we exclude abc problems with a rating of more than 500. We also use these numeric ratings to tag the problems as Easy, Medium, and Hard.",
+   "atcoder_brackets": "[0-200), [200-400), [400-500]",
+   "codeforces": "CodeForces also provides difficulty ratings for the problems which we use to tag the problems as Easy, Medium, and Hard using the rating brackets {800}, (800-1000], and (1000-1300] respectively."
+  },
+  "runner_code": {
+   "url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench/main/lcb_runner/benchmarks/code_generation.py",
+   "finding": "Difficulty is an Enum(easy/medium/hard) and __post_init__ only does Difficulty(self.difficulty) -- the runner READS the field, it never computes it. Dataset-construction/scraping code is not in the public repo (lcb_runner only)."
+  },
+  "empirical_atcoder": {
+   "test": "Does difficulty track the AtCoder problem letter, which proxies setter point value?",
+   "result": {
+    "a": {
+     "easy": 51
+    },
+    "b": {
+     "easy": 48,
+     "medium": 5
+    },
+    "c": {
+     "medium": 52
+    },
+    "d": {
+     "medium": 34,
+     "hard": 17
+    },
+    "e": {
+     "hard": 47
+    },
+    "f": {
+     "hard": 13
+    }
+   },
+   "conclusion": "Monotone in letter; only b and d straddle a boundary, which is what varying per-contest point values produce. Rules OUT kenkoooo/AtCoderProblems solve-rate difficulty, whose scale runs to ~4000 and would be almost entirely excluded by the paper's 500 cutoff."
+  },
+  "schema": {
+   "fields": [
+    "contest_date",
+    "contest_id",
+    "difficulty",
+    "metadata",
+    "platform",
+    "question_id",
+    "question_title"
+   ],
+   "finding": "No solve rate, pass rate, submission count or model result anywhere in the record. `metadata` contains only func_name, for LeetCode's functional harness."
+  }
+ },
+ "caveats": [
+  {
+   "issue": "CodeForces ratings are computed from HUMAN contestant performance after the contest.",
+   "severity": "low",
+   "why_acceptable": "Human, not model; independent of LiveCodeBench's hidden tests and of any LLM evaluation. It is outcome-derived at one remove, from a different population.",
+   "exposure": "9 of 475 problems in the E0029 split (1.9%)"
+  },
+  {
+   "issue": "Cross-release stability unverified.",
+   "severity": "medium",
+   "why_acceptable": "Any experiment must pin the dataset snapshot, which the grading stage already records by sha256 per shard.",
+   "exposure": "all problems"
+  },
+  {
+   "issue": "Deployment availability.",
+   "severity": "medium",
+   "why_acceptable": "A Governor relying on difficulty needs that metadata at decision time. True for benchmark evaluation; not guaranteed for a novel problem in production. Any claim built on it is contingent on the metadata existing.",
+   "exposure": "generalisation claims only"
+  }
+ ],
+ "decision": "ADMISSIBLE. Per the E0030 decision rule, CONTEST_RATING_DERIVED permits designing a new preregistered experiment around it.",
+ "not_done_in_this_audit": [
+  "no Governor trained",
+  "no evaluation problem scored",
+  "no threshold tuned",
+  "no operating point selected",
+  "no change to the 250/225 split"
+ ]
+}

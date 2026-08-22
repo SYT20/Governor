@@ -1,0 +1,9 @@
+{
+ "exp_id": "E0030-difficulty-provenance",
+ "verdict": "CONTEST_RATING_DERIVED",
+ "admissible": true,
+ "audit": "results/e0030_difficulty_provenance.json",
+ "git_commit": "2aac26f2e5754a6f7a456831d52137c95893e05d",
+ "raw_rows": 511,
+ "title": "Provenance audit of LiveCodeBench `difficulty`"
+}

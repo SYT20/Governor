@@ -50,6 +50,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from governor.execfeedback.privatetests import (          # noqa: E402
     PrivateTestError, decode_private_tests, grade,
 )
+from scripts.durable_sink import MirroredFile, require_durable_sink  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 GENERATIONS = [ROOT / "results" / "e0029_colab_generations.jsonl",
@@ -270,6 +271,16 @@ def main() -> int:
         print("nothing to do")
         return 0
 
+    # Grading is 91 minutes of CPU over 65,280 executions. Cheaper than
+    # generation, but not cheap, and a verification found the graded file
+    # sitting on a Colab VM with no off-VM copy while the generation file
+    # beside it was safely mirrored -- because only the generator went through
+    # MirroredFile. Any output worth an hour is worth mirroring.
+    sink = require_durable_sink(allow_ephemeral=True, quiet=True)
+    mirror = MirroredFile(out_path, sink)
+    if sink is None:
+        print("  no durable sink: grades are written locally ONLY\n", flush=True)
+
     t0 = time.perf_counter()
     failures = graded = conflicts = 0
     ctx = multiprocessing.get_context("spawn")
@@ -287,6 +298,8 @@ def main() -> int:
                 if rec["grading_status"].startswith("HARNESS"):
                     failures += 1
             sink.flush()                                  # a kill loses <=1 problem
+            os.fsync(sink.fileno())
+            mirror.sync()
             if done_n % 25 == 0 or done_n == len(jobs):
                 el = time.perf_counter() - t0
                 eta = el / done_n * (len(jobs) - done_n)
@@ -301,6 +314,8 @@ def main() -> int:
     if conflicts:
         print(f"CONFLICTS refused: {conflicts} (existing row differed; kept original)")
     print(f"wrote {out_path}")
+    ok, msg = mirror.verify()
+    print(f"durable copy: {msg}")
     print(f"generation file NOT modified: {src.name}")
     return 0
 
