@@ -49,12 +49,56 @@ def constant_schedule(decisions_by_state):
     return len(uniq) > 1, f"distinct_decision_patterns={len(uniq)}"
 
 
-def oracle_leakage(feature_names):
+_MANIFEST_DISQUALIFYING = frozenset({
+    "HIDDEN_INFORMATION", "MODEL_PERFORMANCE_DERIVED",
+    "POSTHOC_EVALUATION_DERIVED",
+})
+
+
+def oracle_leakage(feature_names, provenance_cleared=()):
     """Env 4a: the scorer read cfg.sigma_other while the docstring claimed it
-    could not. Names are checked, not intentions."""
-    bad = [f for f in feature_names
-           if any(k in f.lower() for k in FORBIDDEN_FEATURES)]
-    return not bad, f"forbidden_features={bad}"
+    could not. Names are checked, not intentions.
+
+    A name-based list cannot decide every case, and pretending otherwise is its
+    own failure mode. `difficulty` is forbidden here because in the synthetic
+    Phase-5 family it IS the hidden latent the Governor must infer. On
+    LiveCodeBench the same word is a contest label fixed at publication, audited
+    in E0030 as CONTEST_RATING_DERIVED. Same word, opposite status.
+
+    So a name may be exempted, but only on THREE simultaneous conditions, none
+    of which can be met by editing this file:
+
+      1. the experiment explicitly lists it in `provenance_cleared` -- exemption
+         is per-run and declared, never global;
+      2. the provenance manifest classifies it admissible; and
+      3. that manifest entry cites an audit.
+
+    Deleting the word from FORBIDDEN_FEATURES would have been the easy fix and
+    would have silently un-forbidden it for the synthetic experiments too.
+    """
+    from governor.harness.provenance import classify
+
+    cleared = set(provenance_cleared or ())
+    bad, exempted = [], []
+    for f in feature_names:
+        p = classify(f)
+        by_name = any(k in f.lower() for k in FORBIDDEN_FEATURES)
+        # The manifest catches what the substring list cannot. `hidden_all_passed`
+        # -- the label itself -- matches nothing in FORBIDDEN_FEATURES, which
+        # carries hidden_test, hidden_grade and hidden_difficulty but no bare
+        # `hidden`. It passed the name check cleanly until the manifest was
+        # consulted here.
+        by_class = p.cls in _MANIFEST_DISQUALIFYING
+        if not (by_name or by_class):
+            continue
+        if by_name and not by_class and f in cleared and p.admissible() and p.audit:
+            exempted.append(f"{f}({p.cls})")
+        else:
+            bad.append(f)
+    note = f"forbidden_features={bad}"
+    if exempted:
+        note += f" provenance_cleared={exempted}"
+    return not bad, note
 
 
 def answered_vs_utility(answered_rate, utility, tol=1e-9):
@@ -230,10 +274,14 @@ def run_trap_checks(ev: dict) -> dict[str, tuple[bool, str]]:
                                        "withdrawn_ids"),
         "secret_scan": (),
     }
+    # Optional evidence: absent means the default, never a RED. Required
+    # evidence stays in `reg`, because missing evidence there IS a failure.
+    optional = {"oracle_leakage": ("provenance_cleared",)}
     fns = globals()
     for name, args in reg.items():
         if all(a in ev for a in args):
-            out[name] = fns[name](*[ev[a] for a in args])
+            extra = [ev[o] for o in optional.get(name, ()) if o in ev]
+            out[name] = fns[name](*[ev[a] for a in args], *extra)
         else:
             missing = [a for a in args if a not in ev]
             out[name] = (False, f"NOT RUN - missing evidence: {missing}")
