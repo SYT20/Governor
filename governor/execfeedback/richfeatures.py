@@ -108,7 +108,7 @@ def trajectory_features(attempts: list[dict]) -> dict[str, float]:
     n = len(attempts)
     fr = [float(a["pub_frac"]) for a in attempts]
     lat = [float(a["exec_latency_s"]) for a in attempts]
-    lens = [float(a.get("code_chars", 0.0)) for a in attempts]
+    lens = [_code_chars(a) for a in attempts]
 
     out["attempt_idx"] = float(n)
     out["attempts_left"] = float(max(0, 10 - n))
@@ -131,8 +131,33 @@ def trajectory_features(attempts: list[dict]) -> dict[str, float]:
     return out
 
 
+def _code_chars(a: dict) -> float:
+    """Prefer a precomputed column, fall back to the source it came from."""
+    if "code_chars" in a:
+        return float(a["code_chars"])
+    return float(len(a.get("code", "") or ""))
+
+
 def decision_features(attempts: list[dict]) -> dict[str, float]:
-    """The full decision-time vector: last attempt's structure plus the trajectory."""
+    """The full decision-time vector: last attempt's structure plus the trajectory.
+
+    Static features are taken from precomputed columns when the row carries
+    them, and DERIVED FROM `code` when it does not.
+
+    The fallback is not a convenience. This used to read
+    `last.get(k, 0.0)` for every static name, which is correct for E0028 (whose
+    rows were built with the AST columns precomputed) and silently catastrophic
+    for E0029 (whose generation rows carry `code` and no AST columns): all
+    eleven static features became 0.0 for every sample, and the diagnostic that
+    finally exposed it reported 17 of 25 features "constant at sample 1".
+    Nothing raised, nothing warned, and an experiment designed around static
+    code structure ran without any of it.
+    """
     last = attempts[-1] if attempts else {}
-    static = {k: float(last.get(k, 0.0)) for k in STATIC_NAMES}
+    if any(k in last for k in STATIC_NAMES):
+        static = {k: float(last.get(k, 0.0)) for k in STATIC_NAMES}
+    elif last.get("code"):
+        static = static_features(last["code"])
+    else:
+        static = {k: 0.0 for k in STATIC_NAMES}
     return {**static, **trajectory_features(attempts)}
