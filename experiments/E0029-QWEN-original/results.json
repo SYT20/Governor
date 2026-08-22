@@ -1,0 +1,44 @@
+{
+ "exp_id": "E0029-QWEN-original",
+ "title": "Governor on self-generated Qwen3-1.7B samples, private-test labels",
+ "verdict": "ENGINEERING-INVALID",
+ "superseded_by": "E0029-QWEN-corrected",
+ "invalidation": {
+  "class": "implementation defect in feature extraction",
+  "what": "decision_features() read the 11 static/AST features as precomputed row columns via last.get(k, 0.0). E0029 generation rows carry `code` and no such columns, so every static feature was 0.0 for all 4750 samples.",
+  "consequence": "the run tested 5 distinct observables (pub_frac, latency, runtime_error, timeout, compile_error), NOT the 25-feature trajectory+static set it was designed around. The static family is precisely what E0028 added to escape data starvation, and it was never measured.",
+  "detected_by": "scripts/e0029_diagnose.py, which reported 17 of 25 features constant at the allocation point",
+  "missed_warning": "gate 1 printed 'public signal mutated -> 3 feature values moved' out of 25. The number was low because most of the vector was dead. It was not chased.",
+  "fixed_in": "02d7663",
+  "silent": true
+ },
+ "summary": {
+  "generated_rows": 4750,
+  "graded_rows": 4750,
+  "problems": 475,
+  "calibration": 250,
+  "evaluation": 225,
+  "grading_executions": 65280,
+  "grading_minutes": 91.4,
+  "grading_harness_failures": 0,
+  "solve_at_1_eval": 0.2889,
+  "solve_at_all_eval": 0.4267,
+  "observable_ceiling_eval": 0.1378,
+  "allocation_point_auc": 0.415,
+  "allocation_point_null_95": 0.592,
+  "pooled_auc": 0.646,
+  "position_only_auc": 0.726,
+  "stopped_at": "gate 3 (predictor)"
+ },
+ "what_remains_valid": [
+  "the 4750 generation rows -- untouched by the defect",
+  "the 4750 private-test grades -- computed from code, not features",
+  "gate 0 data integrity: 475 problems, split 250/225, one model",
+  "gate 2 ceiling +0.1378 -- derived from the hidden label alone"
+ ],
+ "what_is_invalid": [
+  "gate 3 allocation-point AUC 0.415 -- computed on a feature vector that was 44% dead",
+  "any claim that observable features cannot separate at the allocation point"
+ ],
+ "notes": "PRESERVED DELIBERATELY. This record is not rewritten and not deleted. A defect found after a result is published is part of the record, and the project has previously had to withdraw results; hiding the withdrawn version is how that becomes unauditable."
+}

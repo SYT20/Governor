@@ -1,0 +1,41 @@
+{
+ "exp_id": "E0029-QWEN-corrected",
+ "title": "Corrected post-hoc analysis of E0029 after the static-feature fix",
+ "verdict": "INCONCLUSIVE-POST-HOC",
+ "supersedes": "E0029-QWEN-original",
+ "status_class": "POST-HOC. The feature-extraction defect was fixed AFTER the preregistered run reported its outcome, so this is a corrected re-analysis of the same data, not a preregistered test. It cannot be reported as a primary result.",
+ "data_reused_not_regenerated": {
+  "generation": "4750 rows, unchanged",
+  "grading": "4750 rows, unchanged",
+  "cost_avoided": "no regeneration, no re-grading (91.4 min + GPU hours)"
+ },
+ "summary": {
+  "constant_features_before_fix": 17,
+  "constant_features_after_fix": 7,
+  "observable_ceiling_eval": 0.1378,
+  "allocation_point_auc_25_feature_model": 0.557,
+  "allocation_point_null_95": 0.597,
+  "gate3": "FAILED -- the 25-feature model does not clear its null",
+  "best_single_feature": "code_lines",
+  "best_single_feature_auc": 0.651,
+  "best_of_18_features_null_95": 0.646,
+  "margin": 0.005,
+  "permutation_p": 0.041,
+  "pub_frac_auc": 0.551
+ },
+ "model_comparison_allocation_point": {
+  "code_lines_alone_1_feature": 0.647,
+  "logistic_l1_25_features": 0.559,
+  "logistic_25_features": 0.557,
+  "logistic_size_family_7_features": 0.54,
+  "note": "fewer features win monotonically. With 34 positives each added feature costs more variance than it returns, and the size measures correlate hard -- seven of them is one signal plus six ways to overfit."
+ },
+ "confounds": {
+  "generation_cap": "CLEARED. 0/162 samples at or near the 2500-token cap, so the signal is not an artifact of truncation.",
+  "difficulty": "NOT CLEARED. Rescue rate spans 6.3x across difficulty (easy 0.467, medium 0.205, hard 0.074) and mean code length tracks it (18.1/36.7/62.8). difficulty ALONE scores AUC 0.707, better than code_lines at 0.651; code_lines within difficulty strata falls to 0.567. code_lines is largely a proxy for a stronger, free signal.",
+  "policy_value": "calibration simulation gives +0.0450 [+0.0200, +0.0760] at frac=0.4 depth=+5, about 33% of ceiling -- but this is the SELECTED maximum over 25 operating points on the set it was chosen from, so optimistic by construction."
+ },
+ "evaluation_set_status": "UNTOUCHED. Gate 3 stopped before gate 4 on every run to date, so the 225 evaluation problems have never been scored. They remain available for exactly one confirmatory test.",
+ "verdict_rationale": "The corrected analysis does NOT establish that a controller can allocate. code_lines clears its feature-search null by +0.005 at p=0.041, and is substantially explained by problem difficulty. The 25-feature model still fails gate 3. Nothing here is confirmatory and nothing was tested out of sample.",
+ "next": "Decide which single feature to preregister -- code_lines (0.651, costs a generation to observe) or difficulty (0.707, free, but on FORBIDDEN_FEATURES and its provenance is unverified) -- then spend the evaluation set once. See preregistrations/PREREGISTRATION-E0030-code-size-rule.md, currently marked NOT EXECUTABLE."
+}
