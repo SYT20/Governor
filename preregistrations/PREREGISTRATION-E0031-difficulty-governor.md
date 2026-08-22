@@ -7,7 +7,7 @@
 > consulted, and governor-minus-random is **zero by construction**. Discordant
 > pairs numbered ~5 of 225 and the criterion was unreachable at ANY effect size.
 > `FRAC` is now a **design constant of 0.5**, which maximises the contrast
-> (~81 expected discordant pairs). Only `K_EXTRA` is fitted. See §9.
+> (~81 expected discordant pairs). Only `K_EXTRA` is fitted. See §7.
 
 **Written and committed BEFORE any fitting.** The evaluation set has never been
 scored by any analysis in this project.
@@ -116,7 +116,7 @@ spending shape and would not answer the question.
   committed at an earlier commit than the evaluation run.
 * Ceiling for reference: **+0.1378** (evaluation, already measured, label-only).
 
-## 9. Power, measured before spending anything
+## 7. Power, measured before spending anything
 
 `scripts/e0031_power.py`, 300 replicates, synthetic problems with a known
 difficulty effect. `spread` scales the effect; **spread ≈ 1.0 is roughly what
@@ -136,12 +136,12 @@ Row one is the false-positive rate; all three sit at or below nominal.
 stronger effect than calibration suggests. It is therefore likely to return an
 ambiguous null. This is stated before the result, not after.
 
-## 7. Predicted outcome, recorded so it can be wrong
+## 8. Predicted outcome, recorded so it can be wrong
 
-I expect **the CI to include zero.** Calibration gives 34 positives across three
-difficulty levels; the power analysis for effects of this size indicated roughly
-370 problems are needed, and evaluation supplies 162 decision points. E0031 is
-underpowered by construction and this is stated before the result, not after.
+I expect **the CI to include zero.** §7 measures 55% power on the held-out set at
+the effect size calibration suggests, so a null is roughly a coin flip even if
+the effect is entirely real. E0031 is underpowered by construction and this is
+stated before the result, not after.
 
 The informative outcomes are:
 
@@ -154,7 +154,7 @@ The informative outcomes are:
   absence. The honest conclusion would be that the design needs more problems,
   and that is a data-collection decision, not an analysis one.
 
-## 8. Known weaknesses
+## 9. Known weaknesses
 
 **Coarse feature.** Three levels means the ranking is mostly ties, resolved by
 an arbitrary hash. The rule is closer to "spend on easy problems first" than to
