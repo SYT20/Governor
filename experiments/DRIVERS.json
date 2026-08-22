@@ -1,118 +1,131 @@
 {
-  "E0001-qwen": {
-    "driver": "scripts/p4_curve.py",
-    "status": "DRIVER"
-  },
-  "E0003-pilot": {
-    "reason": "Underpowered pilot run before the driver convention existed; superseded by E0004.",
-    "status": "ARTIFACT_ONLY"
-  },
-  "E0004-ceiling": {
-    "driver": "scripts/p4_ceiling.py",
-    "status": "DRIVER"
-  },
-  "E0005-structure": {
-    "driver": "scripts/p4r_structure.py",
-    "status": "DRIVER"
-  },
-  "E0006-ceiling-gate": {
-    "driver": "scripts/p4r_ceiling.py",
-    "status": "DRIVER"
-  },
-  "E0007-structure-clean": {
-    "driver": "scripts/p4r_structure.py",
-    "status": "DRIVER"
-  },
-  "E0009-qwen-local": {
-    "driver": "scripts/qwen_local_curve.py",
-    "status": "DRIVER"
-  },
-  "E0010-phase5-design": {
-    "reason": "Design screen computed inline from governor/phase4/headroom.py; no standalone driver was written.",
-    "status": "ARTIFACT_ONLY"
-  },
-  "E0011-phase5-gate": {
-    "driver": "scripts/p5_governor.py",
-    "status": "DRIVER"
-  },
-  "E0012-governor-phase5": {
-    "driver": "scripts/p5_governor.py",
-    "status": "DRIVER"
-  },
-  "E0013-s1-external": {
-    "reason": "External s1 replication; collection driver not retained. Raw rows and config verify.",
-    "status": "ARTIFACT_ONLY"
-  },
-  "E0014-s1-waits": {
-    "reason": "Forced-unit variant of E0013; shares its unretained collection path.",
-    "status": "ARTIFACT_ONLY"
-  },
-  "E0015-s1-waits-gpqa": {
-    "reason": "GPQA arm of E0014; shares its unretained collection path.",
-    "status": "ARTIFACT_ONLY"
-  },
-  "E0016-soft-budget-ceiling": {
-    "driver": "scripts/soft_budget_ceiling.py",
-    "status": "DRIVER"
-  },
-  "E0017-soft-governor-gpqa": {
-    "driver": "scripts/soft_budget_governor.py",
-    "status": "DRIVER"
-  },
-  "E0017-soft-governor-math": {
-    "driver": "scripts/soft_budget_governor.py",
-    "status": "DRIVER"
-  },
-  "E0018-probe-signal": {
-    "driver": "scripts/probe_signal.py",
-    "status": "DRIVER"
-  },
-  "E0019-predictor-loss-gpqa": {
-    "driver": "scripts/enforced_governor.py",
-    "status": "DRIVER"
-  },
-  "E0019-predictor-loss-math": {
-    "driver": "scripts/enforced_governor.py",
-    "status": "DRIVER"
-  },
-  "E0020-paired-pricing": {
-    "driver": "scripts/paired_pricing.py",
-    "status": "DRIVER"
-  },
-  "E0021-enforced-gpqa": {
-    "driver": "scripts/enforced_governor.py",
-    "status": "DRIVER"
-  },
-  "E0021-enforced-math": {
-    "driver": "scripts/enforced_governor.py",
-    "status": "DRIVER"
-  },
-  "E0022-power": {
-    "driver": "scripts/power_analysis.py",
-    "status": "DRIVER"
-  },
-  "E0023-lcb-ceiling": {
-    "driver": "scripts/lcb_ceiling.py",
-    "status": "DRIVER"
-  },
-  "E0024-lcb-governor": {
-    "driver": "scripts/lcb_governor.py",
-    "status": "DRIVER"
-  },
-  "E0025-lcb-probe": {
-    "driver": "scripts/lcb_probe.py",
-    "status": "DRIVER"
-  },
-  "E0026-execution-feedback": {
-    "driver": "scripts/e0026_collect.py",
-    "status": "DRIVER"
-  },
-  "E0027-marginal-value": {
-    "driver": "scripts/e0027_marginal_value.py",
-    "status": "DRIVER"
-  },
-  "E0028-marginal-ranker": {
-    "driver": "scripts/e0028_marginal_ranker.py",
-    "status": "DRIVER"
-  }
+ "E0001-qwen": {
+  "driver": "scripts/p4_curve.py",
+  "status": "DRIVER"
+ },
+ "E0003-pilot": {
+  "reason": "Underpowered pilot run before the driver convention existed; superseded by E0004.",
+  "status": "ARTIFACT_ONLY"
+ },
+ "E0004-ceiling": {
+  "driver": "scripts/p4_ceiling.py",
+  "status": "DRIVER"
+ },
+ "E0005-structure": {
+  "driver": "scripts/p4r_structure.py",
+  "status": "DRIVER"
+ },
+ "E0006-ceiling-gate": {
+  "driver": "scripts/p4r_ceiling.py",
+  "status": "DRIVER"
+ },
+ "E0007-structure-clean": {
+  "driver": "scripts/p4r_structure.py",
+  "status": "DRIVER"
+ },
+ "E0009-qwen-local": {
+  "driver": "scripts/qwen_local_curve.py",
+  "status": "DRIVER"
+ },
+ "E0010-phase5-design": {
+  "reason": "Design screen computed inline from governor/phase4/headroom.py; no standalone driver was written.",
+  "status": "ARTIFACT_ONLY"
+ },
+ "E0011-phase5-gate": {
+  "driver": "scripts/p5_governor.py",
+  "status": "DRIVER"
+ },
+ "E0012-governor-phase5": {
+  "driver": "scripts/p5_governor.py",
+  "status": "DRIVER"
+ },
+ "E0013-s1-external": {
+  "reason": "External s1 replication; collection driver not retained. Raw rows and config verify.",
+  "status": "ARTIFACT_ONLY"
+ },
+ "E0014-s1-waits": {
+  "reason": "Forced-unit variant of E0013; shares its unretained collection path.",
+  "status": "ARTIFACT_ONLY"
+ },
+ "E0015-s1-waits-gpqa": {
+  "reason": "GPQA arm of E0014; shares its unretained collection path.",
+  "status": "ARTIFACT_ONLY"
+ },
+ "E0016-soft-budget-ceiling": {
+  "driver": "scripts/soft_budget_ceiling.py",
+  "status": "DRIVER"
+ },
+ "E0017-soft-governor-gpqa": {
+  "driver": "scripts/soft_budget_governor.py",
+  "status": "DRIVER"
+ },
+ "E0017-soft-governor-math": {
+  "driver": "scripts/soft_budget_governor.py",
+  "status": "DRIVER"
+ },
+ "E0018-probe-signal": {
+  "driver": "scripts/probe_signal.py",
+  "status": "DRIVER"
+ },
+ "E0019-predictor-loss-gpqa": {
+  "driver": "scripts/enforced_governor.py",
+  "status": "DRIVER"
+ },
+ "E0019-predictor-loss-math": {
+  "driver": "scripts/enforced_governor.py",
+  "status": "DRIVER"
+ },
+ "E0020-paired-pricing": {
+  "driver": "scripts/paired_pricing.py",
+  "status": "DRIVER"
+ },
+ "E0021-enforced-gpqa": {
+  "driver": "scripts/enforced_governor.py",
+  "status": "DRIVER"
+ },
+ "E0021-enforced-math": {
+  "driver": "scripts/enforced_governor.py",
+  "status": "DRIVER"
+ },
+ "E0022-power": {
+  "driver": "scripts/power_analysis.py",
+  "status": "DRIVER"
+ },
+ "E0023-lcb-ceiling": {
+  "driver": "scripts/lcb_ceiling.py",
+  "status": "DRIVER"
+ },
+ "E0024-lcb-governor": {
+  "driver": "scripts/lcb_governor.py",
+  "status": "DRIVER"
+ },
+ "E0025-lcb-probe": {
+  "driver": "scripts/lcb_probe.py",
+  "status": "DRIVER"
+ },
+ "E0026-execution-feedback": {
+  "driver": "scripts/e0026_collect.py",
+  "status": "DRIVER"
+ },
+ "E0027-marginal-value": {
+  "driver": "scripts/e0027_marginal_value.py",
+  "status": "DRIVER"
+ },
+ "E0028-marginal-ranker": {
+  "driver": "scripts/e0028_marginal_ranker.py",
+  "status": "DRIVER"
+ },
+ "E0029-QWEN-corrected": {
+  "driver": "scripts/e0029_analyse.py",
+  "status": "DRIVER",
+  "reason": "Reproduces from results/e0029_colab_generations.jsonl and results/E0029_QWEN_graded.jsonl, both gitignored (8.1 MB and 1.1 MB, archived to Drive). Diagnostics in scripts/e0029_diagnose.py."
+ },
+ "E0029-QWEN-original": {
+  "status": "ARTIFACT_ONLY",
+  "reason": "Withdrawn record, kept for the audit trail. Its driver (scripts/e0029_analyse.py) still exists but no longer reproduces this result: the static-feature defect it depended on is fixed, so re-running gives the corrected numbers. Preserved, not re-runnable, by design."
+ },
+ "E0030-difficulty-provenance": {
+  "status": "ARTIFACT_ONLY",
+  "reason": "Provenance audit, not an experiment run. Evidence is the LiveCodeBench paper, lcb_runner source, and a mapping test over the pinned dataset snapshot; recorded in results/e0030_difficulty_provenance.json. No driver, because there is no run to reproduce."
+ }
 }
